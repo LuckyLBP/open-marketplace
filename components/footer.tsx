@@ -155,7 +155,7 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/kontakt"
+                  href="/kundtjanst/kontakt"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   {t('Kontakta oss')}
@@ -163,7 +163,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/faq"
+                  href="/kundtjanst/faq"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   {t('FAQ')}
@@ -171,7 +171,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/frakt"
+                  href="/policys/frakt"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   {t('Frakt')}
@@ -179,7 +179,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/returer"
+                  href="/policys/returer"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
                   {t('Returer')}
