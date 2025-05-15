@@ -1,0 +1,143 @@
+{
+  "categories": [
+    {
+      "title": "Elektronik",
+      "href": "/marketplace?category=elektronik",
+      "description": "Upptäck de senaste tekniska prylarna och elektroniska enheterna",
+      "items": [
+        {
+          "name": "Mobiltelefoner",
+          "href": "/marketplace?category=elektronik&subcategory=mobiltelefoner"
+        },
+        {
+          "name": "Datorer",
+          "href": "/marketplace?category=elektronik&subcategory=datorer"
+        },
+        {
+          "name": "Ljud & Bild",
+          "href": "/marketplace?category=elektronik&subcategory=ljud-bild"
+        },
+        {
+          "name": "Wearables",
+          "href": "/marketplace?category=elektronik&subcategory=wearables"
+        },
+        {
+          "name": "Tillbehör",
+          "href": "/marketplace?category=elektronik&subcategory=tillbehor"
+        }
+      ]
+    },
+    {
+      "title": "Mode",
+      "href": "/marketplace?category=mode",
+      "description": "Bläddra bland modeartiklar för alla stilar och tillfällen",
+      "items": [
+        {
+          "name": "Herr",
+          "href": "/marketplace?category=mode&subcategory=herr"
+        },
+        {
+          "name": "Dam",
+          "href": "/marketplace?category=mode&subcategory=dam"
+        },
+        {
+          "name": "Barn",
+          "href": "/marketplace?category=mode&subcategory=barn"
+        },
+        {
+          "name": "Skor",
+          "href": "/marketplace?category=mode&subcategory=skor"
+        },
+        {
+          "name": "Väskor",
+          "href": "/marketplace?category=mode&subcategory=vaska"
+        },
+        {
+          "name": "Accessoarer",
+          "href": "/marketplace?category=mode&subcategory=accessoarer"
+        }
+      ]
+    },
+    {
+      "title": "Hemmet",
+      "href": "/marketplace?category=hemmet",
+      "description": "Hitta allt du behöver för ditt hem och trädgård",
+      "items": [
+        {
+          "name": "Möbler",
+          "href": "/marketplace?category=hemmet&subcategory=mobler"
+        },
+        {
+          "name": "Inredning",
+          "href": "/marketplace?category=hemmet&subcategory=inredning"
+        },
+        {
+          "name": "Kök",
+          "href": "/marketplace?category=hemmet&subcategory=kok"
+        },
+        {
+          "name": "Trädgård",
+          "href": "/marketplace?category=hemmet&subcategory=tradgard"
+        },
+        {
+          "name": "Belysning",
+          "href": "/marketplace?category=hemmet&subcategory=belysning"
+        }
+      ]
+    },
+    {
+      "title": "Hälsa & Skönhet",
+      "href": "/marketplace?category=halsa-skonhet",
+      "description": "Utforska skönhetsprodukter och hälsoartiklar",
+      "items": [
+        {
+          "name": "Hudvård",
+          "href": "/marketplace?category=halsa-skonhet&subcategory=hudvard"
+        },
+        {
+          "name": "Makeup",
+          "href": "/marketplace?category=halsa-skonhet&subcategory=makeup"
+        },
+        {
+          "name": "Hårvård",
+          "href": "/marketplace?category=halsa-skonhet&subcategory=harvard"
+        },
+        {
+          "name": "Dofter",
+          "href": "/marketplace?category=halsa-skonhet&subcategory=dofter"
+        },
+        {
+          "name": "Välmående",
+          "href": "/marketplace?category=halsa-skonhet&subcategory=valmaende"
+        }
+      ]
+    },
+    {
+      "title": "Hobby & Fritid",
+      "href": "/marketplace?category=hobby-fritid",
+      "description": "Allt för dina fritidsintressen och hobbyer",
+      "items": [
+        {
+          "name": "Sport",
+          "href": "/marketplace?category=hobby-fritid&subcategory=sport"
+        },
+        {
+          "name": "Böcker",
+          "href": "/marketplace?category=hobby-fritid&subcategory=bocker"
+        },
+        {
+          "name": "Spel & Konsol",
+          "href": "/marketplace?category=hobby-fritid&subcategory=spel-konsol"
+        },
+        {
+          "name": "Utomhus",
+          "href": "/marketplace?category=hobby-fritid&subcategory=utomhus"
+        },
+        {
+          "name": "Handarbete",
+          "href": "/marketplace?category=hobby-fritid&subcategory=handarbete"
+        }
+      ]
+    }
+  ]
+}

@@ -1,241 +1,447 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useLanguage } from "@/components/language-provider";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Check, ChevronDown, ChevronUp, FilterIcon, X } from "lucide-react";
+import React, { useMemo, useState } from 'react';
+import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { cn } from '@/lib/utils';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
 
-type FilterSidebarProps = {
-    categories: string[];
-    selectedCategory: string;
-    onCategoryChange: (category: string) => void;
-    priceRange: [number, number];
-    maxPrice: number;
-    onPriceRangeChange: (range: [number, number]) => void;
-    durations: number[];
-    selectedDurations: number[];
-    onDurationChange: (duration: number) => void;
-    onClearFilters: () => void;
-    onApplyFilters: () => void;
-    isMobile?: boolean;
+export interface FilterSidebarProps {
+  categories: string[];
+  selectedCategory: string;
+  onCategoryChange: (category: string) => void;
+  priceRange: [number, number];
+  maxPrice: number;
+  onPriceRangeChange: (range: [number, number]) => void;
+  durations: number[];
+  selectedDurations: number[];
+  onDurationChange: (duration: number) => void;
+  onClearFilters: () => void;
+  onApplyFilters: () => void;
+  isMobile?: boolean;
+  subcategories: string[];
+  selectedSubcategory: string | null;
+  onSubcategoryChange: (subcategory: string) => void;
+}
+
+// Mapping for category display names
+const categoryDisplayNames: Record<string, string> = {
+  elektronik: 'Elektronik',
+  mode: 'Mode',
+  hemmet: 'Hemmet',
+  'halsa-skonhet': 'Hälsa & Skönhet',
+  'hobby-fritid': 'Hobby & Fritid',
+  annat: 'Annat',
+  other: 'Annat',
+};
+
+// Mapping category-subcategory relationships
+const categorySubcategoryMap: Record<string, string[]> = {
+  elektronik: [
+    'mobiltelefoner',
+    'datorer',
+    'ljud-bild',
+    'wearables',
+    'tillbehor',
+  ],
+  mode: ['herr', 'dam', 'barn', 'skor', 'vaska', 'accessoarer'],
+  hemmet: ['mobler', 'inredning', 'kok', 'tradgard', 'belysning'],
+  'halsa-skonhet': ['hudvard', 'makeup', 'harvard', 'dofter', 'valmaende'],
+  'hobby-fritid': ['sport', 'bocker', 'spel-konsol', 'utomhus', 'handarbete'],
+  annat: ['mat', 'dryck', 'present', 'ovrigt'],
+  other: ['mat', 'dryck', 'present', 'ovrigt'],
+};
+
+// Mapping for subcategory display names
+const subcategoryDisplayNames: Record<string, string> = {
+  mobiltelefoner: 'Mobiltelefoner',
+  datorer: 'Datorer',
+  'ljud-bild': 'Ljud & Bild',
+  wearables: 'Wearables',
+  tillbehor: 'Tillbehör',
+  herr: 'Herr',
+  dam: 'Dam',
+  barn: 'Barn',
+  skor: 'Skor',
+  vaska: 'Väskor',
+  accessoarer: 'Accessoarer',
+  mobler: 'Möbler',
+  inredning: 'Inredning',
+  kok: 'Kök',
+  tradgard: 'Trädgård',
+  belysning: 'Belysning',
+  hudvard: 'Hudvård',
+  makeup: 'Makeup',
+  harvard: 'Hårvård',
+  dofter: 'Dofter',
+  valmaende: 'Välmående',
+  sport: 'Sport',
+  bocker: 'Böcker',
+  'spel-konsol': 'Spel & Konsol',
+  utomhus: 'Utomhus',
+  handarbete: 'Handarbete',
+  mat: 'Mat',
+  dryck: 'Dryck',
+  present: 'Present',
+  ovrigt: 'Övrigt',
 };
 
 export function FilterSidebar({
-    categories,
-    selectedCategory,
-    onCategoryChange,
-    priceRange,
-    maxPrice,
-    onPriceRangeChange,
-    durations,
-    selectedDurations,
-    onDurationChange,
-    onClearFilters,
-    onApplyFilters,
-    isMobile = false
+  categories,
+  selectedCategory,
+  onCategoryChange,
+  priceRange,
+  maxPrice,
+  onPriceRangeChange,
+  durations,
+  selectedDurations,
+  onDurationChange,
+  onClearFilters,
+  onApplyFilters,
+  isMobile = false,
+  subcategories,
+  selectedSubcategory,
+  onSubcategoryChange,
 }: FilterSidebarProps) {
-    const { t } = useLanguage();
-    const [isOpen, setIsOpen] = useState(false);
-    const [localPriceRange, setLocalPriceRange] =
-        useState<[number, number]>(priceRange);
+  const [compactView, setCompactView] = useState(true);
 
-    const handlePriceInputChange = (index: number, value: string) => {
-        const newValue = Number.parseInt(value) || 0;
-        const newRange = [...localPriceRange] as [number, number];
-        newRange[index] = newValue;
-        setLocalPriceRange(newRange);
-    };
+  // Format price for display
+  const formatPrice = (price: number) => `${price.toLocaleString()} kr`;
 
-    const handleSliderChange = (value: number[]) => {
-        setLocalPriceRange([value[0], value[1]]);
-    };
+  // Filter subcategories based on selected category
+  const relevantSubcategories = useMemo(() => {
+    if (selectedCategory === 'all') return [];
 
-    const handleApply = () => {
-        onPriceRangeChange(localPriceRange);
-        onApplyFilters();
-        if (isMobile) {
-            setIsOpen(false);
-        }
-    };
+    // Get the list of subcategories for the selected category
+    const relevantSubcategoryKeys =
+      categorySubcategoryMap[selectedCategory] || [];
 
-    const handleClear = () => {
-        onClearFilters();
-        setLocalPriceRange([0, maxPrice]);
-        if (isMobile) {
-            setIsOpen(false);
-        }
-    };
+    // Filter the subcategories from the provided list that match the selected category
+    return subcategories.filter((sub) => relevantSubcategoryKeys.includes(sub));
+  }, [selectedCategory, subcategories]);
 
-    const content = (
-        <div className="space-y-6">
-            <div>
-                <h3 className="font-medium mb-3">{t("Category")}</h3>
-                <div className="space-y-2">
-                    <div
-                        className={`flex items-center justify-between px-3 py-2 rounded-md cursor-pointer ${
-                            selectedCategory === "all"
-                                ? "bg-purple-100 text-purple-700"
-                                : "hover:bg-gray-100"
-                        }`}
-                        onClick={() => onCategoryChange("all")}
-                    >
-                        <span>{t("All Categories")}</span>
-                        {selectedCategory === "all" && (
-                            <Check className="h-4 w-4" />
-                        )}
-                    </div>
-                    {categories.map((category) => (
-                        <div
-                            key={category}
-                            className={`flex items-center justify-between px-3 py-2 rounded-md cursor-pointer ${
-                                selectedCategory === category
-                                    ? "bg-purple-100 text-purple-700"
-                                    : "hover:bg-gray-100"
-                            }`}
-                            onClick={() => onCategoryChange(category)}
-                        >
-                            <span>
-                                {t(
-                                    category.charAt(0).toUpperCase() +
-                                        category.slice(1)
-                                )}
-                            </span>
-                            {selectedCategory === category && (
-                                <Check className="h-4 w-4" />
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <Separator />
-
-            <div>
-                <h3 className="font-medium mb-3">{t("Duration")}</h3>
-                <div className="space-y-2">
-                    {durations.map((duration) => (
-                        <div
-                            key={duration}
-                            className={`flex items-center justify-between px-3 py-2 rounded-md cursor-pointer ${
-                                selectedDurations.includes(duration)
-                                    ? "bg-purple-100 text-purple-700"
-                                    : "hover:bg-gray-100"
-                            }`}
-                            onClick={() => onDurationChange(duration)}
-                        >
-                            <span>{duration}h</span>
-                            {selectedDurations.includes(duration) && (
-                                <Check className="h-4 w-4" />
-                            )}
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <Separator />
-
-            <div>
-                <h3 className="font-medium mb-4">{t("Price Range")}</h3>
-                <div className="space-y-6">
-                    <Slider
-                        defaultValue={[localPriceRange[0], localPriceRange[1]]}
-                        value={[localPriceRange[0], localPriceRange[1]]}
-                        max={maxPrice}
-                        step={10}
-                        onValueChange={handleSliderChange}
-                        className="mb-6"
-                    />
-                    <div className="flex items-center space-x-4">
-                        <div className="grid w-full items-center gap-1.5">
-                            <Label htmlFor="price-min">{t("Min")}</Label>
-                            <Input
-                                type="number"
-                                id="price-min"
-                                value={localPriceRange[0]}
-                                onChange={(e) =>
-                                    handlePriceInputChange(0, e.target.value)
-                                }
-                                min={0}
-                                max={localPriceRange[1]}
-                            />
-                        </div>
-                        <div className="grid w-full items-center gap-1.5">
-                            <Label htmlFor="price-max">{t("Max")}</Label>
-                            <Input
-                                type="number"
-                                id="price-max"
-                                value={localPriceRange[1]}
-                                onChange={(e) =>
-                                    handlePriceInputChange(1, e.target.value)
-                                }
-                                min={localPriceRange[0]}
-                                max={maxPrice}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex flex-col space-y-2 pt-4">
-                <Button
-                    onClick={handleApply}
-                    className="bg-purple-600 hover:bg-purple-700"
-                >
-                    {t("Apply")}
-                </Button>
-                <Button variant="outline" onClick={handleClear}>
-                    {t("Clear Filters")}
-                </Button>
-            </div>
-        </div>
+  // Get display name for a category
+  const getCategoryDisplayName = (category: string) => {
+    return (
+      categoryDisplayNames[category] ||
+      category.charAt(0).toUpperCase() + category.slice(1).replace(/-/g, ' ')
     );
+  };
 
-    // Mobile version with toggle
-    if (isMobile) {
-        return (
-            <div className="mb-4">
-                <Button
-                    variant="outline"
-                    className="w-full flex items-center justify-between"
-                    onClick={() => setIsOpen(!isOpen)}
+  // Get display name for a subcategory
+  const getSubcategoryDisplayName = (subcategory: string) => {
+    return (
+      subcategoryDisplayNames[subcategory] ||
+      subcategory.charAt(0).toUpperCase() +
+        subcategory.slice(1).replace(/-/g, ' ')
+    );
+  };
+
+  // Count active filters
+  const activeFilterCount =
+    (selectedCategory !== 'all' ? 1 : 0) +
+    (selectedSubcategory ? 1 : 0) +
+    selectedDurations.length +
+    (priceRange[0] > 0 || priceRange[1] < maxPrice ? 1 : 0);
+
+  return (
+    <div
+      className={cn(
+        'bg-white rounded-lg shadow-md px-4 py-3 h-fit',
+        isMobile && 'mb-6'
+      )}
+    >
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4" />
+          <h3 className="font-medium text-sm">Filter</h3>
+          {activeFilterCount > 0 && (
+            <Badge variant="secondary" className="h-5 text-xs">
+              {activeFilterCount}
+            </Badge>
+          )}
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 w-7 p-0"
+          onClick={() => setCompactView(!compactView)}
+        >
+          {compactView ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronUp className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
+
+      {compactView ? (
+        // Compact view: just show category chips and active filters
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-1">
+            <Button
+              variant={selectedCategory === 'all' ? 'default' : 'outline'}
+              size="sm"
+              className="h-7 text-xs rounded-full"
+              onClick={() => onCategoryChange('all')}
+            >
+              Alla
+            </Button>
+            {categories.slice(0, 5).map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? 'default' : 'outline'}
+                size="sm"
+                className="h-7 text-xs rounded-full"
+                onClick={() => onCategoryChange(category)}
+              >
+                {getCategoryDisplayName(category)}
+              </Button>
+            ))}
+            {categories.length > 5 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs rounded-full"
+                onClick={() => setCompactView(false)}
+              >
+                +{categories.length - 5}
+              </Button>
+            )}
+          </div>
+
+          {/* Active filter badges */}
+          {activeFilterCount > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {selectedSubcategory && (
+                <Badge
+                  variant="secondary"
+                  className="flex items-center gap-1 pl-2 pr-1 py-1"
+                  onClick={() => onSubcategoryChange(selectedSubcategory)}
                 >
-                    <div className="flex items-center">
-                        <FilterIcon className="h-4 w-4 mr-2" />
-                        {t("Filter")}
-                    </div>
-                    {isOpen ? (
-                        <ChevronUp className="h-4 w-4" />
-                    ) : (
-                        <ChevronDown className="h-4 w-4" />
-                    )}
-                </Button>
+                  {getSubcategoryDisplayName(selectedSubcategory)}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSubcategoryChange(selectedSubcategory);
+                    }}
+                  >
+                    ×
+                  </Button>
+                </Badge>
+              )}
 
-                {isOpen && (
-                    <Card className="p-4 mt-2 border rounded-lg shadow-lg">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="font-semibold text-lg">
-                                {t("Filter")}
-                            </h2>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setIsOpen(false)}
-                            >
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        {content}
-                    </Card>
-                )}
+              {selectedDurations.map((duration) => (
+                <Badge
+                  key={duration}
+                  variant="secondary"
+                  className="flex items-center gap-1 pl-2 pr-1 py-1"
+                >
+                  {duration}h
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0"
+                    onClick={() => onDurationChange(duration)}
+                  >
+                    ×
+                  </Button>
+                </Badge>
+              ))}
+
+              {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
+                <Badge
+                  variant="secondary"
+                  className="flex items-center gap-1 pl-2 pr-1 py-1"
+                >
+                  {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-4 w-4 p-0"
+                    onClick={() => onPriceRangeChange([0, maxPrice])}
+                  >
+                    ×
+                  </Button>
+                </Badge>
+              )}
             </div>
-        );
-    }
+          )}
 
-    // Desktop version
-    return <div className="sticky top-4">{content}</div>;
+          {activeFilterCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs text-muted-foreground hover:text-foreground w-full"
+              onClick={onClearFilters}
+            >
+              Rensa filter
+            </Button>
+          )}
+        </div>
+      ) : (
+        // Expanded view: show all filter options in accordion
+        <Accordion type="multiple" defaultValue={['category']}>
+          <AccordionItem value="category" className="border-b-0">
+            <AccordionTrigger className="py-2 text-sm">
+              Kategorier
+            </AccordionTrigger>
+            <AccordionContent className="pt-0 pb-2">
+              <div className="space-y-1 text-xs max-h-48 overflow-y-auto pr-1">
+                <div className="flex items-center">
+                  <Checkbox
+                    id="all"
+                    checked={selectedCategory === 'all'}
+                    onCheckedChange={() => onCategoryChange('all')}
+                    className="h-3.5 w-3.5"
+                  />
+                  <Label htmlFor="all" className="ml-2 text-xs cursor-pointer">
+                    Alla kategorier
+                  </Label>
+                </div>
+
+                {categories.map((category) => (
+                  <div key={category} className="flex items-center">
+                    <Checkbox
+                      id={category}
+                      checked={selectedCategory === category}
+                      onCheckedChange={() => onCategoryChange(category)}
+                      className="h-3.5 w-3.5"
+                    />
+                    <Label
+                      htmlFor={category}
+                      className="ml-2 text-xs cursor-pointer"
+                    >
+                      {getCategoryDisplayName(category)}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {selectedCategory !== 'all' && relevantSubcategories.length > 0 && (
+            <AccordionItem value="subcategory" className="border-b-0">
+              <AccordionTrigger className="py-2 text-sm">
+                Underkategorier
+              </AccordionTrigger>
+              <AccordionContent className="pt-0 pb-2">
+                <div className="space-y-1 text-xs max-h-32 overflow-y-auto pr-1">
+                  {relevantSubcategories.map((subcategory) => (
+                    <div key={subcategory} className="flex items-center">
+                      <Checkbox
+                        id={subcategory}
+                        checked={selectedSubcategory === subcategory}
+                        onCheckedChange={() => onSubcategoryChange(subcategory)}
+                        className="h-3.5 w-3.5"
+                      />
+                      <Label
+                        htmlFor={subcategory}
+                        className="ml-2 text-xs cursor-pointer"
+                      >
+                        {getSubcategoryDisplayName(subcategory)}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+          <AccordionItem value="price" className="border-b-0">
+            <AccordionTrigger className="py-2 text-sm">
+              Prisintervall
+            </AccordionTrigger>
+            <AccordionContent className="pt-0 pb-2">
+              <div className="px-1">
+                <div className="flex justify-between mb-3">
+                  <span className="text-xs text-muted-foreground">
+                    {formatPrice(priceRange[0])}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatPrice(priceRange[1])}
+                  </span>
+                </div>
+
+                <Slider
+                  min={0}
+                  max={maxPrice}
+                  step={50}
+                  value={priceRange}
+                  onValueChange={(value) =>
+                    onPriceRangeChange(value as [number, number])
+                  }
+                  className="mb-1"
+                />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="duration" className="border-b-0">
+            <AccordionTrigger className="py-2 text-sm">
+              Varaktighet
+            </AccordionTrigger>
+            <AccordionContent className="pt-0 pb-2">
+              <div className="flex flex-wrap gap-2 px-1">
+                {durations.map((duration) => (
+                  <Button
+                    key={duration}
+                    variant={
+                      selectedDurations.includes(duration)
+                        ? 'default'
+                        : 'outline'
+                    }
+                    size="sm"
+                    className="h-7 text-xs px-2"
+                    onClick={() => onDurationChange(duration)}
+                  >
+                    {duration} timmar
+                  </Button>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <div className="flex justify-between mt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs h-7"
+              onClick={onClearFilters}
+            >
+              Rensa filter
+            </Button>
+
+            {isMobile && (
+              <Button
+                size="sm"
+                className="text-xs h-7 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                onClick={onApplyFilters}
+              >
+                Använd filter
+              </Button>
+            )}
+          </div>
+        </Accordion>
+      )}
+    </div>
+  );
 }

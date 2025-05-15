@@ -1,122 +1,181 @@
-"use client"
+'use client';
 
-import { useEffect, useState } from "react"
-import { collection, query, where, getDocs, orderBy, Timestamp } from "firebase/firestore"
-import { db } from "@/lib/firebase"
-import { useLanguage } from "@/components/language-provider"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useToast } from "@/components/ui/use-toast"
-import { SlidersHorizontal } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useRouter } from "next/navigation"
-import { FilterSidebar } from "@/components/filter-sidebar"
-import { ProductCard } from "@/components/product-card"
-import { useMobile } from "@/hooks/use-mobile"
-import { generateDummyProducts } from "@/lib/dummy-data"
-import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
+import { useEffect, useState } from 'react';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  orderBy,
+  Timestamp,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useLanguage } from '@/components/language-provider';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/components/ui/use-toast';
+import { SlidersHorizontal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { FilterSidebar } from '@/components/filter-sidebar';
+import { ProductCard } from '@/components/product-card';
+import { useMobile } from '@/hooks/use-mobile';
+import { generateDummyProducts } from '@/lib/dummy-data';
+import { Navbar } from '@/components/navbar';
+import { Footer } from '@/components/footer';
 
 type Deal = {
-  id: string
-  title: string
-  description: string
-  price: number
-  duration: number
-  imageUrl: string
-  companyId: string
-  companyName: string
-  category: string
-  feePercentage: number
-  expiresAt: Date
-  createdAt: Date
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  duration: number;
+  imageUrl: string;
+  companyId: string;
+  companyName: string;
+  category: string;
+  subcategory?: string;
+  feePercentage: number;
+  expiresAt: Date;
+  createdAt: Date;
   timeLeft: {
-    hours: number
-    minutes: number
-    seconds: number
-  }
-}
+    hours: number;
+    minutes: number;
+    seconds: number;
+  };
+};
+
+const categoryDisplayNames: Record<string, string> = {
+  elektronik: 'Elektronik',
+  mode: 'Mode',
+  hemmet: 'Hemmet',
+  'halsa-skonhet': 'Hälsa & Skönhet',
+  'hobby-fritid': 'Hobby & Fritid',
+  other: 'Annat',
+};
 
 export default function Marketplace() {
-  const { t } = useLanguage()
-  const { toast } = useToast()
-  const router = useRouter()
-  const isMobile = useMobile()
+  const { t } = useLanguage();
+  const { toast } = useToast();
+  const router = useRouter();
+  const isMobile = useMobile();
 
-  const [deals, setDeals] = useState<Deal[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [filteredDeals, setFilteredDeals] = useState<Deal[]>([])
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
+  const searchParams = useSearchParams();
 
   // Filter states
-  const [selectedCategory, setSelectedCategory] = useState("all")
-  const [selectedDurations, setSelectedDurations] = useState<number[]>([])
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000])
-  const [maxPrice, setMaxPrice] = useState(10000)
-  const [sortOption, setSortOption] = useState("newest")
-  const [categories, setCategories] = useState<string[]>([])
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(
+    null
+  );
+  const [selectedDurations, setSelectedDurations] = useState<number[]>([]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
+  const [maxPrice, setMaxPrice] = useState(10000);
+  const [sortOption, setSortOption] = useState('newest');
+  const [categories, setCategories] = useState<string[]>([]);
+  const [subcategories, setSubcategories] = useState<string[]>([]);
+
+  // Get category and subcategory from URL
+  useEffect(() => {
+    const category = searchParams.get('category');
+    const subcategory = searchParams.get('subcategory');
+    const search = searchParams.get('search');
+
+    if (category) {
+      setSelectedCategory(category);
+    }
+
+    if (subcategory) {
+      setSelectedSubcategory(subcategory);
+    }
+
+    if (search) {
+      setSearchQuery(search);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchDeals = async () => {
       try {
-        const now = Timestamp.now()
+        const now = Timestamp.now();
 
         // Check if we need to generate dummy data
-        await generateDummyProducts()
+        await generateDummyProducts();
 
-        const q = query(collection(db, "deals"), where("expiresAt", ">", now), orderBy("expiresAt", "asc"))
+        const q = query(
+          collection(db, 'deals'),
+          where('expiresAt', '>', now),
+          orderBy('expiresAt', 'asc')
+        );
 
-        const querySnapshot = await getDocs(q)
-        const fetchedDeals: Deal[] = []
-        const uniqueCategories = new Set<string>()
-        let highestPrice = 0
+        const querySnapshot = await getDocs(q);
+        const fetchedDeals: Deal[] = [];
+        const uniqueCategories = new Set<string>();
+        const uniqueSubcategories = new Set<string>();
+        let highestPrice = 0;
 
-        const companyIds = new Set<string>()
+        const companyIds = new Set<string>();
         querySnapshot.forEach((doc) => {
-          const data = doc.data()
-          companyIds.add(data.companyId)
+          const data = doc.data();
+          companyIds.add(data.companyId);
 
-          // Track categories and highest price
+          // Track categories and subcategories
           if (data.category) {
-            uniqueCategories.add(data.category)
+            uniqueCategories.add(data.category);
           }
+
+          if (data.subcategory) {
+            uniqueSubcategories.add(data.subcategory);
+          }
+
           if (data.price > highestPrice) {
-            highestPrice = data.price
+            highestPrice = data.price;
           }
-        })
+        });
 
         // Fetch company names
-        const companyData: Record<string, string> = {}
+        const companyData: Record<string, string> = {};
         for (const companyId of companyIds) {
           try {
-            const companyDoc = await getDocs(query(collection(db, "companies"), where("__name__", "==", companyId)))
+            const companyDoc = await getDocs(
+              query(
+                collection(db, 'companies'),
+                where('__name__', '==', companyId)
+              )
+            );
             if (!companyDoc.empty) {
-              companyData[companyId] = companyDoc.docs[0].data().companyName
+              companyData[companyId] = companyDoc.docs[0].data().companyName;
             }
           } catch (error) {
-            console.error("Error fetching company:", error)
+            console.error('Error fetching company:', error);
           }
         }
 
         querySnapshot.forEach((doc) => {
-          const data = doc.data()
-          const expiresAt = data.expiresAt.toDate()
-          const now = new Date()
-          const diffMs = expiresAt.getTime() - now.getTime()
+          const data = doc.data();
+          const expiresAt = data.expiresAt.toDate();
+          const now = new Date();
+          const diffMs = expiresAt.getTime() - now.getTime();
 
-          const hours = Math.floor(diffMs / (1000 * 60 * 60))
-          const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-          const seconds = Math.floor((diffMs % (1000 * 60)) / 1000)
+          const hours = Math.floor(diffMs / (1000 * 60 * 60));
+          const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
 
           fetchedDeals.push({
             id: doc.id,
             title: data.title,
             description: data.description,
             price: data.price,
+            originalPrice: data.originalPrice,
             duration: data.duration,
             imageUrl: data.imageUrl,
             companyId: data.companyId,
-            companyName: companyData[data.companyId] || "Unknown Company",
-            category: data.category || "other",
+            companyName: companyData[data.companyId] || 'Unknown Company',
+            category: data.category || 'other',
+            subcategory: data.subcategory || null,
             feePercentage: data.feePercentage,
             expiresAt: expiresAt,
             createdAt: data.createdAt?.toDate() || new Date(),
@@ -125,69 +184,72 @@ export default function Marketplace() {
               minutes,
               seconds,
             },
-          })
-        })
+          });
+        });
 
         // Set the max price for the filter
-        setMaxPrice(Math.ceil(highestPrice / 100) * 100 || 10000)
-        setPriceRange([0, Math.ceil(highestPrice / 100) * 100 || 10000])
+        setMaxPrice(Math.ceil(highestPrice / 100) * 100 || 10000);
+        setPriceRange([0, Math.ceil(highestPrice / 100) * 100 || 10000]);
 
-        // Set categories
-        setCategories(Array.from(uniqueCategories))
+        // Set categories and subcategories
+        setCategories(Array.from(uniqueCategories));
+        setSubcategories(Array.from(uniqueSubcategories));
 
-        setDeals(fetchedDeals)
-        setFilteredDeals(fetchedDeals)
+        setDeals(fetchedDeals);
+        setFilteredDeals(fetchedDeals);
       } catch (error) {
-        console.error("Error fetching deals:", error)
+        console.error('Error fetching deals:', error);
         toast({
-          title: t("Error"),
-          description: t("Failed to load deals. Please try again."),
-          variant: "destructive",
-        })
+          title: t('Error'),
+          description: t('Failed to load deals. Please try again.'),
+          variant: 'destructive',
+        });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchDeals()
+    fetchDeals();
 
     // Update countdown every second
     const interval = setInterval(() => {
       setDeals((prevDeals) =>
         prevDeals
           .map((deal) => {
-            const now = new Date()
-            const diffMs = deal.expiresAt.getTime() - now.getTime()
+            const now = new Date();
+            const diffMs = deal.expiresAt.getTime() - now.getTime();
 
             if (diffMs <= 0) {
               return {
                 ...deal,
                 timeLeft: { hours: 0, minutes: 0, seconds: 0 },
-              }
+              };
             }
 
-            const hours = Math.floor(diffMs / (1000 * 60 * 60))
-            const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-            const seconds = Math.floor((diffMs % (1000 * 60)) / 1000)
+            const hours = Math.floor(diffMs / (1000 * 60 * 60));
+            const minutes = Math.floor(
+              (diffMs % (1000 * 60 * 60)) / (1000 * 60)
+            );
+            const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
 
             return {
               ...deal,
               timeLeft: { hours, minutes, seconds },
-            }
+            };
           })
           .filter((deal) => {
-            const now = new Date()
-            return deal.expiresAt.getTime() > now.getTime()
-          }),
-      )
-    }, 1000)
+            const now = new Date();
+            return deal.expiresAt.getTime() > now.getTime();
+          })
+      );
+    }, 1000);
 
-    return () => clearInterval(interval)
-  }, [t, toast])
+    return () => clearInterval(interval);
+  }, [t, toast]);
 
   // Apply filters and search
   useEffect(() => {
-    let filtered = [...deals]
+    let filtered = [...deals];
 
     // Apply search filter
     if (searchQuery) {
@@ -195,76 +257,152 @@ export default function Marketplace() {
         (deal) =>
           deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           deal.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          deal.companyName.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
+          deal.companyName.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
 
     // Apply category filter
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter((deal) => deal.category === selectedCategory)
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter((deal) => deal.category === selectedCategory);
+
+      // Apply subcategory filter if a subcategory is selected
+      if (selectedSubcategory) {
+        filtered = filtered.filter(
+          (deal) => deal.subcategory === selectedSubcategory
+        );
+      }
     }
 
     // Apply duration filter
     if (selectedDurations.length > 0) {
-      filtered = filtered.filter((deal) => selectedDurations.includes(deal.duration))
+      filtered = filtered.filter((deal) =>
+        selectedDurations.includes(deal.duration)
+      );
     }
 
     // Apply price range filter
-    filtered = filtered.filter((deal) => deal.price >= priceRange[0] && deal.price <= priceRange[1])
+    filtered = filtered.filter(
+      (deal) => deal.price >= priceRange[0] && deal.price <= priceRange[1]
+    );
 
     // Apply sorting
     switch (sortOption) {
-      case "newest":
-        filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-        break
-      case "price-asc":
-        filtered.sort((a, b) => a.price - b.price)
-        break
-      case "price-desc":
-        filtered.sort((a, b) => b.price - a.price)
-        break
-      case "time-left":
+      case 'newest':
+        filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        break;
+      case 'price-asc':
+        filtered.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        filtered.sort((a, b) => b.price - a.price);
+        break;
+      case 'time-left':
         filtered.sort((a, b) => {
-          const aTimeLeft = a.timeLeft.hours * 3600 + a.timeLeft.minutes * 60 + a.timeLeft.seconds
-          const bTimeLeft = b.timeLeft.hours * 3600 + b.timeLeft.minutes * 60 + b.timeLeft.seconds
-          return aTimeLeft - bTimeLeft
-        })
-        break
+          const aTimeLeft =
+            a.timeLeft.hours * 3600 +
+            a.timeLeft.minutes * 60 +
+            a.timeLeft.seconds;
+          const bTimeLeft =
+            b.timeLeft.hours * 3600 +
+            b.timeLeft.minutes * 60 +
+            b.timeLeft.seconds;
+          return aTimeLeft - bTimeLeft;
+        });
+        break;
       default:
-        break
+        break;
     }
 
-    setFilteredDeals(filtered)
-  }, [searchQuery, selectedCategory, selectedDurations, priceRange, sortOption, deals])
+    setFilteredDeals(filtered);
+  }, [
+    searchQuery,
+    selectedCategory,
+    selectedSubcategory,
+    selectedDurations,
+    priceRange,
+    sortOption,
+    deals,
+  ]);
 
   const handleBuyNow = (dealId: string) => {
-    router.push(`/product/${dealId}`)
-  }
+    router.push(`/product/${dealId}`);
+  };
 
   const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category)
-  }
+    setSelectedCategory(category);
+    setSelectedSubcategory(null); // Reset subcategory when category changes
+
+    // Update URL when category changes
+    const params = new URLSearchParams();
+    if (category !== 'all') {
+      params.set('category', category);
+    }
+    if (searchQuery) {
+      params.set('search', searchQuery);
+    }
+
+    const newUrl = `/marketplace${
+      params.toString() ? `?${params.toString()}` : ''
+    }`;
+    router.push(newUrl);
+  };
+
+  const handleSubcategoryChange = (subcategory: string) => {
+    setSelectedSubcategory(subcategory);
+
+    // Update URL when subcategory changes
+    const params = new URLSearchParams();
+    if (selectedCategory !== 'all') {
+      params.set('category', selectedCategory);
+    }
+    params.set('subcategory', subcategory);
+    if (searchQuery) {
+      params.set('search', searchQuery);
+    }
+
+    const newUrl = `/marketplace${
+      params.toString() ? `?${params.toString()}` : ''
+    }`;
+    router.push(newUrl);
+  };
 
   const handleDurationChange = (duration: number) => {
     setSelectedDurations((prev) => {
       if (prev.includes(duration)) {
-        return prev.filter((d) => d !== duration)
+        return prev.filter((d) => d !== duration);
       } else {
-        return [...prev, duration]
+        return [...prev, duration];
       }
-    })
-  }
+    });
+  };
 
   const handlePriceRangeChange = (range: [number, number]) => {
-    setPriceRange(range)
-  }
+    setPriceRange(range);
+  };
 
   const handleClearFilters = () => {
-    setSelectedCategory("all")
-    setSelectedDurations([])
-    setPriceRange([0, maxPrice])
-    setSearchQuery("")
-  }
+    setSelectedCategory('all');
+    setSelectedSubcategory(null);
+    setSelectedDurations([]);
+    setPriceRange([0, maxPrice]);
+    setSearchQuery('');
+
+    // Clear URL params
+    router.push('/marketplace');
+  };
+
+  // To show a category label in the UI
+  const getCategoryLabel = () => {
+    if (selectedCategory === 'all') return 'Alla kategorier';
+
+    return (
+      categoryDisplayNames[selectedCategory] ||
+      selectedCategory
+        .split('-')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-50 to-white">
@@ -273,20 +411,32 @@ export default function Marketplace() {
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
-            {t("Marketplace")}
+            {selectedCategory !== 'all' ? getCategoryLabel() : t('Marketplace')}
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            {t("Browse our marketplace for exclusive limited-time deals. The clock is ticking!")}
+            {selectedCategory !== 'all' && selectedSubcategory
+              ? `Bläddrar i ${selectedSubcategory} inom ${getCategoryLabel()}`
+              : t(
+                  'Browse our marketplace for exclusive limited-time deals. The clock is ticking!'
+                )}
           </p>
         </div>
 
         <div className="flex justify-between items-center mb-6">
-          <Tabs value={sortOption} onValueChange={setSortOption} className="w-auto">
+          <Tabs
+            value={sortOption}
+            onValueChange={setSortOption}
+            className="w-auto"
+          >
             <TabsList>
-              <TabsTrigger value="newest">{t("Newest")}</TabsTrigger>
-              <TabsTrigger value="price-asc">{t("Price: Low to High")}</TabsTrigger>
-              <TabsTrigger value="price-desc">{t("Price: High to Low")}</TabsTrigger>
-              <TabsTrigger value="time-left">{t("Time Left")}</TabsTrigger>
+              <TabsTrigger value="newest">{t('Newest')}</TabsTrigger>
+              <TabsTrigger value="price-asc">
+                {t('Price: Low to High')}
+              </TabsTrigger>
+              <TabsTrigger value="price-desc">
+                {t('Price: High to Low')}
+              </TabsTrigger>
+              <TabsTrigger value="time-left">{t('Time Left')}</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -311,6 +461,9 @@ export default function Marketplace() {
             onClearFilters={handleClearFilters}
             onApplyFilters={() => {}}
             isMobile={true}
+            subcategories={subcategories}
+            selectedSubcategory={selectedSubcategory}
+            onSubcategoryChange={handleSubcategoryChange}
           />
         )}
 
@@ -329,6 +482,9 @@ export default function Marketplace() {
                 onDurationChange={handleDurationChange}
                 onClearFilters={handleClearFilters}
                 onApplyFilters={() => {}}
+                subcategories={subcategories}
+                selectedSubcategory={selectedSubcategory}
+                onSubcategoryChange={handleSubcategoryChange}
               />
             </div>
           )}
@@ -375,23 +531,33 @@ export default function Marketplace() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-medium mb-2">{t("No products found")}</h3>
+                <h3 className="text-xl font-medium mb-2">
+                  {t('No products found')}
+                </h3>
                 <p className="text-muted-foreground max-w-md mx-auto">
                   {searchQuery ||
-                  selectedCategory !== "all" ||
+                  selectedCategory !== 'all' ||
                   selectedDurations.length > 0 ||
                   priceRange[0] > 0 ||
                   priceRange[1] < maxPrice
-                    ? t("No products match your filters. Try adjusting your search criteria.")
-                    : t("There are no active deals at the moment. Please check back later.")}
+                    ? t(
+                        'No products match your filters. Try adjusting your search criteria.'
+                      )
+                    : t(
+                        'There are no active deals at the moment. Please check back later.'
+                      )}
                 </p>
                 {(searchQuery ||
-                  selectedCategory !== "all" ||
+                  selectedCategory !== 'all' ||
                   selectedDurations.length > 0 ||
                   priceRange[0] > 0 ||
                   priceRange[1] < maxPrice) && (
-                  <Button variant="outline" className="mt-4" onClick={handleClearFilters}>
-                    {t("Clear Filters")}
+                  <Button
+                    variant="outline"
+                    className="mt-4"
+                    onClick={handleClearFilters}
+                  >
+                    {t('Clear Filters')}
                   </Button>
                 )}
               </div>
@@ -402,5 +568,5 @@ export default function Marketplace() {
 
       <Footer />
     </div>
-  )
+  );
 }
