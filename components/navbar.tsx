@@ -209,7 +209,7 @@ export function Navbar() {
             </form>
 
             {/* Cart */}
-            <Link href="/cart">
+            <Link href="/varukorg">
               <Button
                 variant="ghost"
                 size="sm"

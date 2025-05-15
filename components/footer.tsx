@@ -36,14 +36,14 @@ export function Footer() {
       <div className="container mx-auto px-4 pt-16 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           <div>
-            <h3 className="text-2xl font-bold mb-2">{t('Stay Updated')}</h3>
+            <h3 className="text-2xl font-bold mb-2">Håll dig uppdaterad</h3>
             <p className="text-gray-400 mb-4">
-              {t('Subscribe to our newsletter for exclusive deals and updates')}
+              Prenumerera på vårt nyhetsbrev för exklusiva erbjudanden och uppdateringar
             </p>
             <form onSubmit={handleSubscribe} className="flex gap-2">
               <Input
                 type="email"
-                placeholder={t('Your email address')}
+                placeholder="Din e-postadress"
                 className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus-visible:ring-purple-500"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -53,7 +53,7 @@ export function Footer() {
                 type="submit"
                 className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
               >
-                {t('Subscribe')}
+                Prenumerera
               </Button>
             </form>
           </div>
@@ -67,69 +67,77 @@ export function Footer() {
               </span>
             </div>
             <p className="text-gray-400 md:text-right">
-              {t('The best marketplace for limited-time deals')}
+              Den bästa marknadsplatsen för tidsbegränsade erbjudanden
             </p>
           </div>
         </div>
 
         <Separator className="bg-gray-800 my-8" />
 
-        {/* Main Footer Links */}
+        {/* Main Footer Links - Keep the original hrefs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div>
-            <h4 className="font-semibold text-lg mb-4">{t('Shop')}</h4>
+            <h4 className="font-semibold text-lg mb-4">Marknadsplats</h4>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/marketplace"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  {t('All Products')}
+                  Alla produkter
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/marketplace?category=electronics"
+                  href="/marketplace?category=elektronik"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  {t('Electronics')}
+                  Elektronik
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/marketplace?category=clothing"
+                  href="/marketplace?category=mode"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  {t('Clothing')}
+                  Mode
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/marketplace?category=home"
+                  href="/marketplace?category=hemmet"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  {t('Home & Garden')}
+                  Hemmet
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/marketplace?category=beauty"
+                  href="/marketplace?category=halsa-skonhet"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  {t('Beauty & Health')}
+                  Hälsa & Skönhet
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/marketplace?category=hobby-fritid"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Hobby & Fritid
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-lg mb-4">{t('Company')}</h4>
+            <h4 className="font-semibold text-lg mb-4">DealsMarket</h4>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/om-oss"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  {t('Om oss')}
+                  Om oss
                 </Link>
               </li>
               <li>
@@ -137,7 +145,7 @@ export function Footer() {
                   href="/blog"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  {t('Blog')}
+                  Blogg
                 </Link>
               </li>
               <li>
@@ -145,20 +153,20 @@ export function Footer() {
                   href="/partners"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  {t('Partners')}
+                  Samarbetspartners
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-lg mb-4">{t('Support')}</h4>
+            <h4 className="font-semibold text-lg mb-4">Kundtjänst</h4>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/kundtjanst/kontakt"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  {t('Kontakta oss')}
+                  Kontakta oss
                 </Link>
               </li>
               <li>
@@ -166,7 +174,7 @@ export function Footer() {
                   href="/kundtjanst/faq"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  {t('FAQ')}
+                  Vanliga frågor
                 </Link>
               </li>
               <li>
@@ -174,7 +182,7 @@ export function Footer() {
                   href="/policys/frakt"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  {t('Frakt')}
+                  Frakt
                 </Link>
               </li>
               <li>
@@ -182,51 +190,35 @@ export function Footer() {
                   href="/policys/returer"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  {t('Returer')}
+                  Returer
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-lg mb-4">{t('Legal')}</h4>
+            <h4 className="font-semibold text-lg mb-4">Policys</h4>
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/anvandarvillkor"
+                  href="/policys/anvandarvillkor"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  {t('Användarvillkor')}
+                  Användarvillkor
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/sekretesspolicy"
+                  href="/policys/sekretesspolicy"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  {t('Sekretesspolicy')}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/cookies"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  {t('Cookie Policy')}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/compliance"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  {t('Compliance')}
+                  Sekretesspolicy
                 </Link>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Contact and Social */}
+        {/* Contact and Social - Keep the original href */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
           <div className="flex flex-col sm:flex-row gap-4 items-center">
             <Link
@@ -234,7 +226,7 @@ export function Footer() {
               className="flex items-center text-gray-400 hover:text-white transition-colors"
             >
               <Mail className="h-5 w-5 mr-2" />
-              <span>support@dealsmarket.com</span>
+              <span>kundservice@dealsmarket.se</span>
             </Link>
           </div>
           <div className="flex space-x-4">
@@ -278,29 +270,29 @@ export function Footer() {
 
         <Separator className="bg-gray-800 my-8" />
 
-        {/* Bottom Footer */}
+        {/* Bottom Footer - Keep the original href */}
         <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
           <p>
-            © {currentYear} DealsMarket. {t('All rights reserved.')}
+            © {currentYear} DealsMarket. Alla rättigheter förbehållna.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-4 md:mt-0">
             <Link
               href="/accessibility"
               className="hover:text-gray-300 transition-colors"
             >
-              {t('Accessibility')}
+              Tillgänglighet
             </Link>
             <Link
               href="/sitemap"
               className="hover:text-gray-300 transition-colors"
             >
-              {t('Sitemap')}
+              Sidkarta
             </Link>
             <Link
               href="/responsible-disclosure"
               className="hover:text-gray-300 transition-colors"
             >
-              {t('Responsible Disclosure')}
+              Ansvarsfullt avslöjande
             </Link>
           </div>
         </div>
