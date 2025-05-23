@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+/* import { NextResponse } from "next/server"
 import { collection, query, where, getDocs, updateDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import Stripe from "stripe"
@@ -45,3 +45,4 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Failed to verify payment" }, { status: 500 })
   }
 }
+ */
