@@ -411,13 +411,13 @@ export default function Marketplace() {
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
-            {selectedCategory !== 'all' ? getCategoryLabel() : t('Marketplace')}
+            {selectedCategory !== 'all' ? getCategoryLabel() : t('Marknadsplats')}
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
             {selectedCategory !== 'all' && selectedSubcategory
               ? `Bläddrar i ${selectedSubcategory} inom ${getCategoryLabel()}`
               : t(
-                  'Browse our marketplace for exclusive limited-time deals. The clock is ticking!'
+                  'Utforska vår marknadsplats för exklusiva erbjudanden med begränsad tid. Klockan tickar!'
                 )}
           </p>
         </div>
@@ -429,14 +429,14 @@ export default function Marketplace() {
             className="w-auto"
           >
             <TabsList>
-              <TabsTrigger value="newest">{t('Newest')}</TabsTrigger>
+              <TabsTrigger value="newest">{t('Senaste')}</TabsTrigger>
               <TabsTrigger value="price-asc">
-                {t('Price: Low to High')}
+                {t('Pris: Lågt till Högt')}
               </TabsTrigger>
               <TabsTrigger value="price-desc">
-                {t('Price: High to Low')}
+                {t('Pris: Högt till Lågt')}
               </TabsTrigger>
-              <TabsTrigger value="time-left">{t('Time Left')}</TabsTrigger>
+              <TabsTrigger value="time-left">{t('Tid kvar')}</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -532,7 +532,7 @@ export default function Marketplace() {
                   </svg>
                 </div>
                 <h3 className="text-xl font-medium mb-2">
-                  {t('No products found')}
+                  {t('Inga produkter hittades')}
                 </h3>
                 <p className="text-muted-foreground max-w-md mx-auto">
                   {searchQuery ||
@@ -541,10 +541,10 @@ export default function Marketplace() {
                   priceRange[0] > 0 ||
                   priceRange[1] < maxPrice
                     ? t(
-                        'No products match your filters. Try adjusting your search criteria.'
+                        'Inga produkter matchar dina filter. Försök att ändra dina sökkriterier.'
                       )
                     : t(
-                        'There are no active deals at the moment. Please check back later.'
+                        'Det finns inga aktiva erbjudanden just nu. Kom tillbaka senare.'
                       )}
                 </p>
                 {(searchQuery ||
@@ -557,7 +557,7 @@ export default function Marketplace() {
                     className="mt-4"
                     onClick={handleClearFilters}
                   >
-                    {t('Clear Filters')}
+                    {t('Rensa filter')}
                   </Button>
                 )}
               </div>

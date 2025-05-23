@@ -1,0 +1,107 @@
+"filename", "language", "TypeScript", "JSON", "JSON with Comments", "JavaScript", "TypeScript JSX", "PostCSS", "XML", "YAML", "comment", "blank", "total"
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/.prettierrc", "JSON", 0, 8, 0, 0, 0, 0, 0, 0, 0, 1, 9
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/api/create-checkout-session/route.ts", "TypeScript", 73, 0, 0, 0, 0, 0, 0, 0, 4, 9, 86
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/api/verify-payment/route.ts", "TypeScript", 35, 0, 0, 0, 0, 0, 0, 0, 2, 11, 48
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/auth/signin/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 98, 0, 0, 0, 3, 10, 111
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/auth/signup/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 134, 0, 0, 0, 2, 12, 148
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/checkout/[id]/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 297, 0, 0, 0, 4, 35, 336
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/checkout/success/loading.tsx", "TypeScript JSX", 0, 0, 0, 0, 3, 0, 0, 0, 0, 1, 4
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/checkout/success/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 86, 0, 0, 0, 1, 11, 98
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/dashboard/create-deal/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 1060, 0, 0, 0, 24, 88, 1172
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/dashboard/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 207, 0, 0, 0, 0, 16, 223
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/globals.css", "PostCSS", 0, 0, 0, 0, 0, 90, 0, 0, 0, 5, 95
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/kundtjanst/faq/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 452, 0, 0, 0, 20, 26, 498
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/kundtjanst/kontakt/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 418, 0, 0, 0, 7, 29, 454
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/kundtjanst/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 91, 0, 0, 0, 5, 8, 104
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/layout.tsx", "TypeScript JSX", 0, 0, 0, 0, 33, 0, 0, 0, 0, 4, 37
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/marketplace/loading.tsx", "TypeScript JSX", 0, 0, 0, 0, 3, 0, 0, 0, 0, 1, 4
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/marketplace/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 493, 0, 0, 0, 19, 61, 573
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/om-oss/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 280, 0, 0, 0, 6, 9, 295
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 411, 0, 0, 0, 0, 17, 428
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/partners/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 277, 0, 0, 0, 8, 21, 306
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/policys/anvandarvillkor/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 519, 0, 0, 0, 4, 34, 557
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/policys/frakt/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 523, 0, 0, 0, 4, 47, 574
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/policys/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 97, 0, 0, 0, 6, 9, 112
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/policys/returer/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 599, 0, 0, 0, 4, 25, 628
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/policys/sekretesspolicy/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 666, 0, 0, 0, 4, 35, 705
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/product/[id]/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 695, 0, 0, 0, 21, 54, 770
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/varukorg/page.tsx", "TypeScript JSX", 0, 0, 0, 0, 475, 0, 0, 0, 28, 40, 543
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components.json", "JSON", 0, 21, 0, 0, 0, 0, 0, 0, 0, 0, 21
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/dashboard-layout.tsx", "TypeScript JSX", 0, 0, 0, 0, 149, 0, 0, 0, 3, 12, 164
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/filter-sidebar.tsx", "TypeScript JSX", 0, 0, 0, 0, 408, 0, 0, 0, 13, 27, 448
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/firebase-provider.tsx", "TypeScript JSX", 0, 0, 0, 0, 52, 0, 0, 0, 1, 13, 66
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/footer.tsx", "TypeScript JSX", 0, 0, 0, 0, 285, 0, 0, 0, 5, 12, 302
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/language-provider.tsx", "TypeScript JSX", 0, 0, 0, 0, 22, 0, 0, 0, 0, 9, 31
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/navbar.tsx", "TypeScript JSX", 0, 0, 0, 0, 350, 0, 0, 0, 13, 23, 386
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/product-card.tsx", "TypeScript JSX", 0, 0, 0, 0, 129, 0, 0, 0, 1, 7, 137
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/product-image-gallery.tsx", "TypeScript JSX", 0, 0, 0, 0, 155, 0, 0, 0, 3, 14, 172
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/product-specifications.tsx", "TypeScript JSX", 0, 0, 0, 0, 60, 0, 0, 0, 0, 9, 69
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/theme-provider.tsx", "TypeScript JSX", 0, 0, 0, 0, 9, 0, 0, 0, 0, 3, 12
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/accordion.tsx", "TypeScript JSX", 0, 0, 0, 0, 53, 0, 0, 0, 0, 8, 61
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/alert-dialog.tsx", "TypeScript JSX", 0, 0, 0, 0, 127, 0, 0, 0, 0, 15, 142
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/alert.tsx", "TypeScript JSX", 0, 0, 0, 0, 53, 0, 0, 0, 0, 7, 60
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/aspect-ratio.tsx", "TypeScript JSX", 0, 0, 0, 0, 4, 0, 0, 0, 0, 4, 8
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/avatar.tsx", "TypeScript JSX", 0, 0, 0, 0, 34, 0, 0, 0, 0, 7, 41
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/badge.tsx", "TypeScript JSX", 0, 0, 0, 0, 24, 0, 0, 0, 0, 6, 30
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/breadcrumb.tsx", "TypeScript JSX", 0, 0, 0, 0, 105, 0, 0, 0, 0, 11, 116
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/button.tsx", "TypeScript JSX", 0, 0, 0, 0, 51, 0, 0, 0, 0, 6, 57
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/calendar.tsx", "TypeScript JSX", 0, 0, 0, 0, 61, 0, 0, 0, 0, 6, 67
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/card.tsx", "TypeScript JSX", 0, 0, 0, 0, 71, 0, 0, 0, 0, 9, 80
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/carousel.tsx", "TypeScript JSX", 0, 0, 0, 0, 232, 0, 0, 0, 0, 31, 263
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/chart.tsx", "TypeScript JSX", 0, 0, 0, 0, 327, 0, 0, 0, 2, 37, 366
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/checkbox.tsx", "TypeScript JSX", 0, 0, 0, 0, 26, 0, 0, 0, 0, 5, 31
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/collapsible.tsx", "TypeScript JSX", 0, 0, 0, 0, 7, 0, 0, 0, 0, 6, 13
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/command.tsx", "TypeScript JSX", 0, 0, 0, 0, 136, 0, 0, 0, 0, 18, 154
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/context-menu.tsx", "TypeScript JSX", 0, 0, 0, 0, 182, 0, 0, 0, 0, 19, 201
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/dialog.tsx", "TypeScript JSX", 0, 0, 0, 0, 84, 0, 0, 0, 0, 14, 98
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/drawer.tsx", "TypeScript JSX", 0, 0, 0, 0, 105, 0, 0, 0, 0, 14, 119
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/dropdown-menu.tsx", "TypeScript JSX", 0, 0, 0, 0, 182, 0, 0, 0, 0, 19, 201
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/form.tsx", "TypeScript JSX", 0, 0, 0, 0, 153, 0, 0, 0, 0, 26, 179
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/hover-card.tsx", "TypeScript JSX", 0, 0, 0, 0, 23, 0, 0, 0, 0, 7, 30
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/input-otp.tsx", "TypeScript JSX", 0, 0, 0, 0, 63, 0, 0, 0, 0, 9, 72
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/input.tsx", "TypeScript JSX", 0, 0, 0, 0, 19, 0, 0, 0, 0, 4, 23
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/label.tsx", "TypeScript JSX", 0, 0, 0, 0, 21, 0, 0, 0, 0, 6, 27
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/menubar.tsx", "TypeScript JSX", 0, 0, 0, 0, 217, 0, 0, 0, 0, 20, 237
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/navigation-menu.tsx", "TypeScript JSX", 0, 0, 0, 0, 110, 0, 0, 0, 0, 13, 123
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/pagination.tsx", "TypeScript JSX", 0, 0, 0, 0, 107, 0, 0, 0, 0, 11, 118
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/popover.tsx", "TypeScript JSX", 0, 0, 0, 0, 25, 0, 0, 0, 0, 7, 32
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/progress.tsx", "TypeScript JSX", 0, 0, 0, 0, 24, 0, 0, 0, 0, 5, 29
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/radio-group.tsx", "TypeScript JSX", 0, 0, 0, 0, 33, 0, 0, 0, 0, 6, 39
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/resizable.tsx", "TypeScript JSX", 0, 0, 0, 0, 39, 0, 0, 0, 0, 7, 46
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/scroll-area.tsx", "TypeScript JSX", 0, 0, 0, 0, 43, 0, 0, 0, 0, 6, 49
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/select.tsx", "TypeScript JSX", 0, 0, 0, 0, 146, 0, 0, 0, 0, 15, 161
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/separator.tsx", "TypeScript JSX", 0, 0, 0, 0, 23, 0, 0, 0, 0, 5, 28
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/sheet.tsx", "TypeScript JSX", 0, 0, 0, 0, 94, 0, 0, 0, 0, 16, 110
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/sidebar.tsx", "TypeScript JSX", 0, 0, 0, 0, 697, 0, 0, 0, 12, 55, 764
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/skeleton.tsx", "TypeScript JSX", 0, 0, 0, 0, 13, 0, 0, 0, 0, 3, 16
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/slider.tsx", "TypeScript JSX", 0, 0, 0, 0, 26, 0, 0, 0, 0, 5, 31
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/sonner.tsx", "TypeScript JSX", 0, 0, 0, 0, 26, 0, 0, 0, 0, 6, 32
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/switch.tsx", "TypeScript JSX", 0, 0, 0, 0, 25, 0, 0, 0, 0, 5, 30
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/table.tsx", "TypeScript JSX", 0, 0, 0, 0, 107, 0, 0, 0, 0, 11, 118
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/tabs.tsx", "TypeScript JSX", 0, 0, 0, 0, 48, 0, 0, 0, 0, 8, 56
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/textarea.tsx", "TypeScript JSX", 0, 0, 0, 0, 20, 0, 0, 0, 0, 5, 25
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/toast.tsx", "TypeScript JSX", 0, 0, 0, 0, 116, 0, 0, 0, 0, 14, 130
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/toaster.tsx", "TypeScript JSX", 0, 0, 0, 0, 32, 0, 0, 0, 0, 4, 36
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/toggle-group.tsx", "TypeScript JSX", 0, 0, 0, 0, 52, 0, 0, 0, 0, 10, 62
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/toggle.tsx", "TypeScript JSX", 0, 0, 0, 0, 39, 0, 0, 0, 0, 7, 46
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/tooltip.tsx", "TypeScript JSX", 0, 0, 0, 0, 23, 0, 0, 0, 0, 8, 31
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/use-mobile.tsx", "TypeScript JSX", 0, 0, 0, 0, 15, 0, 0, 0, 0, 5, 20
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/components/ui/use-toast.ts", "TypeScript", 160, 0, 0, 0, 0, 0, 0, 0, 3, 32, 195
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/hooks/use-mobile.tsx", "TypeScript JSX", 0, 0, 0, 0, 14, 0, 0, 0, 3, 8, 25
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/hooks/use-toast.ts", "TypeScript", 160, 0, 0, 0, 0, 0, 0, 0, 3, 32, 195
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/lib/categories.json", "JSON", 0, 143, 0, 0, 0, 0, 0, 0, 0, 1, 144
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/lib/dummy-data.ts", "TypeScript", 265, 0, 0, 0, 0, 0, 0, 0, 11, 15, 291
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/lib/firebase.ts", "TypeScript", 17, 0, 0, 0, 0, 0, 0, 0, 1, 4, 22
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/lib/translations.ts", "TypeScript", 59, 0, 0, 0, 0, 0, 0, 0, 6, 7, 72
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/lib/utils.ts", "TypeScript", 5, 0, 0, 0, 0, 0, 0, 0, 0, 2, 7
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/next.config.mjs", "JavaScript", 0, 0, 0, 12, 0, 0, 0, 0, 1, 2, 15
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/package-lock.json", "JSON", 0, 8490, 0, 0, 0, 0, 0, 0, 0, 1, 8491
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/package.json", "JSON", 0, 74, 0, 0, 0, 0, 0, 0, 0, 0, 74
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/pnpm-lock.yaml", "YAML", 0, 0, 0, 0, 0, 0, 0, 4, 0, 1, 5
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/postcss.config.mjs", "JavaScript", 0, 0, 0, 6, 0, 0, 0, 0, 1, 2, 9
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/public/placeholder-logo.svg", "XML", 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/public/placeholder.svg", "XML", 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/styles/globals.css", "PostCSS", 0, 0, 0, 0, 0, 90, 0, 0, 0, 5, 95
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/tailwind.config.ts", "TypeScript", 95, 0, 0, 0, 0, 0, 0, 0, 0, 2, 97
+"/Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/tsconfig.json", "JSON with Comments", 0, 0, 27, 0, 0, 0, 0, 0, 0, 1, 28
+"Total", "-", 869, 8736, 27, 18, 13793, 180, 2, 4, 258, 1414, 25301

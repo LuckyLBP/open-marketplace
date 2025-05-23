@@ -17,7 +17,7 @@ export default function FraktPage() {
             </h1>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
               Här hittar du information om våra leveranssätt, leveranstider och
-              fraktvillkor för beställningar gjorda via DealsMarket.
+              fraktvillkor för beställningar gjorda via Marknadsplatsen.
             </p>
           </div>
         </section>
@@ -101,8 +101,8 @@ export default function FraktPage() {
                       1. Leveransalternativ
                     </h2>
                     <p className="mb-4">
-                      För att möta dina behov erbjuder DealsMarket flera olika
-                      leveransalternativ. Alla leveranser hanteras av våra
+                      För att möta dina behov erbjuder Marknadsplatsen flera
+                      olika leveransalternativ. Alla leveranser hanteras av våra
                       samarbetspartners för att garantera pålitliga och
                       effektiva leveranser.
                     </p>
@@ -324,8 +324,8 @@ export default function FraktPage() {
                       4. Utrikesleveranser
                     </h2>
                     <p className="mb-4">
-                      DealsMarket levererar till de flesta länder i Europa. För
-                      leveranser utanför Sverige gäller följande:
+                      Marknadsplatsen levererar till de flesta länder i Europa.
+                      För leveranser utanför Sverige gäller följande:
                     </p>
 
                     <h3 className="text-xl font-medium mt-6 mb-3">
@@ -373,7 +373,7 @@ export default function FraktPage() {
                     </p>
 
                     <ol className="list-decimal pl-5 space-y-2 mb-4">
-                      <li>Logga in på ditt konto på DealsMarket</li>
+                      <li>Logga in på ditt konto på Marknadsplatsen</li>
                       <li>Gå till "Mina beställningar"</li>
                       <li>Välj den beställning du vill spåra</li>
                       <li>Klicka på knappen "Spåra leverans"</li>
@@ -443,7 +443,7 @@ export default function FraktPage() {
                   <section id="miljo" className="mb-10">
                     <h2 className="text-2xl font-bold mb-4">7. Miljöarbete</h2>
                     <p className="mb-4">
-                      På DealsMarket arbetar vi aktivt för att minska
+                      På Marknadsplatsen arbetar vi aktivt för att minska
                       miljöpåverkan av våra leveranser genom:
                     </p>
 
@@ -506,9 +506,9 @@ export default function FraktPage() {
                     </h3>
                     <p>
                       Vid retur på grund av defekt vara, felleverans eller
-                      transportskada står DealsMarket för returfraktkostnaden. I
-                      dessa fall skickar vi en förbetald retursedel till dig via
-                      e-post.
+                      transportskada står Marknadsplatsen för
+                      returfraktkostnaden. I dessa fall skickar vi en förbetald
+                      retursedel till dig via e-post.
                     </p>
                   </section>
 
@@ -526,10 +526,10 @@ export default function FraktPage() {
                       <li>
                         <strong>E-post:</strong>{' '}
                         <a
-                          href="mailto:frakt@dealsmarket.se"
+                          href="mailto:frakt@Marknadsplatsen.se"
                           className="text-purple-600 hover:underline"
                         >
-                          frakt@dealsmarket.se
+                          frakt@Marknadsplatsen.se
                         </a>
                       </li>
                       <li>
@@ -542,7 +542,7 @@ export default function FraktPage() {
                           href="/kontakt"
                           className="text-purple-600 hover:underline"
                         >
-                          www.dealsmarket.se/kontakt
+                          www.Marknadsplatsen.se/kontakt
                         </Link>
                       </li>
                     </ul>
@@ -557,7 +557,7 @@ export default function FraktPage() {
                   <div className="mt-12 text-sm text-gray-500">
                     <p>
                       Denna fraktpolicy är upphovsrättsskyddad och tillhör
-                      DealsMarket AB.
+                      Marknadsplatsen AB.
                     </p>
                   </div>
                 </div>

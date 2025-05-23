@@ -16,8 +16,8 @@ export default function UserTermsPage() {
               Användarvillkor
             </h1>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Dessa användarvillkor reglerar din användning av DealsMarket och
-              de tjänster vi erbjuder. Genom att använda vår plattform
+              Dessa användarvillkor reglerar din användning av Marknadsplatsen
+              och de tjänster vi erbjuder. Genom att använda vår plattform
               accepterar du dessa villkor.
             </p>
           </div>
@@ -130,20 +130,20 @@ export default function UserTermsPage() {
                   <section id="introduction" className="mb-10">
                     <h2 className="text-2xl font-bold mb-4">1. Introduktion</h2>
                     <p className="mb-4">
-                      Välkommen till DealsMarket, en plattform för
-                      tidsbegränsade erbjudanden som drivs av DealsMarket AB
+                      Välkommen till Marknadsplatsen, en plattform för
+                      tidsbegränsade erbjudanden som drivs av Marknadsplatsen AB
                       (org.nr. 555555-5555). Genom att använda vår webbplats
                       godkänner du dessa användarvillkor i sin helhet. Om du
                       inte accepterar dessa villkor bör du inte använda vår
                       tjänst.
                     </p>
                     <p>
-                      DealsMarket är en marknadsplats där företag kan erbjuda
-                      tidsbegränsade produkter och tjänster till konsumenter.
-                      Vår plattform fungerar som en mellanhand för att
-                      underlätta transaktioner mellan köpare och säljare, och vi
-                      är inte själva säljare av de produkter som erbjuds på
-                      plattformen.
+                      Marknadsplatsen är en marknadsplats där företag kan
+                      erbjuda tidsbegränsade produkter och tjänster till
+                      konsumenter. Vår plattform fungerar som en mellanhand för
+                      att underlätta transaktioner mellan köpare och säljare,
+                      och vi är inte själva säljare av de produkter som erbjuds
+                      på plattformen.
                     </p>
                   </section>
 
@@ -154,8 +154,8 @@ export default function UserTermsPage() {
                     <ul className="list-disc pl-5 space-y-2">
                       <li>
                         <strong>"Plattformen"</strong> avser webbplatsen
-                        DealsMarket, tillgänglig via www.dealsmarket.se och alla
-                        tillhörande appar.
+                        Marknadsplatsen, tillgänglig via www.Marknadsplatsen.se
+                        och alla tillhörande appar.
                       </li>
                       <li>
                         <strong>"Användare"</strong> avser varje person som
@@ -188,8 +188,8 @@ export default function UserTermsPage() {
                       3. Konto och registrering
                     </h2>
                     <p className="mb-4">
-                      För att kunna göra köp på DealsMarket behöver du skapa ett
-                      konto. Du ansvarar för att tillhandahålla korrekt och
+                      För att kunna göra köp på Marknadsplatsen behöver du skapa
+                      ett konto. Du ansvarar för att tillhandahålla korrekt och
                       aktuell information vid registrering och för att hålla
                       dina inloggningsuppgifter konfidentiella.
                     </p>
@@ -202,7 +202,7 @@ export default function UserTermsPage() {
                     <p>
                       Du ansvarar för all aktivitet som sker på ditt konto och
                       får inte överlåta ditt konto till någon annan. Du måste
-                      omedelbart meddela DealsMarket om eventuell obehörig
+                      omedelbart meddela Marknadsplatsen om eventuell obehörig
                       användning av ditt konto eller andra säkerhetsrelaterade
                       problem.
                     </p>
@@ -244,7 +244,7 @@ export default function UserTermsPage() {
                       </li>
                     </ul>
                     <p>
-                      DealsMarket förbehåller sig rätten att begränsa eller
+                      Marknadsplatsen förbehåller sig rätten att begränsa eller
                       avsluta din åtkomst till plattformen om du bryter mot
                       dessa villkor eller av någon annan anledning, efter eget
                       gottfinnande.
@@ -258,10 +258,10 @@ export default function UserTermsPage() {
                       5. Köp och betalningar
                     </h2>
                     <p className="mb-4">
-                      När du genomför ett köp på DealsMarket ingår du ett avtal
-                      direkt med det företag som säljer produkten, inte med
-                      DealsMarket. DealsMarket fungerar endast som förmedlare
-                      och betalningshanterare.
+                      När du genomför ett köp på Marknadsplatsen ingår du ett
+                      avtal direkt med det företag som säljer produkten, inte
+                      med Marknadsplatsen. Marknadsplatsen fungerar endast som
+                      förmedlare och betalningshanterare.
                     </p>
                     <p className="mb-4">
                       Alla priser som visas på plattformen inkluderar moms och
@@ -290,7 +290,7 @@ export default function UserTermsPage() {
                       6. Tidsbegränsade erbjudanden
                     </h2>
                     <p className="mb-4">
-                      DealsMarket specialiserar sig på tidsbegränsade
+                      Marknadsplatsen specialiserar sig på tidsbegränsade
                       erbjudanden. När tiden för ett erbjudande löper ut är det
                       inte längre tillgängligt för köp, även om produkten inte
                       har sålt slut.
@@ -303,11 +303,11 @@ export default function UserTermsPage() {
                       internetanslutning eller webbläsarinställningar.
                     </p>
                     <p className="mb-4">
-                      DealsMarket garanterar inte att ett erbjudande kommer att
-                      finnas tillgängligt under hela den annonserade perioden,
-                      då produkter kan sälja slut före tidens utgång. Vi kan
-                      inte heller garantera att samma erbjudande kommer att
-                      upprepas i framtiden.
+                      Marknadsplatsen garanterar inte att ett erbjudande kommer
+                      att finnas tillgängligt under hela den annonserade
+                      perioden, då produkter kan sälja slut före tidens utgång.
+                      Vi kan inte heller garantera att samma erbjudande kommer
+                      att upprepas i framtiden.
                     </p>
                     <p>
                       Vi förbehåller oss rätten att förlänga eller avsluta
@@ -332,13 +332,13 @@ export default function UserTermsPage() {
                     <p className="mb-4">
                       Du får inte publicera innehåll som är olagligt, kränkande,
                       hotfullt, ärekränkande, obscent eller på annat sätt
-                      olämpligt. DealsMarket förbehåller sig rätten att ta bort
-                      recensioner som bryter mot dessa riktlinjer utan
+                      olämpligt. Marknadsplatsen förbehåller sig rätten att ta
+                      bort recensioner som bryter mot dessa riktlinjer utan
                       föregående meddelande.
                     </p>
                     <p>
                       Genom att publicera recensioner eller annat innehåll på
-                      plattformen ger du DealsMarket en icke-exklusiv,
+                      plattformen ger du Marknadsplatsen en icke-exklusiv,
                       kostnadsfri licens att använda, kopiera, modifiera,
                       distribuera och visa sådant innehåll i samband med våra
                       tjänster.
@@ -352,7 +352,7 @@ export default function UserTermsPage() {
                       8. Särskilda villkor för företag
                     </h2>
                     <p className="mb-4">
-                      Företag som vill sälja på DealsMarket måste genomgå en
+                      Företag som vill sälja på Marknadsplatsen måste genomgå en
                       verifieringsprocess och acceptera våra villkor för
                       säljare. Som företag ansvarar du för att:
                     </p>
@@ -371,15 +371,16 @@ export default function UserTermsPage() {
                         konsumentlagstiftning
                       </li>
                       <li>
-                        Betala överenskomna avgifter till DealsMarket för
+                        Betala överenskomna avgifter till Marknadsplatsen för
                         användning av plattformen
                       </li>
                     </ul>
                     <p>
-                      DealsMarket tar ut en provision på försäljningen baserat
-                      på varaktigheten för det tidsbegränsade erbjudandet. För
-                      12-timmars erbjudanden är provisionen 3%, för 24-timmars
-                      erbjudanden 4%, och för 48-timmars erbjudanden 5%.
+                      Marknadsplatsen tar ut en provision på försäljningen
+                      baserat på varaktigheten för det tidsbegränsade
+                      erbjudandet. För 12-timmars erbjudanden är provisionen 3%,
+                      för 24-timmars erbjudanden 4%, och för 48-timmars
+                      erbjudanden 5%.
                     </p>
                   </section>
 
@@ -390,25 +391,25 @@ export default function UserTermsPage() {
                       9. Ansvarsbegränsningar
                     </h2>
                     <p className="mb-4">
-                      DealsMarket tillhandahåller plattformen "i befintligt
+                      Marknadsplatsen tillhandahåller plattformen "i befintligt
                       skick" och "enligt tillgänglighet" utan några garantier av
                       något slag, vare sig uttryckliga eller underförstådda. Vi
                       garanterar inte att plattformen alltid kommer att vara
                       tillgänglig, felfri eller säker.
                     </p>
                     <p className="mb-4">
-                      DealsMarket ansvarar inte för kvaliteten, säkerheten eller
-                      lämpligheten av produkter som säljs på plattformen.
+                      Marknadsplatsen ansvarar inte för kvaliteten, säkerheten
+                      eller lämpligheten av produkter som säljs på plattformen.
                       Avtalsförhållandet för köp uppstår mellan köparen och
                       säljaren, och konsumentköplagen reglerar detta
                       förhållande.
                     </p>
                     <p className="mb-4">
-                      I den utsträckning som tillåts enligt lag, är DealsMarket
-                      inte ansvarig för några direkta, indirekta, tillfälliga,
-                      särskilda eller följdskador som uppstår från din
-                      användning av plattformen eller produkter köpta genom
-                      plattformen.
+                      I den utsträckning som tillåts enligt lag, är
+                      Marknadsplatsen inte ansvarig för några direkta,
+                      indirekta, tillfälliga, särskilda eller följdskador som
+                      uppstår från din användning av plattformen eller produkter
+                      köpta genom plattformen.
                     </p>
                     <p>
                       Vår totala ansvarsskyldighet, oavsett orsak och oberoende
@@ -426,20 +427,20 @@ export default function UserTermsPage() {
                     <p className="mb-4">
                       All text, grafik, användargränssnitt, visuella gränssnitt,
                       fotografier, varumärken, logotyper, ljud, musik,
-                      illustrationer och datorkod som används på DealsMarket är
-                      DealsMarket:s egendom eller licensieras till oss.
+                      illustrationer och datorkod som används på Marknadsplatsen
+                      är Marknadsplatsen:s egendom eller licensieras till oss.
                     </p>
                     <p className="mb-4">
                       Du får inte kopiera, reproducera, modifiera, distribuera
                       eller på annat sätt använda något innehåll från
                       plattformen utan uttryckligt skriftligt tillstånd från
-                      DealsMarket eller respektive rättighetsinnehavare.
+                      Marknadsplatsen eller respektive rättighetsinnehavare.
                     </p>
                     <p>
                       Företag som lägger upp innehåll på plattformen behåller
-                      sina immateriella rättigheter men ger DealsMarket rätt att
-                      använda detta innehåll i syfte att driva och marknadsföra
-                      plattformen.
+                      sina immateriella rättigheter men ger Marknadsplatsen rätt
+                      att använda detta innehåll i syfte att driva och
+                      marknadsföra plattformen.
                     </p>
                   </section>
 
@@ -455,7 +456,7 @@ export default function UserTermsPage() {
                       kontoborttagning i dina kontoinställningar.
                     </p>
                     <p className="mb-4">
-                      DealsMarket förbehåller sig rätten att stänga av eller
+                      Marknadsplatsen förbehåller sig rätten att stänga av eller
                       avsluta ditt konto om du bryter mot dessa användarvillkor,
                       missbrukar plattformen eller av någon annan anledning
                       enligt vårt rimliga gottfinnande.
@@ -474,11 +475,11 @@ export default function UserTermsPage() {
                       12. Ändringar i villkoren
                     </h2>
                     <p className="mb-4">
-                      DealsMarket förbehåller sig rätten att när som helst ändra
-                      dessa användarvillkor. Vid väsentliga förändringar kommer
-                      vi att meddela dig genom att publicera ett meddelande på
-                      plattformen eller skicka ett e-postmeddelande innan
-                      ändringarna träder i kraft.
+                      Marknadsplatsen förbehåller sig rätten att när som helst
+                      ändra dessa användarvillkor. Vid väsentliga förändringar
+                      kommer vi att meddela dig genom att publicera ett
+                      meddelande på plattformen eller skicka ett
+                      e-postmeddelande innan ändringarna träder i kraft.
                     </p>
                     <p>
                       Din fortsatta användning av plattformen efter att
@@ -516,7 +517,7 @@ export default function UserTermsPage() {
                       användarvillkor, vänligen kontakta oss på:
                     </p>
                     <p className="mb-2">
-                      <strong>DealsMarket AB</strong>
+                      <strong>Marknadsplatsen AB</strong>
                     </p>
                     <p className="mb-2">
                       Sveavägen 123
@@ -526,10 +527,10 @@ export default function UserTermsPage() {
                     <p className="mb-2">
                       E-post:{' '}
                       <a
-                        href="mailto:info@dealsmarket.se"
+                        href="mailto:info@Marknadsplatsen.se"
                         className="text-purple-600 hover:underline"
                       >
-                        info@dealsmarket.se
+                        info@Marknadsplatsen.se
                       </a>
                     </p>
                     <p>Telefon: 010-123 45 67</p>
@@ -538,7 +539,7 @@ export default function UserTermsPage() {
                   <div className="mt-12 text-sm text-gray-500">
                     <p>
                       Dessa användarvillkor är upphovsrättsskyddade och tillhör
-                      DealsMarket AB. All användning utan tillstånd är
+                      Marknadsplatsen AB. All användning utan tillstånd är
                       förbjuden.
                     </p>
                   </div>

@@ -18,7 +18,7 @@ export default function ReturnerPage() {
             </h1>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
               Här hittar du information om hur du returnerar varor och vilka
-              villkor som gäller för ångerrätt hos DealsMarket.
+              villkor som gäller för ångerrätt hos Marknadsplatsen.
             </p>
           </div>
         </section>
@@ -130,10 +130,10 @@ export default function ReturnerPage() {
                     </p>
                     <p>
                       För att utöva ångerrätten måste du meddela oss
-                      (DealsMarket AB) ditt beslut att frånträda avtalet genom
-                      en tydlig förklaring, exempelvis via telefon, e-post eller
-                      via returformulär. Du kan använda standardblanketten för
-                      utövande av ångerrätt, men det är inte ett krav.
+                      (Marknadsplatsen AB) ditt beslut att frånträda avtalet
+                      genom en tydlig förklaring, exempelvis via telefon, e-post
+                      eller via returformulär. Du kan använda standardblanketten
+                      för utövande av ångerrätt, men det är inte ett krav.
                     </p>
                   </section>
 
@@ -151,8 +151,8 @@ export default function ReturnerPage() {
                         </strong>
                         <ul className="list-disc pl-5 mt-2">
                           <li>
-                            Logga in på ditt konto på DealsMarket och gå till
-                            "Mina beställningar"
+                            Logga in på ditt konto på Marknadsplatsen och gå
+                            till "Mina beställningar"
                           </li>
                           <li>
                             Hitta den aktuella beställningen och klicka på
@@ -218,7 +218,8 @@ export default function ReturnerPage() {
                       vanligtvis mellan 49-99 kr.
                     </p>
                     <p className="mb-4">
-                      I följande fall står DealsMarket för returfraktkostnaden:
+                      I följande fall står Marknadsplatsen för
+                      returfraktkostnaden:
                     </p>
                     <ul className="list-disc pl-5 space-y-2">
                       <li>Om varan är defekt eller skadad vid leverans</li>
@@ -423,10 +424,10 @@ export default function ReturnerPage() {
                       <li>
                         Via e-post:{' '}
                         <a
-                          href="mailto:reklamation@dealsmarket.se"
+                          href="mailto:reklamation@Marknadsplatsen.se"
                           className="text-purple-600 hover:underline"
                         >
-                          reklamation@dealsmarket.se
+                          reklamation@Marknadsplatsen.se
                         </a>
                       </li>
                       <li>

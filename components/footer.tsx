@@ -38,7 +38,8 @@ export function Footer() {
           <div>
             <h3 className="text-2xl font-bold mb-2">Håll dig uppdaterad</h3>
             <p className="text-gray-400 mb-4">
-              Prenumerera på vårt nyhetsbrev för exklusiva erbjudanden och uppdateringar
+              Prenumerera på vårt nyhetsbrev för exklusiva erbjudanden och
+              uppdateringar
             </p>
             <form onSubmit={handleSubscribe} className="flex gap-2">
               <Input
@@ -63,7 +64,7 @@ export function Footer() {
                 D
               </div>
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
-                DealsMarket
+                Marknadsplatsen
               </span>
             </div>
             <p className="text-gray-400 md:text-right">
@@ -130,7 +131,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-lg mb-4">DealsMarket</h4>
+            <h4 className="font-semibold text-lg mb-4">Marknadsplatsen</h4>
             <ul className="space-y-2">
               <li>
                 <Link
@@ -226,7 +227,7 @@ export function Footer() {
               className="flex items-center text-gray-400 hover:text-white transition-colors"
             >
               <Mail className="h-5 w-5 mr-2" />
-              <span>kundservice@dealsmarket.se</span>
+              <span>kundservice@Marknadsplatsen.se</span>
             </Link>
           </div>
           <div className="flex space-x-4">
@@ -272,9 +273,7 @@ export function Footer() {
 
         {/* Bottom Footer - Keep the original href */}
         <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-          <p>
-            © {currentYear} DealsMarket. Alla rättigheter förbehållna.
-          </p>
+          <p>© {currentYear} Marknadsplatsen. Alla rättigheter förbehållna.</p>
           <div className="flex flex-wrap justify-center gap-4 mt-4 md:mt-0">
             <Link
               href="/accessibility"

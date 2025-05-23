@@ -35,9 +35,9 @@ export default function FAQPage() {
   // Data for platform questions
   const platformQuestions = [
     {
-      question: 'Vad är DealsMarket?',
+      question: 'Vad är Marknadsplatsen?',
       answer:
-        'DealsMarket är en marknadsplats för tidsbegränsade erbjudanden. Företag kan lägga upp sina produkter med en specifik tidsgräns (12, 24 eller 48 timmar), och när tiden är ute försvinner erbjudandet. Detta koncept gör att företag kan erbjuda bättre priser på sina produkter under en kort tidsperiod, vilket ger dig som kund möjlighet att göra riktiga fynd.',
+        'Marknadsplatsen är en marknadsplats för tidsbegränsade erbjudanden. Företag kan lägga upp sina produkter med en specifik tidsgräns (12, 24 eller 48 timmar), och när tiden är ute försvinner erbjudandet. Detta koncept gör att företag kan erbjuda bättre priser på sina produkter under en kort tidsperiod, vilket ger dig som kund möjlighet att göra riktiga fynd.',
     },
     {
       question: 'Hur fungerar tidsbegränsade erbjudanden?',
@@ -50,14 +50,14 @@ export default function FAQPage() {
         'Om du missar ett tidsbegränsat erbjudande kan du tyvärr inte köpa produkten till det rabatterade priset. Företag kan välja att lägga upp samma produkt igen vid ett senare tillfälle, men vi kan inte garantera att detta kommer att ske eller att priset kommer att vara detsamma. Vi rekommenderar att du använder önskelistan för att markera produkter du är intresserad av och ställer in aviseringar för att få påminnelser innan erbjudanden löper ut.',
     },
     {
-      question: 'Hur skapas ett konto på DealsMarket?',
+      question: 'Hur skapas ett konto på Marknadsplatsen?',
       answer:
         'För att skapa ett konto, klicka på "Registrera" i övre högra hörnet av sidan. Du kan registrera dig med din e-postadress eller genom att använda ditt Google- eller Facebook-konto. Efter registrering behöver du verifiera din e-postadress genom att klicka på länken som skickas till dig. Som registrerad användare kan du följa och bevaka erbjudanden, få tillgång till din orderhistorik och hantera dina personuppgifter.',
     },
     {
-      question: 'Är det gratis att använda DealsMarket?',
+      question: 'Är det gratis att använda Marknadsplatsen?',
       answer:
-        'Ja, det är helt gratis att registrera sig och använda DealsMarket som kund. Vi tar inga avgifter för beställningar, och det finns inga dolda kostnader. DealsMarket finansieras genom provisioner från säljande företag, som betalar en liten procentandel av försäljningen baserat på längden på deras tidsbegränsade erbjudande.',
+        'Ja, det är helt gratis att registrera sig och använda Marknadsplatsen som kund. Vi tar inga avgifter för beställningar, och det finns inga dolda kostnader. Marknadsplatsen finansieras genom provisioner från säljande företag, som betalar en liten procentandel av försäljningen baserat på längden på deras tidsbegränsade erbjudande.',
     },
     {
       question: 'Hur får jag information om nya erbjudanden?',
@@ -101,7 +101,7 @@ export default function FAQPage() {
     {
       question: 'Hur gör jag en beställning?',
       answer:
-        'För att göra en beställning på DealsMarket, bläddra bland erbjudandena och klicka på den produkt du är intresserad av. På produktsidan kan du se detaljerad information och välja att klicka på "Köp nu" eller "Lägg i kundvagn". Om du väljer att lägga produkten i kundvagnen kan du fortsätta handla och lägga till fler produkter innan du går till kassan. I kassan anger du leveransadress, väljer leveranssätt och betalningsmetod, och slutför sedan köpet.',
+        'För att göra en beställning på Marknadsplatsen, bläddra bland erbjudandena och klicka på den produkt du är intresserad av. På produktsidan kan du se detaljerad information och välja att klicka på "Köp nu" eller "Lägg i kundvagn". Om du väljer att lägga produkten i kundvagnen kan du fortsätta handla och lägga till fler produkter innan du går till kassan. I kassan anger du leveransadress, väljer leveranssätt och betalningsmetod, och slutför sedan köpet.',
     },
     {
       question: 'Vilka betalningssätt accepterar ni?',
@@ -109,9 +109,9 @@ export default function FAQPage() {
         'Vi accepterar flera olika betalningssätt för att göra det så enkelt som möjligt för dig att handla: 1) Kreditkort/betalkort (Visa, Mastercard, American Express) 2) Swish 3) Direktbetalning via bank 4) Faktura via Klarna (14 dagars betalningsperiod) 5) Delbetalning via Klarna. Alla betalningar är säkra och krypterade för att skydda dina uppgifter.',
     },
     {
-      question: 'Är det säkert att handla på DealsMarket?',
+      question: 'Är det säkert att handla på Marknadsplatsen?',
       answer:
-        'Ja, det är helt säkert att handla på DealsMarket. Vi använder branschledande säkerhetsstandarder för att skydda dina person- och betaluppgifter. All kommunikation mellan din webbläsare och vår server är krypterad med SSL. Vi lagrar aldrig fullständiga kreditkortsuppgifter, och våra betalningslösningar hanteras av certifierade betalningsprocessorer som Stripe och Klarna, vilket innebär att dina kortuppgifter aldrig delas med oss eller säljarna.',
+        'Ja, det är helt säkert att handla på Marknadsplatsen. Vi använder branschledande säkerhetsstandarder för att skydda dina person- och betaluppgifter. All kommunikation mellan din webbläsare och vår server är krypterad med SSL. Vi lagrar aldrig fullständiga kreditkortsuppgifter, och våra betalningslösningar hanteras av certifierade betalningsprocessorer som Stripe och Klarna, vilket innebär att dina kortuppgifter aldrig delas med oss eller säljarna.',
     },
     {
       question: 'Hur kan jag se status på min beställning?',
@@ -224,9 +224,9 @@ export default function FAQPage() {
   // Data for company questions
   const companyQuestions = [
     {
-      question: 'Hur kan mitt företag sälja på DealsMarket?',
+      question: 'Hur kan mitt företag sälja på Marknadsplatsen?',
       answer:
-        'För att sälja på DealsMarket, börja med att registrera ett företagskonto på vår webbplats. Klicka på "Registrera" och välj alternativet "Registrera företag". Du behöver ange företagets organisationsnummer, kontaktuppgifter och ladda upp relevanta dokument som bekräftar att du har rätt att representera företaget. Efter granskning och godkännande (vanligtvis inom 1-2 arbetsdagar) får du tillgång till vårt säljargränssnitt där du kan börja skapa tidsbegränsade erbjudanden.',
+        'För att sälja på Marknadsplatsen, börja med att registrera ett företagskonto på vår webbplats. Klicka på "Registrera" och välj alternativet "Registrera företag". Du behöver ange företagets organisationsnummer, kontaktuppgifter och ladda upp relevanta dokument som bekräftar att du har rätt att representera företaget. Efter granskning och godkännande (vanligtvis inom 1-2 arbetsdagar) får du tillgång till vårt säljargränssnitt där du kan börja skapa tidsbegränsade erbjudanden.',
     },
     {
       question: 'Vilka avgifter tar ni för försäljning?',
@@ -234,9 +234,9 @@ export default function FAQPage() {
         'Våra avgifter baseras på längden på det tidsbegränsade erbjudandet. För 12-timmars erbjudanden tar vi 3% av försäljningspriset. För 24-timmars erbjudanden är avgiften 4%, och för 48-timmars erbjudanden 5%. Det finns inga fasta månadskostnader eller uppsättningsavgifter. Du betalar endast när du faktiskt säljer något. Utbetalningar sker varannan vecka, minus våra provisioner och eventuella returavgifter.',
     },
     {
-      question: 'Vilka produkter kan jag sälja på DealsMarket?',
+      question: 'Vilka produkter kan jag sälja på Marknadsplatsen?',
       answer:
-        'Du kan sälja de flesta typer av lagliga produkter på DealsMarket, inklusive elektronik, mode, heminredning, skönhetsprodukter, hobby- och fritidsartiklar m.m. Det finns dock vissa restriktioner. Vi tillåter inte försäljning av alkohol, tobak, receptbelagda läkemedel, vapen, olagliga produkter, piratkopierade varor, eller produkter som bryter mot upphovsrätt. Vi har också kvalitetskrav och förbehåller oss rätten att neka produkter som inte uppfyller våra standarder.',
+        'Du kan sälja de flesta typer av lagliga produkter på Marknadsplatsen, inklusive elektronik, mode, heminredning, skönhetsprodukter, hobby- och fritidsartiklar m.m. Det finns dock vissa restriktioner. Vi tillåter inte försäljning av alkohol, tobak, receptbelagda läkemedel, vapen, olagliga produkter, piratkopierade varor, eller produkter som bryter mot upphovsrätt. Vi har också kvalitetskrav och förbehåller oss rätten att neka produkter som inte uppfyller våra standarder.',
     },
     {
       question: 'Hur fungerar leverans och returer för säljare?',
@@ -252,19 +252,19 @@ export default function FAQPage() {
       question:
         'Vilka krav ställer ni på företag som vill sälja på plattformen?',
       answer:
-        'För att sälja på DealsMarket måste ditt företag: 1) Vara ett registrerat företag med giltigt organisationsnummer. 2) Ha F-skattebevis och momsregistreringsnummer. 3) Följa svensk lag och EU-förordningar gällande konsumenträtt, garanti och produktsäkerhet. 4) Kunna erbjuda verkliga rabatter på produkterna. 5) Ha kapacitet att hantera leveranser och kundservice. 6) Upprätthålla en kundnöjdhet på minst 4.0 (av 5) för att fortsätta sälja på plattformen. 7) Acceptera vår policy om returhantering och våra användarvillkor.',
+        'För att sälja på Marknadsplatsen måste ditt företag: 1) Vara ett registrerat företag med giltigt organisationsnummer. 2) Ha F-skattebevis och momsregistreringsnummer. 3) Följa svensk lag och EU-förordningar gällande konsumenträtt, garanti och produktsäkerhet. 4) Kunna erbjuda verkliga rabatter på produkterna. 5) Ha kapacitet att hantera leveranser och kundservice. 6) Upprätthålla en kundnöjdhet på minst 4.0 (av 5) för att fortsätta sälja på plattformen. 7) Acceptera vår policy om returhantering och våra användarvillkor.',
     },
   ];
 
   // Data for technical questions
   const technicalQuestions = [
     {
-      question: 'Vilka webbläsare stöder DealsMarket?',
+      question: 'Vilka webbläsare stöder Marknadsplatsen?',
       answer:
-        'DealsMarket är optimerad för och stöder fullt ut följande moderna webbläsare: Google Chrome (version 90 och senare), Mozilla Firefox (version 88 och senare), Apple Safari (version 14 och senare), Microsoft Edge (version 90 och senare) och Opera (version 76 och senare). Vi rekommenderar att du alltid använder den senaste versionen av din webbläsare för bästa upplevelse och säkerhet. Äldre webbläsare eller Internet Explorer stöds inte fullt ut och kan resultera i begränsad funktionalitet.',
+        'Marknadsplatsen är optimerad för och stöder fullt ut följande moderna webbläsare: Google Chrome (version 90 och senare), Mozilla Firefox (version 88 och senare), Apple Safari (version 14 och senare), Microsoft Edge (version 90 och senare) och Opera (version 76 och senare). Vi rekommenderar att du alltid använder den senaste versionen av din webbläsare för bästa upplevelse och säkerhet. Äldre webbläsare eller Internet Explorer stöds inte fullt ut och kan resultera i begränsad funktionalitet.',
     },
     {
-      question: 'Finns det en mobilapp för DealsMarket?',
+      question: 'Finns det en mobilapp för Marknadsplatsen?',
       answer:
         'Nej, vi har idag inga mobilappar. Detta är under utveckling och vi planerar att lansera en app för både iOS och Android inom kort. Under tiden kan du använda vår mobilanpassade webbplats som erbjuder samma funktioner och användarvänlighet som desktopversionen. Du kan också spara vår webbplats som en genväg på din hemskärm för snabb åtkomst.',
     },
@@ -311,7 +311,7 @@ export default function FAQPage() {
     {
       question: 'Hur kan jag begära ut eller radera min data?',
       answer:
-        'För att begära ut eller radera dina personuppgifter, logga in på ditt konto och gå till "Integritet och data" under "Inställningar". Där kan du begära en komplett kopia av all data vi har om dig, vilket vi tillhandahåller inom 30 dagar. Om du vill radera din data kan du antingen välja att radera specifika delar eller begära en fullständig radering av ditt konto. Du kan också kontakta vårt dataskyddsombud direkt via dataskydd@dealsmarket.se för alla frågor relaterade till dina personuppgifter.',
+        'För att begära ut eller radera dina personuppgifter, logga in på ditt konto och gå till "Integritet och data" under "Inställningar". Där kan du begära en komplett kopia av all data vi har om dig, vilket vi tillhandahåller inom 30 dagar. Om du vill radera din data kan du antingen välja att radera specifika delar eller begära en fullständig radering av ditt konto. Du kan också kontakta vårt dataskyddsombud direkt via dataskydd@Marknadsplatsen.se för alla frågor relaterade till dina personuppgifter.',
     },
     {
       question: 'Delar ni min information med säljarna?',
@@ -399,8 +399,8 @@ export default function FAQPage() {
               Vanliga frågor
             </h1>
             <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
-              Hitta svar på de vanligaste frågorna om DealsMarket. Kan du inte
-              hitta det du söker? Kontakta oss direkt.
+              Hitta svar på de vanligaste frågorna om Marknadsplatsen. Kan du
+              inte hitta det du söker? Kontakta oss direkt.
             </p>
 
             {/* Search box */}

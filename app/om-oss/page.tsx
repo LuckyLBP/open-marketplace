@@ -27,7 +27,7 @@ export default function AboutPage() {
         <section className="py-20 bg-gradient-to-b from-purple-50 to-white">
           <div className="container mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
-              Om DealsMarket
+              Om Marknadsplatsen
             </h1>
             <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
               Vi gör det enkelt att hitta fantastiska erbjudanden med begränsad
@@ -44,7 +44,7 @@ export default function AboutPage() {
                 Vårt uppdrag
               </h2>
               <p className="text-gray-600 mb-6 text-lg">
-                DealsMarket grundades 2025 med en enkel vision: att skapa en
+                Marknadsplatsen grundades 2025 med en enkel vision: att skapa en
                 plattform där företag kan möta kunder genom spännande
                 tidsbegränsade erbjudanden.
               </p>
@@ -110,61 +110,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Our Team */}
-        <section className="py-16 bg-white">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold mb-12 text-center">Vårt team</h2>
-            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              <div className="text-center">
-                <div className="w-40 h-40 rounded-full overflow-hidden mx-auto mb-4 bg-gradient-to-r from-purple-200 to-pink-200">
-                  <img
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&q=80"
-                    alt="Erik Johansson"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <h3 className="text-xl font-semibold mb-1">Erik Johansson</h3>
-                <p className="text-gray-500 mb-3">Grundare & VD</p>
-                <p className="text-gray-600 text-sm">
-                  Erik har över 15 års erfarenhet inom e-handel och startade
-                  DealsMarket för att modernisera hur företag skapar erbjudanden
-                  online.
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-40 h-40 rounded-full overflow-hidden mx-auto mb-4 bg-gradient-to-r from-purple-200 to-pink-200">
-                  <img
-                    src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&q=80"
-                    alt="Sara Lindberg"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <h3 className="text-xl font-semibold mb-1">Sara Lindberg</h3>
-                <p className="text-gray-500 mb-3">Marknadschef</p>
-                <p className="text-gray-600 text-sm">
-                  Med en bakgrund från stora e-handelsplattformar leder Sara
-                  våra marknadsföringsinsatser och partnersamarbeten.
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-40 h-40 rounded-full overflow-hidden mx-auto mb-4 bg-gradient-to-r from-purple-200 to-pink-200">
-                  <img
-                    src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=400&fit=crop&q=80"
-                    alt="Marcus Eklund"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <h3 className="text-xl font-semibold mb-1">Marcus Eklund</h3>
-                <p className="text-gray-500 mb-3">Teknikchef</p>
-                <p className="text-gray-600 text-sm">
-                  Marcus ansvarar för all teknisk utveckling och ser till att
-                  vår plattform är snabb, säker och användarvänlig.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Our Values */}
         <section className="py-16 bg-gradient-to-b from-purple-50 to-white">
           <div className="container mx-auto px-4">
@@ -183,8 +128,8 @@ export default function AboutPage() {
                   <p className="text-gray-600">
                     Vi tror på fullständig öppenhet i alla delar av vår
                     verksamhet. Från prissättning till hur våra erbjudanden
-                    fungerar - vi vill att du ska förstå exakt hur DealsMarket
-                    fungerar.
+                    fungerar - vi vill att du ska förstå exakt hur
+                    Marknadsplatsen fungerar.
                   </p>
                 </div>
               </div>
@@ -266,7 +211,7 @@ export default function AboutPage() {
                   </AccordionTrigger>
                   <AccordionContent className="text-gray-600">
                     Vi gör en grundlig granskning av alla företag som ansluter
-                    sig till DealsMarket. Vi kontrollerar deras
+                    sig till Marknadsplatsen. Vi kontrollerar deras
                     företagsinformation, kundrecensioner och produktkvalitet
                     innan de får börja sälja på vår plattform. Dessutom kan du
                     se kundbetyg för varje företag direkt på deras produktsidor.
@@ -298,7 +243,7 @@ export default function AboutPage() {
                 </AccordionItem>
                 <AccordionItem value="item-5">
                   <AccordionTrigger className="text-lg font-medium">
-                    Hur kan mitt företag sälja på DealsMarket?
+                    Hur kan mitt företag sälja på Marknadsplatsen?
                   </AccordionTrigger>
                   <AccordionContent className="text-gray-600">
                     Om du vill sälja på vår plattform, börja med att registrera

@@ -189,7 +189,7 @@ export function Navbar() {
                 D
               </div>
               <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
-                DealsMarket
+                Marknadsplatsen
               </span>
             </Link>
           </div>
