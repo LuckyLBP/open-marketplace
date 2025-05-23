@@ -9,7 +9,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'Marknadsplatsen',
+  title: 'BudFynd.se',
   description: 'A marketplace for limited-time deals',
   generator: 'v0.dev',
 };

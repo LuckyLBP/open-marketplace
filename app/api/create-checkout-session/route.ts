@@ -10,7 +10,7 @@ import { db } from '@/lib/firebase';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-04-30.basil',
+  apiVersion: '2022-11-15',
 });
 
 export async function POST(request: Request) {
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
             currency: 'sek',
             product_data: {
               name: title,
-              description: `Deal from Marknadsplatsen (${feePercentage}% fee included)`,
+              description: `Deal from BudFynd.se (${feePercentage}% fee included)`,
             },
             unit_amount: Math.round(totalAmount * 100), // Stripe uses cents
           },

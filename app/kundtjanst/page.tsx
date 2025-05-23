@@ -74,10 +74,10 @@ export default function KundtjanstPage() {
 
             <div className="mt-12 bg-white rounded-lg shadow-md p-8 max-w-3xl mx-auto">
               <h2 className="text-xl font-semibold mb-4 text-center">
-                Kundservice hos Marknadsplatsen
+                Kundservice hos BudFynd.se
               </h2>
               <p className="text-gray-600 mb-4">
-                På Marknadsplatsen strävar vi efter att erbjuda bästa möjliga
+                På BudFynd.se strävar vi efter att erbjuda bästa möjliga
                 kundupplevelse. Vår kundtjänst finns tillgänglig för att hjälpa
                 dig med:
               </p>

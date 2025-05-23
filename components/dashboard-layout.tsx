@@ -83,9 +83,7 @@ export default function DashboardLayout({
           }`}
         >
           <div className="flex h-16 items-center justify-center border-b">
-            <h2 className="text-xl font-bold text-purple-600">
-              Marknadsplatsen
-            </h2>
+            <h2 className="text-xl font-bold text-purple-600">BudFynd.se</h2>
           </div>
           <nav className="mt-5 px-2">
             {navigation.map((item) => (
@@ -123,7 +121,7 @@ export default function DashboardLayout({
       {/* Desktop sidebar */}
       <aside className="hidden w-64 overflow-y-auto border-r bg-white lg:block">
         <div className="flex h-16 items-center justify-center border-b">
-          <h2 className="text-xl font-bold text-purple-600">Marknadsplatsen</h2>
+          <h2 className="text-xl font-bold text-purple-600">BudFynd.se</h2>
         </div>
         <nav className="mt-5 px-2">
           {navigation.map((item) => (
