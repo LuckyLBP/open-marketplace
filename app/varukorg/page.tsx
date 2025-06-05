@@ -176,6 +176,27 @@ export default function CartPage() {
   // Check if cart is empty
   const isCartEmpty = cartItems.length === 0;
 
+  const handleCheckout = async () => {
+    try {
+      const res = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: cartItems }),
+      });
+
+      const data = await res.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast({ title: "Kunde inte initiera betalning", variant: "destructive" });
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast({ title: "Något gick fel", variant: "destructive" });
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -380,9 +401,9 @@ export default function CartPage() {
                         {shipping === 0
                           ? 'Gratis'
                           : new Intl.NumberFormat('sv-SE', {
-                              style: 'currency',
-                              currency: 'SEK',
-                            }).format(shipping)}
+                            style: 'currency',
+                            currency: 'SEK',
+                          }).format(shipping)}
                       </span>
                     </div>
 
@@ -447,13 +468,14 @@ export default function CartPage() {
                   )}
 
                   {/* Checkout Button */}
-                  <Link href="/checkout">
-                    <Button className="w-full h-12 text-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                    <Button
+                      className="w-full h-12 text-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                      onClick={handleCheckout}
+                    >
                       <ShoppingBag className="mr-2 h-5 w-5" />
                       Gå till kassan
                     </Button>
-                  </Link>
-
+                 
                   {/* Secure checkout note */}
                   <div className="mt-4 text-xs text-gray-500 text-center flex items-center justify-center">
                     <svg
