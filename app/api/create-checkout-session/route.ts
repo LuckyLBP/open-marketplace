@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     }
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card', 'klarna'],
+      payment_method_types: ['card', 'klarna' ],
       mode: 'payment',
       line_items: body.items.map((item: any) => ({
         price_data: {

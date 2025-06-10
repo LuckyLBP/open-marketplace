@@ -1,15 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  orderBy,
-  Timestamp,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { useLanguage } from '@/components/language-provider';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
@@ -19,31 +10,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { FilterSidebar } from '@/components/filter-sidebar';
 import { ProductCard } from '@/components/product-card';
 import { useMobile } from '@/hooks/use-mobile';
-import { generateDummyProducts } from '@/lib/dummy-data';
+import { useDeals, Deal } from '@/hooks/useDeals';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
-
-type Deal = {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  originalPrice?: number;
-  duration: number;
-  imageUrl: string;
-  companyId: string;
-  companyName: string;
-  category: string;
-  subcategory?: string;
-  feePercentage: number;
-  expiresAt: Date;
-  createdAt: Date;
-  timeLeft: {
-    hours: number;
-    minutes: number;
-    seconds: number;
-  };
-};
 
 const categoryDisplayNames: Record<string, string> = {
   elektronik: 'Elektronik',
@@ -55,22 +24,16 @@ const categoryDisplayNames: Record<string, string> = {
 };
 
 export default function Marketplace() {
-  const { t } = useLanguage();
+  const t = useLanguage();
   const { toast } = useToast();
   const router = useRouter();
   const isMobile = useMobile();
-
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
   const searchParams = useSearchParams();
 
-  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(
-    null
-  );
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [selectedDurations, setSelectedDurations] = useState<number[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [maxPrice, setMaxPrice] = useState(10000);
@@ -78,214 +41,71 @@ export default function Marketplace() {
   const [categories, setCategories] = useState<string[]>([]);
   const [subcategories, setSubcategories] = useState<string[]>([]);
 
-  // Get category and subcategory from URL
+  const { deals, loading } = useDeals({
+    category: selectedCategory !== 'all' ? selectedCategory : undefined,
+    subcategory: selectedSubcategory || undefined,
+    onlyActive: true,
+  });
+
   useEffect(() => {
     const category = searchParams.get('category');
     const subcategory = searchParams.get('subcategory');
     const search = searchParams.get('search');
 
-    if (category) {
-      setSelectedCategory(category);
-    }
-
-    if (subcategory) {
-      setSelectedSubcategory(subcategory);
-    }
-
-    if (search) {
-      setSearchQuery(search);
-    }
+    if (category) setSelectedCategory(category);
+    if (subcategory) setSelectedSubcategory(subcategory);
+    if (search) setSearchQuery(search);
   }, [searchParams]);
 
   useEffect(() => {
-    const fetchDeals = async () => {
-      try {
-        const now = Timestamp.now();
+    const uniqueCategories = new Set<string>();
+    const uniqueSubcategories = new Set<string>();
+    let highestPrice = 0;
 
-        // Check if we need to generate dummy data
-        await generateDummyProducts();
+    deals.forEach((deal) => {
+      if (deal.category) uniqueCategories.add(deal.category);
+      if (deal.subcategory) uniqueSubcategories.add(deal.subcategory);
+      if (deal.price > highestPrice) highestPrice = deal.price;
+    });
 
-        const q = query(
-          collection(db, 'deals'),
-          where('expiresAt', '>', now),
-          orderBy('expiresAt', 'asc')
-        );
+    setCategories(Array.from(uniqueCategories));
+    setSubcategories(Array.from(uniqueSubcategories));
+    setMaxPrice(Math.ceil(highestPrice / 100) * 100 || 10000);
 
-        const querySnapshot = await getDocs(q);
-        const fetchedDeals: Deal[] = [];
-        const uniqueCategories = new Set<string>();
-        const uniqueSubcategories = new Set<string>();
-        let highestPrice = 0;
+    if (priceRange[1] !== Math.ceil(highestPrice / 100) * 100 && highestPrice > 0) {
+      setPriceRange([0, Math.ceil(highestPrice / 100) * 100]);
+    }
+  }, [deals]);
 
-        const companyIds = new Set<string>();
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          companyIds.add(data.companyId);
-
-          // Track categories and subcategories
-          if (data.category) {
-            uniqueCategories.add(data.category);
-          }
-
-          if (data.subcategory) {
-            uniqueSubcategories.add(data.subcategory);
-          }
-
-          if (data.price > highestPrice) {
-            highestPrice = data.price;
-          }
-        });
-
-        // Fetch company names
-        const companyData: Record<string, string> = {};
-        for (const companyId of companyIds) {
-          try {
-            const companyDoc = await getDocs(
-              query(
-                collection(db, 'companies'),
-                where('__name__', '==', companyId)
-              )
-            );
-            if (!companyDoc.empty) {
-              companyData[companyId] = companyDoc.docs[0].data().companyName;
-            }
-          } catch (error) {
-            console.error('Error fetching company:', error);
-          }
-        }
-
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          const expiresAt = data.expiresAt.toDate();
-          const now = new Date();
-          const diffMs = expiresAt.getTime() - now.getTime();
-
-          const hours = Math.floor(diffMs / (1000 * 60 * 60));
-          const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-          fetchedDeals.push({
-            id: doc.id,
-            title: data.title,
-            description: data.description,
-            price: data.price,
-            originalPrice: data.originalPrice,
-            duration: data.duration,
-            imageUrl: data.imageUrl,
-            companyId: data.companyId,
-            companyName: companyData[data.companyId] || 'Unknown Company',
-            category: data.category || 'other',
-            subcategory: data.subcategory || null,
-            feePercentage: data.feePercentage,
-            expiresAt: expiresAt,
-            createdAt: data.createdAt?.toDate() || new Date(),
-            timeLeft: {
-              hours,
-              minutes,
-              seconds,
-            },
-          });
-        });
-
-        // Set the max price for the filter
-        setMaxPrice(Math.ceil(highestPrice / 100) * 100 || 10000);
-        setPriceRange([0, Math.ceil(highestPrice / 100) * 100 || 10000]);
-
-        // Set categories and subcategories
-        setCategories(Array.from(uniqueCategories));
-        setSubcategories(Array.from(uniqueSubcategories));
-
-        setDeals(fetchedDeals);
-        setFilteredDeals(fetchedDeals);
-      } catch (error) {
-        console.error('Error fetching deals:', error);
-        toast({
-          title: t('Error'),
-          description: t('Failed to load deals. Please try again.'),
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDeals();
-
-    // Update countdown every second
-    const interval = setInterval(() => {
-      setDeals((prevDeals) =>
-        prevDeals
-          .map((deal) => {
-            const now = new Date();
-            const diffMs = deal.expiresAt.getTime() - now.getTime();
-
-            if (diffMs <= 0) {
-              return {
-                ...deal,
-                timeLeft: { hours: 0, minutes: 0, seconds: 0 },
-              };
-            }
-
-            const hours = Math.floor(diffMs / (1000 * 60 * 60));
-            const minutes = Math.floor(
-              (diffMs % (1000 * 60 * 60)) / (1000 * 60)
-            );
-            const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-
-            return {
-              ...deal,
-              timeLeft: { hours, minutes, seconds },
-            };
-          })
-          .filter((deal) => {
-            const now = new Date();
-            return deal.expiresAt.getTime() > now.getTime();
-          })
-      );
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [t, toast]);
-
-  // Apply filters and search
   useEffect(() => {
     let filtered = [...deals];
 
-    // Apply search filter
     if (searchQuery) {
+      const lowerSearch = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (deal) =>
-          deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          deal.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          deal.companyName.toLowerCase().includes(searchQuery.toLowerCase())
+          deal.title.toLowerCase().includes(lowerSearch) ||
+          deal.description.toLowerCase().includes(lowerSearch) ||
+          (deal.companyName?.toLowerCase().includes(lowerSearch) ?? false)
       );
     }
 
-    // Apply category filter
     if (selectedCategory !== 'all') {
       filtered = filtered.filter((deal) => deal.category === selectedCategory);
 
-      // Apply subcategory filter if a subcategory is selected
       if (selectedSubcategory) {
-        filtered = filtered.filter(
-          (deal) => deal.subcategory === selectedSubcategory
-        );
+        filtered = filtered.filter((deal) => deal.subcategory === selectedSubcategory);
       }
     }
 
-    // Apply duration filter
     if (selectedDurations.length > 0) {
-      filtered = filtered.filter((deal) =>
-        selectedDurations.includes(deal.duration)
-      );
+      filtered = filtered.filter((deal) => selectedDurations.includes(deal.duration));
     }
 
-    // Apply price range filter
     filtered = filtered.filter(
       (deal) => deal.price >= priceRange[0] && deal.price <= priceRange[1]
     );
 
-    // Apply sorting
     switch (sortOption) {
       case 'newest':
         filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -299,30 +119,27 @@ export default function Marketplace() {
       case 'time-left':
         filtered.sort((a, b) => {
           const aTimeLeft =
-            a.timeLeft.hours * 3600 +
-            a.timeLeft.minutes * 60 +
-            a.timeLeft.seconds;
+            a.timeLeft.hours * 3600 + a.timeLeft.minutes * 60 + a.timeLeft.seconds;
           const bTimeLeft =
-            b.timeLeft.hours * 3600 +
-            b.timeLeft.minutes * 60 +
-            b.timeLeft.seconds;
+            b.timeLeft.hours * 3600 + b.timeLeft.minutes * 60 + b.timeLeft.seconds;
           return aTimeLeft - bTimeLeft;
         });
         break;
-      default:
-        break;
     }
 
+   
     setFilteredDeals(filtered);
+
   }, [
+    deals,
     searchQuery,
     selectedCategory,
     selectedSubcategory,
     selectedDurations,
     priceRange,
     sortOption,
-    deals,
   ]);
+
 
   const handleBuyNow = (dealId: string) => {
     router.push(`/product/${dealId}`);
@@ -330,54 +147,24 @@ export default function Marketplace() {
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
-    setSelectedSubcategory(null); // Reset subcategory when category changes
+    setSelectedSubcategory(null);
 
-    // Update URL when category changes
     const params = new URLSearchParams();
-    if (category !== 'all') {
-      params.set('category', category);
-    }
-    if (searchQuery) {
-      params.set('search', searchQuery);
-    }
+    if (category !== 'all') params.set('category', category);
+    if (searchQuery) params.set('search', searchQuery);
 
-    const newUrl = `/marketplace${
-      params.toString() ? `?${params.toString()}` : ''
-    }`;
-    router.push(newUrl);
+    router.push(`/marketplace?${params.toString()}`);
   };
 
   const handleSubcategoryChange = (subcategory: string) => {
     setSelectedSubcategory(subcategory);
 
-    // Update URL when subcategory changes
     const params = new URLSearchParams();
-    if (selectedCategory !== 'all') {
-      params.set('category', selectedCategory);
-    }
+    if (selectedCategory !== 'all') params.set('category', selectedCategory);
     params.set('subcategory', subcategory);
-    if (searchQuery) {
-      params.set('search', searchQuery);
-    }
+    if (searchQuery) params.set('search', searchQuery);
 
-    const newUrl = `/marketplace${
-      params.toString() ? `?${params.toString()}` : ''
-    }`;
-    router.push(newUrl);
-  };
-
-  const handleDurationChange = (duration: number) => {
-    setSelectedDurations((prev) => {
-      if (prev.includes(duration)) {
-        return prev.filter((d) => d !== duration);
-      } else {
-        return [...prev, duration];
-      }
-    });
-  };
-
-  const handlePriceRangeChange = (range: [number, number]) => {
-    setPriceRange(range);
+    router.push(`/marketplace?${params.toString()}`);
   };
 
   const handleClearFilters = () => {
@@ -387,21 +174,12 @@ export default function Marketplace() {
     setPriceRange([0, maxPrice]);
     setSearchQuery('');
 
-    // Clear URL params
     router.push('/marketplace');
   };
 
-  // To show a category label in the UI
   const getCategoryLabel = () => {
     if (selectedCategory === 'all') return 'Alla kategorier';
-
-    return (
-      categoryDisplayNames[selectedCategory] ||
-      selectedCategory
-        .split('-')
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-    );
+    return categoryDisplayNames[selectedCategory] || selectedCategory;
   };
 
   return (
@@ -411,32 +189,22 @@ export default function Marketplace() {
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
-            {selectedCategory !== 'all' ? getCategoryLabel() : t('Marknadsplats')}
+            {selectedCategory !== 'all' ? getCategoryLabel() : t.t('Marknadsplats')}
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
             {selectedCategory !== 'all' && selectedSubcategory
               ? `Bläddrar i ${selectedSubcategory} inom ${getCategoryLabel()}`
-              : t(
-                  'Utforska vår marknadsplats för exklusiva erbjudanden med begränsad tid. Klockan tickar!'
-                )}
+              : t.t('Utforska vår marknadsplats för exklusiva erbjudanden med begränsad tid. Klockan tickar!')}
           </p>
         </div>
 
         <div className="flex justify-between items-center mb-6">
-          <Tabs
-            value={sortOption}
-            onValueChange={setSortOption}
-            className="w-auto"
-          >
+          <Tabs value={sortOption} onValueChange={setSortOption} className="w-auto">
             <TabsList>
-              <TabsTrigger value="newest">{t('Senaste')}</TabsTrigger>
-              <TabsTrigger value="price-asc">
-                {t('Pris: Lågt till Högt')}
-              </TabsTrigger>
-              <TabsTrigger value="price-desc">
-                {t('Pris: Högt till Lågt')}
-              </TabsTrigger>
-              <TabsTrigger value="time-left">{t('Tid kvar')}</TabsTrigger>
+              <TabsTrigger value="newest">{t.t('Senaste')}</TabsTrigger>
+              <TabsTrigger value="price-asc">{t.t('Pris: Lågt till Högt')}</TabsTrigger>
+              <TabsTrigger value="price-desc">{t.t('Pris: Högt till Lågt')}</TabsTrigger>
+              <TabsTrigger value="time-left">{t.t('Tid kvar')}</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -454,13 +222,19 @@ export default function Marketplace() {
             onCategoryChange={handleCategoryChange}
             priceRange={priceRange}
             maxPrice={maxPrice}
-            onPriceRangeChange={handlePriceRangeChange}
+            onPriceRangeChange={setPriceRange}
             durations={[12, 24, 48]}
             selectedDurations={selectedDurations}
-            onDurationChange={handleDurationChange}
+            onDurationChange={(d) => {
+              if (selectedDurations.includes(d)) {
+                setSelectedDurations(selectedDurations.filter(x => x !== d));
+              } else {
+                setSelectedDurations([...selectedDurations, d]);
+              }
+            }}
             onClearFilters={handleClearFilters}
-            onApplyFilters={() => {}}
-            isMobile={true}
+            onApplyFilters={() => { }}
+            isMobile
             subcategories={subcategories}
             selectedSubcategory={selectedSubcategory}
             onSubcategoryChange={handleSubcategoryChange}
@@ -476,12 +250,18 @@ export default function Marketplace() {
                 onCategoryChange={handleCategoryChange}
                 priceRange={priceRange}
                 maxPrice={maxPrice}
-                onPriceRangeChange={handlePriceRangeChange}
+                onPriceRangeChange={setPriceRange}
                 durations={[12, 24, 48]}
                 selectedDurations={selectedDurations}
-                onDurationChange={handleDurationChange}
+                onDurationChange={(d) => {
+                  if (selectedDurations.includes(d)) {
+                    setSelectedDurations(selectedDurations.filter(x => x !== d));
+                  } else {
+                    setSelectedDurations([...selectedDurations, d]);
+                  }
+                }}
                 onClearFilters={handleClearFilters}
-                onApplyFilters={() => {}}
+                onApplyFilters={() => { }}
                 subcategories={subcategories}
                 selectedSubcategory={selectedSubcategory}
                 onSubcategoryChange={handleSubcategoryChange}
@@ -503,10 +283,9 @@ export default function Marketplace() {
                     title={deal.title}
                     description={deal.description}
                     price={deal.price}
-                    originalPrice={deal.originalPrice}
                     imageUrl={deal.imageUrl}
                     category={deal.category}
-                    companyName={deal.companyName}
+                    companyName={deal.companyName || ''}
                     duration={deal.duration}
                     timeLeft={deal.timeLeft}
                     onBuyNow={handleBuyNow}
@@ -531,35 +310,25 @@ export default function Marketplace() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-medium mb-2">
-                  {t('Inga produkter hittades')}
-                </h3>
+                <h3 className="text-xl font-medium mb-2">Inga produkter hittades</h3>
                 <p className="text-muted-foreground max-w-md mx-auto">
                   {searchQuery ||
-                  selectedCategory !== 'all' ||
-                  selectedDurations.length > 0 ||
-                  priceRange[0] > 0 ||
-                  priceRange[1] < maxPrice
-                    ? t(
-                        'Inga produkter matchar dina filter. Försök att ändra dina sökkriterier.'
-                      )
-                    : t(
-                        'Det finns inga aktiva erbjudanden just nu. Kom tillbaka senare.'
-                      )}
+                    selectedCategory !== 'all' ||
+                    selectedDurations.length > 0 ||
+                    priceRange[0] > 0 ||
+                    priceRange[1] < maxPrice
+                    ? 'Inga produkter matchar dina filter. Försök att ändra dina sökkriterier.'
+                    : 'Det finns inga aktiva erbjudanden just nu. Kom tillbaka senare.'}
                 </p>
                 {(searchQuery ||
                   selectedCategory !== 'all' ||
                   selectedDurations.length > 0 ||
                   priceRange[0] > 0 ||
                   priceRange[1] < maxPrice) && (
-                  <Button
-                    variant="outline"
-                    className="mt-4"
-                    onClick={handleClearFilters}
-                  >
-                    {t('Rensa filter')}
-                  </Button>
-                )}
+                    <Button variant="outline" className="mt-4" onClick={handleClearFilters}>
+                      Rensa filter
+                    </Button>
+                  )}
               </div>
             )}
           </div>

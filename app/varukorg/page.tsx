@@ -46,7 +46,7 @@ export default function CartPage() {
   // Load cart items (mock data)
   useEffect(() => {
     // Mock data - in a real application, this would come from your cart state management
-    const mockCartItems: CartItem[] = [
+    /*const mockCartItems: CartItem[] = [
       {
         id: 'prod-1',
         title: 'Premium Bluetooth Hörlurar',
@@ -73,7 +73,7 @@ export default function CartPage() {
       },
     ];
 
-    setCartItems(mockCartItems);
+    setCartItems(mockCartItems);*/
     setLoading(false);
 
     // Update countdown timer every second
