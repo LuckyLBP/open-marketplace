@@ -108,8 +108,13 @@ export default function Marketplace() {
 
     switch (sortOption) {
       case 'newest':
-        filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        filtered.sort((a, b) => {
+          const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return bTime - aTime;
+        });
         break;
+
       case 'price-asc':
         filtered.sort((a, b) => a.price - b.price);
         break;
@@ -127,7 +132,7 @@ export default function Marketplace() {
         break;
     }
 
-   
+
     setFilteredDeals(filtered);
 
   }, [
@@ -283,7 +288,7 @@ export default function Marketplace() {
                     title={deal.title}
                     description={deal.description}
                     price={deal.price}
-                    imageUrl={deal.imageUrl}
+                    imageUrl={deal.imageUrl ?? "/placeholder.png"}
                     category={deal.category}
                     companyName={deal.companyName || ''}
                     duration={deal.duration}
