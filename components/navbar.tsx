@@ -49,9 +49,7 @@ import {
   Settings,
 } from 'lucide-react';
 
-// Import categories from JSON file
 import categoriesData from '@/lib/categories.json';
-
 import { useCartContext } from './cart/cartProvider';
 
 const categories = categoriesData.categories;
@@ -65,7 +63,6 @@ export function Navbar() {
   const { cartItems } = useCartContext();
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
   const [localCartCount, setLocalCartCount] = useState(cartCount);
 
   useEffect(() => {
@@ -88,7 +85,6 @@ export function Navbar() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -114,8 +110,7 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex h-14 items-center justify-between">
           {/* Hamburger Menu (Left Side) - visible on all screen sizes */}
-          <div className="flex items-center">
-          </div>
+          <div className="flex items-center"></div>
 
           {/* Search, Cart, and User */}
           <div className="flex items-center gap-1 sm:gap-2">
@@ -133,7 +128,7 @@ export function Navbar() {
 
             <Link href="/varukorg">
               <Button variant="ghost" size="sm" className="relative h-8 w-8 p-0">
-                <ShoppingCart className="h-4 w-4" />
+                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                 {localCartCount > 0 && (
                   <Badge
                     className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 bg-purple-600 text-xs"
@@ -145,10 +140,74 @@ export function Navbar() {
               </Button>
             </Link>
 
-            {/* User Menu (desktop & mobile) */}
-            {!loading && (
-              <div className="block">
-              </div>
+            {!loading && user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.photoURL || ''} />
+                      <AvatarFallback className="bg-muted text-purple-600 font-semibold">
+                        {user.email?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="end">
+                  {userType === 'company' && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/dashboard"
+                          className={cn(
+                            'flex items-center text-muted-foreground hover:text-foreground',
+                            pathname === '/dashboard' && 'text-purple-600'
+                          )}
+                        >
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/wishlist"
+                      className={cn(
+                        'flex items-center text-muted-foreground hover:text-foreground',
+                        pathname === '/wishlist' && 'text-purple-600'
+                      )}
+                    >
+                      <Heart className="mr-2 h-4 w-4" />
+                      Önskelista
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/inställningar"
+                      className={cn(
+                        'flex items-center text-muted-foreground hover:text-foreground',
+                        pathname === '/inställningar' && 'text-purple-600'
+                      )}
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      Inställningar
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem
+                    onClick={() => signOut(auth)}
+                    className="text-red-600 focus:text-red-600"
+                  >
+                    <LogOut className="mr-2 h-4 w-4 text-red-600" />
+                    Logga ut
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>

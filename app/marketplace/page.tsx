@@ -13,6 +13,7 @@ import { useMobile } from '@/hooks/use-mobile';
 import { useDeals, Deal } from '@/hooks/useDeals';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+import { Home } from 'lucide-react';
 
 const categoryDisplayNames: Record<string, string> = {
   elektronik: 'Elektronik',
@@ -190,6 +191,16 @@ export default function Marketplace() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-50 to-white">
       <Navbar />
+      <div className="container mx-auto px-4 mt-4">
+        <Button
+          variant="ghost"
+          onClick={() => router.push('/')}
+          className="flex items-center text-sm text-muted-foreground hover:text-purple-600"
+        >
+          <Home className="h-4 w-4 mr-2" />
+          Tillbaka till startsidan
+        </Button>
+      </div>
 
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="mb-8 text-center">

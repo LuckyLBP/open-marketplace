@@ -1,222 +1,155 @@
-"use client"
+'use client';
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore"
-import { db } from "@/lib/firebase"
-import { useFirebase } from "@/components/firebase-provider"
-import { useLanguage } from "@/components/language-provider"
-import DashboardLayout from "@/components/dashboard-layout"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import Link from "next/link"
-import { formatDistanceToNow } from "date-fns"
-import { sv } from "date-fns/locale"
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useFirebase } from '@/components/firebase-provider';
+import { useLanguage } from '@/components/language-provider';
+import { useDeals } from '@/hooks/useDeals';
+import Link from 'next/link';
+import DashboardLayout from '@/components/dashboard-layout';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import CreateDealForm from '@/components/create-deal/components/createDealForm';
 
-type Deal = {
-  id: string
-  title: string
-  description: string
-  price: number
-  duration: number
-  imageUrl: string
-  expiresAt: Date
-  createdAt: Date
-}
+export default function DashboardPage() {
+  const { user, loading } = useFirebase();
+  const { t } = useLanguage();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('edit');
 
-export default function Dashboard() {
-  const { user, loading } = useFirebase()
-  const router = useRouter()
-  const { t } = useLanguage()
-  const [deals, setDeals] = useState<Deal[]>([])
-  const [activeDeals, setActiveDeals] = useState<Deal[]>([])
-  const [expiredDeals, setExpiredDeals] = useState<Deal[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [showActive, setShowActive] = useState(true);
+  const [editData, setEditData] = useState<any | null>(null);
+
+  const { deals: allDeals, loading: dealsLoading } = useDeals({
+    companyId: user?.uid,
+  });
+
+  useEffect(() => {
+    if (editId) {
+      const fetchData = async () => {
+        const docRef = doc(db, 'deals', editId);
+        const snap = await getDoc(docRef);
+        if (snap.exists()) {
+          setEditData({ id: snap.id, ...snap.data() });
+        }
+      };
+      fetchData();
+    }
+  }, [editId]);
+
+  const expiredDeals = allDeals.filter((d) => new Date(d.expiresAt) < new Date());
+  const activeDeals = allDeals.filter((d) => new Date(d.expiresAt) >= new Date());
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/auth/signin")
+      router.push('/login');
     }
-  }, [user, loading, router])
-
-  useEffect(() => {
-    const fetchDeals = async () => {
-      if (!user) return
-
-      try {
-        const q = query(collection(db, "deals"), where("companyId", "==", user.uid), orderBy("createdAt", "desc"))
-
-        const querySnapshot = await getDocs(q)
-        const fetchedDeals: Deal[] = []
-
-        querySnapshot.forEach((doc) => {
-          const data = doc.data()
-          fetchedDeals.push({
-            id: doc.id,
-            title: data.title,
-            description: data.description,
-            price: data.price,
-            duration: data.duration,
-            imageUrl: data.imageUrl,
-            expiresAt: data.expiresAt.toDate(),
-            createdAt: data.createdAt.toDate(),
-          })
-        })
-
-        setDeals(fetchedDeals)
-
-        const now = new Date()
-        setActiveDeals(fetchedDeals.filter((deal) => deal.expiresAt > now))
-        setExpiredDeals(fetchedDeals.filter((deal) => deal.expiresAt <= now))
-      } catch (error) {
-        console.error("Error fetching deals:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    if (user) {
-      fetchDeals()
-    }
-  }, [user])
+  }, [loading, user, router]);
 
   if (loading || !user) {
-    return <div className="flex min-h-screen items-center justify-center">{t("Loading")}...</div>
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
   }
 
   return (
     <DashboardLayout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">{t("Dashboard")}</h1>
-        <Link href="/dashboard/create-deal">
-          <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-            {t("Create Deal")}
-          </Button>
-        </Link>
-      </div>
+      <div className="px-4 py-8">
+        <h1 className="text-3xl font-bold mb-6">{t('Min översikt')}</h1>
 
-      <div className="grid gap-4 md:grid-cols-3 mb-8">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{t("Total Deals")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{deals.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{t("Active Deals")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeDeals.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{t("Expired Deals")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{expiredDeals.length}</div>
-          </CardContent>
-        </Card>
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('Totalt antal erbjudanden')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{allDeals.length}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('Aktiva erbjudanden')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{activeDeals.length}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('Utgångna erbjudanden')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{expiredDeals.length}</p>
+            </CardContent>
+          </Card>
+        </div>
 
-      <Tabs defaultValue="active" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="active">{t("Active Deals")}</TabsTrigger>
-          <TabsTrigger value="expired">{t("Expired Deals")}</TabsTrigger>
-        </TabsList>
-        <TabsContent value="active">
-          {isLoading ? (
-            <div className="text-center py-8">{t("Loading")}...</div>
-          ) : activeDeals.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Tabs value={showActive ? 'active' : 'expired'} onValueChange={(val) => setShowActive(val === 'active')}>
+          <TabsList>
+            <TabsTrigger value="active">{t('Aktiva')}</TabsTrigger>
+            <TabsTrigger value="expired">{t('Utgångna')}</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="active">
+            <ul className="space-y-4 mt-4">
               {activeDeals.map((deal) => (
-                <Card key={deal.id}>
-                  <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                    <img
-                      src={deal.imageUrl || "/placeholder.svg?height=200&width=400"}
-                      alt={deal.title}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <CardHeader>
-                    <CardTitle>{deal.title}</CardTitle>
-                    <CardDescription>
-                      {new Intl.NumberFormat("sv-SE", { style: "currency", currency: "SEK" }).format(deal.price)}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="line-clamp-2 text-sm text-muted-foreground">{deal.description}</p>
-                    <div className="mt-2 text-sm">
-                      <span className="font-medium">{t("Time Left")}:</span>{" "}
-                      {formatDistanceToNow(deal.expiresAt, { locale: sv, addSuffix: true })}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Link href={`/dashboard/deals/${deal.id}`} className="w-full">
-                      <Button variant="outline" className="w-full">
-                        {t("View Details")}
-                      </Button>
-                    </Link>
-                  </CardFooter>
-                </Card>
+                <li key={deal.id} className="border p-4 rounded-md">
+                  <h2 className="text-xl font-semibold">{deal.title}</h2>
+                  <p className="text-muted-foreground">{deal.price} kr</p>
+                  <Link href={`/product/${deal.id}`} className="text-purple-600 hover:underline">
+                    {t('Visa erbjudande')}
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push(`/dashboard?edit=${deal.id}`)}
+                  >
+                    {t('Redigera')}
+                  </Button>
+                </li>
               ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              {t("No active deals")}.{" "}
-              <Link href="/dashboard/create-deal" className="text-purple-600 hover:underline">
-                {t("Create one now")}
-              </Link>
-              .
-            </div>
-          )}
-        </TabsContent>
-        <TabsContent value="expired">
-          {isLoading ? (
-            <div className="text-center py-8">{t("Loading")}...</div>
-          ) : expiredDeals.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            </ul>
+          </TabsContent>
+
+          <TabsContent value="expired">
+            <ul className="space-y-4 mt-4">
               {expiredDeals.map((deal) => (
-                <Card key={deal.id} className="opacity-75">
-                  <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                    <img
-                      src={deal.imageUrl || "/placeholder.svg?height=200&width=400"}
-                      alt={deal.title}
-                      className="h-full w-full object-cover grayscale"
-                    />
-                  </div>
-                  <CardHeader>
-                    <CardTitle>{deal.title}</CardTitle>
-                    <CardDescription>
-                      {new Intl.NumberFormat("sv-SE", { style: "currency", currency: "SEK" }).format(deal.price)}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="line-clamp-2 text-sm text-muted-foreground">{deal.description}</p>
-                    <div className="mt-2 text-sm">
-                      <span className="font-medium">{t("Expired")}:</span>{" "}
-                      {formatDistanceToNow(deal.expiresAt, { locale: sv, addSuffix: true })}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Link href={`/dashboard/deals/${deal.id}`} className="w-full">
-                      <Button variant="outline" className="w-full">
-                        {t("View Details")}
-                      </Button>
-                    </Link>
-                  </CardFooter>
-                </Card>
+                <li key={deal.id} className="border p-4 rounded-md opacity-60">
+                  <h2 className="text-xl font-semibold">{deal.title}</h2>
+                  <p className="text-muted-foreground">{deal.price} kr</p>
+                  <Link href={`/product/${deal.id}`} className="text-purple-600 hover:underline">
+                    {t('Visa erbjudande')}
+                  </Link>
+                </li>
               ))}
+            </ul>
+          </TabsContent>
+        </Tabs>
+
+        {editId && editData && (
+          <div className="mt-6 border p-6 rounded-lg bg-muted">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">{t('Redigera erbjudande')}</h2>
+              <Button variant="ghost" onClick={() => router.replace('/dashboard')}>
+                {t('Stäng')}
+              </Button>
             </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">{t("No expired deals found")}</div>
-          )}
-        </TabsContent>
-      </Tabs>
+            <CreateDealForm defaultValues={editData} isEditing />
+          </div>
+        )}
+
+        <div className="mt-8 text-center">
+          <Link href="/dashboard/create-deal">
+            <Button>{t('Skapa nytt erbjudande')}</Button>
+          </Link>
+        </div>
+      </div>
     </DashboardLayout>
-  )
+  );
 }

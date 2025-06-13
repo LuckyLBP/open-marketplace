@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/dashboard-layout";
 import { useFirebase } from "@/components/firebase-provider";
 import { useLanguage } from "@/components/language-provider";
 import { db } from "@/lib/firebase";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import BasicInfoSection from "./sections/basicInfoSection";
 import ImageUploadSection from "./sections/imageUploadSection";
@@ -43,11 +43,18 @@ type Specification = {
   value: string;
 };
 
-export default function CreateDealForm() {
+type CreateDealFormProps = {
+  defaultValues?: any;
+  isEditing?: boolean;
+};
+
+export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
   const router = useRouter();
   const { user } = useFirebase();
   const { t } = useLanguage();
   const { toast } = useToast();
+
+  const isEditing = !!defaultValues?.id;
 
   const [activeTab, setActiveTab] = useState("basic");
   const [duration, setDuration] = useState(24);
@@ -69,70 +76,60 @@ export default function CreateDealForm() {
   const [originalPrice, setOriginalPrice] = useState("");
   const [category, setCategory] = useState("elektronik");
   const [subcategory, setSubcategory] = useState("");
-  const [companyName, setCompanyName] = useState("")
+  const [companyName, setCompanyName] = useState("");
+
+  useEffect(() => {
+    if (defaultValues) {
+      setTitle(defaultValues.title || "");
+      setDescription(defaultValues.description || "");
+      setPrice(defaultValues.price?.toString() || "");
+      setOriginalPrice(defaultValues.originalPrice?.toString() || "");
+      setCategory(defaultValues.category || "");
+      setSubcategory(defaultValues.subcategory || "");
+      setCompanyName(defaultValues.companyName || "");
+      setImages(defaultValues.images || []);
+      setDuration(defaultValues.duration || 24);
+      setInStock(defaultValues.inStock ?? true);
+      setStockQuantity(defaultValues.stockQuantity?.toString() || "10");
+      setSku(defaultValues.sku || "");
+      setFeatures(defaultValues.features || []);
+      setSpecifications(defaultValues.specifications || []);
+    }
+  }, [defaultValues]);
 
   const validateForm = () => {
     if (!title) {
-      toast({
-        title: t("Fel"),
-        description: t("Ange en titel för erbjudandet."),
-        variant: "destructive",
-      });
+      toast({ title: t("Fel"), description: t("Ange en titel för erbjudandet."), variant: "destructive" });
       setActiveTab("basic");
       return false;
     }
     if (!companyName) {
-      toast({
-        title: t("Fel"),
-        description: t("Ange företagsnamn."),
-        variant: "destructive",
-      });
+      toast({ title: t("Fel"), description: t("Ange företagsnamn."), variant: "destructive" });
       setActiveTab("basic");
       return false;
     }
-
     if (!description) {
-      toast({
-        title: t("Fel"),
-        description: t("Ange en beskrivning för erbjudandet."),
-        variant: "destructive",
-      });
+      toast({ title: t("Fel"), description: t("Ange en beskrivning för erbjudandet."), variant: "destructive" });
       setActiveTab("basic");
       return false;
     }
     if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      toast({
-        title: t("Fel"),
-        description: t("Ange ett giltigt pris för erbjudandet."),
-        variant: "destructive",
-      });
+      toast({ title: t("Fel"), description: t("Ange ett giltigt pris för erbjudandet."), variant: "destructive" });
       setActiveTab("basic");
       return false;
     }
     if (images.length === 0) {
-      toast({
-        title: t("Fel"),
-        description: t("Ladda upp minst en bild för erbjudandet."),
-        variant: "destructive",
-      });
+      toast({ title: t("Fel"), description: t("Ladda upp minst en bild för erbjudandet."), variant: "destructive" });
       setActiveTab("images");
       return false;
     }
     if (!category) {
-      toast({
-        title: t("Fel"),
-        description: t("Välj en kategori."),
-        variant: "destructive",
-      });
+      toast({ title: t("Fel"), description: t("Välj en kategori."), variant: "destructive" });
       setActiveTab("basic");
       return false;
     }
     if (!subcategory) {
-      toast({
-        title: t("Fel"),
-        description: t("Välj en underkategori."),
-        variant: "destructive",
-      });
+      toast({ title: t("Fel"), description: t("Välj en underkategori."), variant: "destructive" });
       setActiveTab("basic");
       return false;
     }
@@ -141,7 +138,6 @@ export default function CreateDealForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
     try {
@@ -179,123 +175,68 @@ export default function CreateDealForm() {
         companyName,
       };
 
-      await addDoc(collection(db, "deals"), dealData);
-
-      toast({
-        title: t("Succé"),
-        description: t("Erbjudandet har sparats!"),
-      });
+      if (isEditing && defaultValues?.id) {
+        await updateDoc(doc(db, "deals", defaultValues.id), dealData);
+        toast({ title: t("Succé"), description: t("Ändringarna har sparats!") });
+      } else {
+        await addDoc(collection(db, "deals"), dealData);
+        toast({ title: t("Succé"), description: t("Erbjudandet har sparats!") });
+      }
 
       router.push("/dashboard");
     } catch (err) {
       console.error("Fel vid uppladdning:", err);
-      toast({
-        title: t("Fel"),
-        description: t("Något gick fel vid sparande. Försök igen."),
-        variant: "destructive",
-      });
+      toast({ title: t("Fel"), description: t("Något gick fel vid sparande. Försök igen."), variant: "destructive" });
     }
   };
 
   return (
-    <DashboardLayout>
-      <div className="max-w-5xl mx-auto p-6 border border-purple-600 rounded-lg bg-white shadow-md">
-        <h1 className="text-3xl font-bold mb-6">{t("Create Deal")}</h1>
+    <div className="max-w-5xl mx-auto p-6 border border-purple-600 rounded-lg bg-white shadow-md">
+      <h1 className="text-3xl font-bold mb-6">
+        {isEditing ? t("Redigera erbjudande") : t("Skapa erbjudande")}
+      </h1>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid grid-cols-4 gap-2 rounded-md bg-gray-100 p-1 mb-6">
+            <TabsTrigger value="basic">{t("Grundläggande")}</TabsTrigger>
+            <TabsTrigger value="images">{t("Bilder")}</TabsTrigger>
+            <TabsTrigger value="details">{t("Detaljer")}</TabsTrigger>
+            <TabsTrigger value="inventory">{t("Lager")}</TabsTrigger>
+          </TabsList>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-4 gap-2 rounded-md bg-gray-100 p-1 mb-6">
-              <TabsTrigger value="basic" className="rounded-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-purple-200 data-[state=active]:bg-purple-600 data-[state=active]:text-white">{t("Grundläggande")}</TabsTrigger>
-              <TabsTrigger value="images" className="rounded-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-purple-200 data-[state=active]:bg-purple-600 data-[state=active]:text-white">{t("Bilder")}</TabsTrigger>
-              <TabsTrigger value="details" className="rounded-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-purple-200 data-[state=active]:bg-purple-600 data-[state=active]:text-white">{t("Detaljer")}</TabsTrigger>
-              <TabsTrigger value="inventory" className="rounded-full px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-purple-200 data-[state=active]:bg-purple-600 data-[state=active]:text-white">{t("Lager")}</TabsTrigger>
-            </TabsList>
+          <TabsContent value="basic">
+            <BasicInfoSection {...{ title, setTitle, description, setDescription, price, setPrice, originalPrice, setOriginalPrice, companyName, setCompanyName }} />
+            <CategorySection {...{ category, setCategory, subcategory, setSubcategory }} />
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t("Varaktighet")}</label>
+              <select value={duration} onChange={(e) => setDuration(parseInt(e.target.value))} className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500">
+                <option value={12}>12 timmar</option>
+                <option value={24}>24 timmar</option>
+                <option value={36}>36 timmar</option>
+              </select>
+            </div>
+          </TabsContent>
 
-            <TabsContent value="basic">
-              <BasicInfoSection
-                title={title}
-                setTitle={setTitle}
-                description={description}
-                setDescription={setDescription}
-                price={price}
-                setPrice={setPrice}
-                originalPrice={originalPrice}
-                setOriginalPrice={setOriginalPrice}
-                companyName={companyName}
-                setCompanyName={setCompanyName}
-              />
+          <TabsContent value="images">
+            <ImageUploadSection images={images} setImages={setImages} />
+          </TabsContent>
 
-              <CategorySection
-                category={category}
-                setCategory={setCategory}
-                subcategory={subcategory}
-                setSubcategory={setSubcategory}
-              />
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("Varaktighet")}
-                </label>
-                <select
-                  value={duration}
-                  onChange={(e) => setDuration(parseInt(e.target.value))}
-                  className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500"
-                >
-                  <option value={12}>12 timmar</option>
-                  <option value={24}>24 timmar</option>
-                  <option value={36}>36 timmar</option>
-                </select>
-              </div>
-            </TabsContent>
+          <TabsContent value="details">
+            <FeatureSection features={features} setFeatures={setFeatures} />
+            <SpecificationSection specifications={specifications} setSpecifications={setSpecifications} />
+          </TabsContent>
 
-            <TabsContent value="images">
-              <ImageUploadSection images={images} setImages={setImages} />
-            </TabsContent>
+          <TabsContent value="inventory">
+            <InventorySection {...{ inStock, setInStock, stockQuantity, setStockQuantity, sku, setSku }} />
+          </TabsContent>
+        </Tabs>
 
-            <TabsContent value="details">
-              <FeatureSection features={features} setFeatures={setFeatures} />
-              <SpecificationSection
-                specifications={specifications}
-                setSpecifications={setSpecifications}
-              />
-            </TabsContent>
+        <PreviewSection {...{ title, description, price, originalPrice, category, subcategory, images, features, specifications, inStock, stockQuantity, sku, duration, companyName }} />
 
-            <TabsContent value="inventory">
-              <InventorySection
-                inStock={inStock}
-                setInStock={setInStock}
-                stockQuantity={stockQuantity}
-                setStockQuantity={setStockQuantity}
-                sku={sku}
-                setSku={setSku}
-              />
-            </TabsContent>
-          </Tabs>
-
-          <PreviewSection
-            title={title}
-            description={description}
-            price={price}
-            originalPrice={originalPrice}
-            category={category}
-            subcategory={subcategory}
-            images={images}
-            features={features}
-            specifications={specifications}
-            inStock={inStock}
-            stockQuantity={stockQuantity}
-            sku={sku}
-            duration={duration}
-            companyName={companyName}
-          />
-
-          <button
-            type="submit"
-            className="mt-6 w-full rounded-md bg-gradient-to-r from-purple-600 to-pink-600 py-3 text-white font-semibold hover:from-purple-700 hover:to-pink-700"
-          >
-            {t("Skapa erbjudande")}
-          </button>
-        </form>
-      </div>
-    </DashboardLayout>
+        <button type="submit" className="mt-6 w-full rounded-md bg-gradient-to-r from-purple-600 to-pink-600 py-3 text-white font-semibold hover:from-purple-700 hover:to-pink-700">
+          {isEditing ? t("Spara ändringar") : t("Skapa erbjudande")}
+        </button>
+      </form>
+    </div>
   );
 }
