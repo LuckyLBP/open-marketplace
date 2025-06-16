@@ -21,14 +21,13 @@ export default function Home() {
 
       <main className="flex-1 relative">
         {/* Single sidebar ad on right side only */}
+        <FeaturedDealsSection />
 
         <HeroBanner />
 
         <CategoriesSection />
 
         <FloatingAd className="lg:fixed lg:bottom-4" />
-
-        <FeaturedDealsSection />
 
         <TrendingDealsSection />
 
