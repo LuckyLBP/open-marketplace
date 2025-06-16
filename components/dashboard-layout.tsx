@@ -62,6 +62,7 @@ export default function DashboardLayout({
           size="icon"
           className="fixed top-4 left-4 z-40"
           onClick={() => setSidebarOpen(!sidebarOpen)}
+          //testar nu bara igen
         >
           {sidebarOpen ? (
             <X className="h-6 w-6" />
