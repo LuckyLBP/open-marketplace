@@ -8,6 +8,8 @@ import {
   getDocs,
   orderBy,
   Timestamp,
+  doc,
+  getDoc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useLanguage } from '@/components/language-provider';
@@ -136,18 +138,16 @@ export default function Marketplace() {
           }
         });
 
-        // Fetch company names
+        // Fetch company names using the correct method (like in product page)
         const companyData: Record<string, string> = {};
         for (const companyId of companyIds) {
+          if (!companyId) continue;
+
           try {
-            const companyDoc = await getDocs(
-              query(
-                collection(db, 'companies'),
-                where('__name__', '==', companyId)
-              )
-            );
-            if (!companyDoc.empty) {
-              companyData[companyId] = companyDoc.docs[0].data().companyName;
+            const companyDoc = await getDoc(doc(db, 'companies', companyId));
+            if (companyDoc.exists()) {
+              companyData[companyId] =
+                companyDoc.data().companyName || 'BudFynd.se';
             }
           } catch (error) {
             console.error('Error fetching company:', error);
@@ -173,7 +173,7 @@ export default function Marketplace() {
             duration: data.duration,
             imageUrl: data.imageUrl,
             companyId: data.companyId,
-            companyName: companyData[data.companyId] || 'Unknown Company',
+            companyName: companyData[data.companyId] || 'BudFynd.se',
             category: data.category || 'other',
             subcategory: data.subcategory || null,
             feePercentage: data.feePercentage,
@@ -411,7 +411,9 @@ export default function Marketplace() {
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
-            {selectedCategory !== 'all' ? getCategoryLabel() : t('Marknadsplats')}
+            {selectedCategory !== 'all'
+              ? getCategoryLabel()
+              : t('Marknadsplats')}
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
             {selectedCategory !== 'all' && selectedSubcategory

@@ -10,6 +10,16 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Grid pattern for backgrounds */
+  .bg-grid-pattern {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(0, 0, 0, 0.15) 1px,
+      transparent 0
+    );
+    background-size: 20px 20px;
+  }
 }
 
 @layer base {
