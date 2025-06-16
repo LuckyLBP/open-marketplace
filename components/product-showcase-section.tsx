@@ -129,7 +129,7 @@ export function ProductShowcaseSection() {
           }
         });
 
-        // Fetch company names
+        // Fetch company name
         const companyData: Record<string, string> = {};
         for (const companyId of companyIds) {
           if (!companyId) continue;
