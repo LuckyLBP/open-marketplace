@@ -171,7 +171,7 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
         duration,
         expiresAt: new Date(Date.now() + duration * 60 * 60 * 1000),
         createdAt: serverTimestamp(),
-        userId: user?.uid || null,
+        companyId: user?.uid || null,
         companyName,
       };
 

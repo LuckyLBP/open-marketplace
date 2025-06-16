@@ -24,26 +24,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetClose,
-} from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import {
   Search,
   ShoppingCart,
-  Menu,
-  User,
   LogOut,
-  ChevronRight,
   Heart,
   LayoutDashboard,
   Settings,
@@ -109,12 +97,9 @@ export function Navbar() {
     >
       <div className="container mx-auto px-4">
         <div className="flex h-14 items-center justify-between">
-          {/* Hamburger Menu (Left Side) - visible on all screen sizes */}
           <div className="flex items-center"></div>
 
-          {/* Search, Cart, and User */}
           <div className="flex items-center gap-1 sm:gap-2">
-            {/* Search */}
             <form onSubmit={handleSearch} className="hidden md:flex relative">
               <Input
                 type="search"
@@ -147,22 +132,19 @@ export function Navbar() {
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user.photoURL || ''} />
                       <AvatarFallback className="bg-muted text-purple-600 font-semibold">
-                        {user.email?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+                        {user.email?.[0]?.toUpperCase() || 'U'}
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-
                 <DropdownMenuContent align="end">
-                  {userType === 'company' && (
+                  {(userType === 'company' || userType === 'superadmin') && (
                     <>
                       <DropdownMenuItem asChild>
-                        <Link
-                          href="/dashboard"
-                          className={cn(
-                            'flex items-center text-muted-foreground hover:text-foreground',
-                            pathname === '/dashboard' && 'text-purple-600'
-                          )}
-                        >
+                        <Link href="/dashboard" className={cn(
+                          'flex items-center text-muted-foreground hover:text-foreground',
+                          pathname === '/dashboard' && 'text-purple-600'
+                        )}>
                           <LayoutDashboard className="mr-2 h-4 w-4" />
                           Dashboard
                         </Link>
@@ -172,33 +154,12 @@ export function Navbar() {
                   )}
 
                   <DropdownMenuItem asChild>
-                    <Link
-                      href="/wishlist"
-                      className={cn(
-                        'flex items-center text-muted-foreground hover:text-foreground',
-                        pathname === '/wishlist' && 'text-purple-600'
-                      )}
-                    >
-                      <Heart className="mr-2 h-4 w-4" />
-                      Önskelista
-                    </Link>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href="/inställningar"
-                      className={cn(
-                        'flex items-center text-muted-foreground hover:text-foreground',
-                        pathname === '/inställningar' && 'text-purple-600'
-                      )}
-                    >
+                    <Link href="/inställningar" className={cn('flex items-center text-muted-foreground hover:text-foreground', pathname === '/inställningar' && 'text-purple-600')}>
                       <Settings className="mr-2 h-4 w-4" />
                       Inställningar
                     </Link>
                   </DropdownMenuItem>
-
                   <DropdownMenuSeparator />
-
                   <DropdownMenuItem
                     onClick={() => signOut(auth)}
                     className="text-red-600 focus:text-red-600"
@@ -209,11 +170,18 @@ export function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+
+            {!loading && !user && (
+              <Link href="/auth/signin">
+                <Button variant="ghost" className="ml-2">
+                  Logga in
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Desktop Categories Navigation */}
       <div className="hidden md:block border-t">
         <div className="container mx-auto px-4">
           <NavigationMenu className="mx-auto">

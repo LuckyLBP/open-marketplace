@@ -7,7 +7,7 @@ import { type User, onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
-type UserType = "customer" | "company" | null;
+type UserType = "customer" | "company" | "superadmin" | null;
 
 type FirebaseContextType = {
     user: User | null;
@@ -39,10 +39,13 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
                         doc(db, "companies", user.uid)
                     );
                     if (companyDoc.exists()) {
-                        setUserType("company");
+                        const data = companyDoc.data();
+                        const role = data.accountType === "superadmin" ? "superadmin" : "company";
+                        setUserType(role);
                     } else {
                         setUserType("customer");
                     }
+
                 } catch (error) {
                     console.error("Error determining user type:", error);
                     setUserType(null);
