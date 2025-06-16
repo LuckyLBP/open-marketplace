@@ -8,7 +8,6 @@ import { FeaturedDealsSection } from '@/components/featured-deals-section';
 import { HowItWorksSection } from '@/components/how-it-works-section';
 import { BusinessCTASection } from '@/components/business-cta-section';
 import { ProductShowcaseSection } from '@/components/product-showcase-section';
-import { SidebarAd } from '@/components/sidebar-ad';
 import { BannerAd } from '@/components/banner-ad';
 import { ProductSpotlight } from '@/components/product-spotlight';
 import { FloatingAd } from '@/components/floating-ad';
