@@ -50,12 +50,11 @@ type CreateDealFormProps = {
 
 export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
   const router = useRouter();
-  const { user } = useFirebase();
+  const { user, userType } = useFirebase();
   const { t } = useLanguage();
   const { toast } = useToast();
 
   const isEditing = !!defaultValues?.id;
-
   const [activeTab, setActiveTab] = useState("basic");
   const [duration, setDuration] = useState(24);
   const [images, setImages] = useState<ProductImage[]>([]);
@@ -78,6 +77,12 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
   const [subcategory, setSubcategory] = useState("");
   const [companyName, setCompanyName] = useState("");
 
+  const maxDuration =
+    userType === "company" ? 336 :
+      userType === "customer" ? 168 :
+        userType === "admin" ? 336 :
+          userType === "superadmin" ? 336 : 168; // default fallback
+
   useEffect(() => {
     if (defaultValues) {
       setTitle(defaultValues.title || "");
@@ -98,39 +103,13 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
   }, [defaultValues]);
 
   const validateForm = () => {
-    if (!title) {
-      toast({ title: t("Fel"), description: t("Ange en titel för erbjudandet."), variant: "destructive" });
+    if (!title || !companyName || !description || !price || isNaN(Number(price)) || Number(price) <= 0 || images.length === 0 || !category || !subcategory) {
+      toast({ title: t("Fel"), description: t("Kontrollera att alla fält är ifyllda korrekt."), variant: "destructive" });
       setActiveTab("basic");
       return false;
     }
-    if (!companyName) {
-      toast({ title: t("Fel"), description: t("Ange företagsnamn."), variant: "destructive" });
-      setActiveTab("basic");
-      return false;
-    }
-    if (!description) {
-      toast({ title: t("Fel"), description: t("Ange en beskrivning för erbjudandet."), variant: "destructive" });
-      setActiveTab("basic");
-      return false;
-    }
-    if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      toast({ title: t("Fel"), description: t("Ange ett giltigt pris för erbjudandet."), variant: "destructive" });
-      setActiveTab("basic");
-      return false;
-    }
-    if (images.length === 0) {
-      toast({ title: t("Fel"), description: t("Ladda upp minst en bild för erbjudandet."), variant: "destructive" });
-      setActiveTab("images");
-      return false;
-    }
-    if (!category) {
-      toast({ title: t("Fel"), description: t("Välj en kategori."), variant: "destructive" });
-      setActiveTab("basic");
-      return false;
-    }
-    if (!subcategory) {
-      toast({ title: t("Fel"), description: t("Välj en underkategori."), variant: "destructive" });
-      setActiveTab("basic");
+    if (duration > maxDuration) {
+      toast({ title: t("Fel"), description: t("Vald varaktighet överskrider tillåten gräns för din roll."), variant: "destructive" });
       return false;
     }
     return true;
@@ -144,9 +123,7 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
       const storage = getStorage();
       const uploadedImages = await Promise.all(
         images.map(async (img) => {
-          if (img.preview.startsWith("https://")) {
-            return { url: img.preview, isPrimary: img.isPrimary };
-          }
+          if (img.preview.startsWith("https://")) return { url: img.preview, isPrimary: img.isPrimary };
           const fileRef = ref(storage, `deals/${crypto.randomUUID()}`);
           await uploadBytes(fileRef, img.file);
           const url = await getDownloadURL(fileRef);
@@ -173,6 +150,7 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
         createdAt: serverTimestamp(),
         companyId: user?.uid || null,
         companyName,
+        role: userType,
       };
 
       if (isEditing && defaultValues?.id) {
@@ -209,11 +187,23 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
             <CategorySection {...{ category, setCategory, subcategory, setSubcategory }} />
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">{t("Varaktighet")}</label>
-              <select value={duration} onChange={(e) => setDuration(parseInt(e.target.value))} className="block w-full mt-1 border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500">
-                <option value={12}>12 timmar</option>
-                <option value={24}>24 timmar</option>
-                <option value={36}>36 timmar</option>
+              <select
+                value={duration}
+                onChange={(e) => setDuration(parseInt(e.target.value))}
+                className="block w-full mt-1 border-gray-300 rounded-md shadow-sm"
+              >
+                {[12, 24, 36, 48, 72, 96, 120, 144, 168, 192, 216, 240, 264, 288, 312, 336]
+                  .filter((h) => h <= maxDuration)
+                  .map((h) => {
+                    const label = h <= 48 ? `${h} timmar` : `${h / 24} dagar`;
+                    return (
+                      <option key={h} value={h}>
+                        {label}
+                      </option>
+                    );
+                  })}
               </select>
+
             </div>
           </TabsContent>
 

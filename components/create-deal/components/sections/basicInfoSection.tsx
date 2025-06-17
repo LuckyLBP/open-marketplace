@@ -49,12 +49,12 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="companyName">{t("Företagsnamn")} *</Label>
+        <Label htmlFor="companyName">{t("Företagsnamn/Privatnamn")} *</Label>
         <Input
           id="companyName"
           value={companyName}
           onChange={(e) => setCompanyName(e.target.value)}
-          placeholder={t("Ange företagsnamn")}
+          placeholder={t("Ange företagsnamn/Privatnamn")}
           required
         />
       </div>

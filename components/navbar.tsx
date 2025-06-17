@@ -138,7 +138,7 @@ export function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {(userType === 'company' || userType === 'superadmin') && (
+                  {['company', 'superadmin', 'customer'].includes(userType || '') && (
                     <>
                       <DropdownMenuItem asChild>
                         <Link href="/dashboard" className={cn(
@@ -153,8 +153,9 @@ export function Navbar() {
                     </>
                   )}
 
+
                   <DropdownMenuItem asChild>
-                    <Link href="/inställningar" className={cn('flex items-center text-muted-foreground hover:text-foreground', pathname === '/inställningar' && 'text-purple-600')}>
+                    <Link href="/dashboard/settings" className={cn('flex items-center text-muted-foreground hover:text-foreground', pathname === '/inställningar' && 'text-purple-600')}>
                       <Settings className="mr-2 h-4 w-4" />
                       Inställningar
                     </Link>

@@ -12,16 +12,19 @@ import {
 import { Button } from '../ui/button';
 import { Clock, ShoppingCart, Heart, Store } from 'lucide-react';
 import { useLanguage } from '../language-provider';
-import { cn} from "../../lib/utils"
+import { cn } from "../../lib/utils"
+import { TimeLeftLabel } from '../deals/timeLeftLabel';
+
 type ProductCardProps = {
   id: string;
   title: string;
   description: string;
   price: number;
-  originalPrice?: number; 
+  originalPrice?: number;
   imageUrl: string;
   category: string;
   companyName: string;
+  expiresAt: Date | string; // 👈 typ tillåter båda
   duration: number;
   timeLeft: {
     hours: number;
@@ -41,6 +44,7 @@ export function ProductCard({
   imageUrl,
   category,
   companyName,
+  expiresAt,
   duration,
   timeLeft,
   onBuyNow,
@@ -48,10 +52,13 @@ export function ProductCard({
 }: ProductCardProps) {
   const { t } = useLanguage();
 
-  // Calculate discount percentage if original price exists
+  // Se till att expiresAt alltid är ett Date-objekt
+  const expiresAtDate = typeof expiresAt === 'string' ? new Date(expiresAt) : expiresAt;
+
   const discountPercentage = originalPrice
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
+
   const isOnSale = originalPrice && originalPrice > price;
 
   return (
@@ -105,10 +112,8 @@ export function ProductCard({
           <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
             <div className="flex items-center">
               <Clock className="h-3.5 w-3.5 mr-1" />
-              <span className="text-xs red">
-                {timeLeft.hours.toString().padStart(2, '0')}:
-                {timeLeft.minutes.toString().padStart(2, '0')}:
-                {timeLeft.seconds.toString().padStart(2, '0')}
+              <span className="text-xs text-purple-700 font-medium">
+                <TimeLeftLabel expiresAt={expiresAtDate} />
               </span>
             </div>
             <div className="text-right">

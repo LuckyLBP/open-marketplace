@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useLanguage } from '@/components/language-provider';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
-import { SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FilterSidebar } from '@/components/filter-sidebar';
@@ -13,7 +13,6 @@ import { useMobile } from '@/hooks/use-mobile';
 import { useDeals, Deal } from '@/hooks/useDeals';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
-import { Home } from 'lucide-react';
 
 const categoryDisplayNames: Record<string, string> = {
   elektronik: 'Elektronik',
@@ -124,18 +123,14 @@ export default function Marketplace() {
         break;
       case 'time-left':
         filtered.sort((a, b) => {
-          const aTimeLeft =
-            a.timeLeft.hours * 3600 + a.timeLeft.minutes * 60 + a.timeLeft.seconds;
-          const bTimeLeft =
-            b.timeLeft.hours * 3600 + b.timeLeft.minutes * 60 + b.timeLeft.seconds;
-          return aTimeLeft - bTimeLeft;
+          const aTime = new Date(a.expiresAt).getTime();
+          const bTime = new Date(b.expiresAt).getTime();
+          return aTime - bTime;
         });
         break;
     }
 
-
     setFilteredDeals(filtered);
-
   }, [
     deals,
     searchQuery,
@@ -146,31 +141,13 @@ export default function Marketplace() {
     sortOption,
   ]);
 
-
   const handleBuyNow = (dealId: string) => {
     router.push(`/product/${dealId}`);
   };
 
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    setSelectedSubcategory(null);
-
-    const params = new URLSearchParams();
-    if (category !== 'all') params.set('category', category);
-    if (searchQuery) params.set('search', searchQuery);
-
-    router.push(`/marketplace?${params.toString()}`);
-  };
-
-  const handleSubcategoryChange = (subcategory: string) => {
-    setSelectedSubcategory(subcategory);
-
-    const params = new URLSearchParams();
-    if (selectedCategory !== 'all') params.set('category', selectedCategory);
-    params.set('subcategory', subcategory);
-    if (searchQuery) params.set('search', searchQuery);
-
-    router.push(`/marketplace?${params.toString()}`);
+  const getCategoryLabel = () => {
+    if (selectedCategory === 'all') return 'Alla kategorier';
+    return categoryDisplayNames[selectedCategory] || selectedCategory;
   };
 
   const handleClearFilters = () => {
@@ -179,18 +156,13 @@ export default function Marketplace() {
     setSelectedDurations([]);
     setPriceRange([0, maxPrice]);
     setSearchQuery('');
-
     router.push('/marketplace');
-  };
-
-  const getCategoryLabel = () => {
-    if (selectedCategory === 'all') return 'Alla kategorier';
-    return categoryDisplayNames[selectedCategory] || selectedCategory;
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-50 to-white">
       <Navbar />
+
       <div className="container mx-auto px-4 mt-4">
         <Button
           variant="ghost"
@@ -223,7 +195,6 @@ export default function Marketplace() {
               <TabsTrigger value="time-left">{t.t('Tid kvar')}</TabsTrigger>
             </TabsList>
           </Tabs>
-
           {isMobile && (
             <Button variant="outline" size="icon">
               <SlidersHorizontal className="h-4 w-4" />
@@ -231,56 +202,29 @@ export default function Marketplace() {
           )}
         </div>
 
-        {isMobile && (
-          <FilterSidebar
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategoryChange={handleCategoryChange}
-            priceRange={priceRange}
-            maxPrice={maxPrice}
-            onPriceRangeChange={setPriceRange}
-            durations={[12, 24, 48]}
-            selectedDurations={selectedDurations}
-            onDurationChange={(d) => {
-              if (selectedDurations.includes(d)) {
-                setSelectedDurations(selectedDurations.filter(x => x !== d));
-              } else {
-                setSelectedDurations([...selectedDurations, d]);
-              }
-            }}
-            onClearFilters={handleClearFilters}
-            onApplyFilters={() => { }}
-            isMobile
-            subcategories={subcategories}
-            selectedSubcategory={selectedSubcategory}
-            onSubcategoryChange={handleSubcategoryChange}
-          />
-        )}
-
         <div className="flex flex-col md:flex-row gap-8">
           {!isMobile && (
             <div className="w-64 shrink-0">
               <FilterSidebar
                 categories={categories}
                 selectedCategory={selectedCategory}
-                onCategoryChange={handleCategoryChange}
+                onCategoryChange={setSelectedCategory}
                 priceRange={priceRange}
                 maxPrice={maxPrice}
                 onPriceRangeChange={setPriceRange}
                 durations={[12, 24, 48]}
                 selectedDurations={selectedDurations}
-                onDurationChange={(d) => {
-                  if (selectedDurations.includes(d)) {
-                    setSelectedDurations(selectedDurations.filter(x => x !== d));
-                  } else {
-                    setSelectedDurations([...selectedDurations, d]);
-                  }
-                }}
+                onDurationChange={(d) =>
+                  selectedDurations.includes(d)
+                    ? setSelectedDurations(selectedDurations.filter(x => x !== d))
+                    : setSelectedDurations([...selectedDurations, d])
+                }
                 onClearFilters={handleClearFilters}
-                onApplyFilters={() => { }}
                 subcategories={subcategories}
                 selectedSubcategory={selectedSubcategory}
-                onSubcategoryChange={handleSubcategoryChange}
+                onSubcategoryChange={setSelectedSubcategory}
+                onApplyFilters={() => { }}
+
               />
             </div>
           )}
@@ -303,7 +247,7 @@ export default function Marketplace() {
                     category={deal.category}
                     companyName={deal.companyName || ''}
                     duration={deal.duration}
-                    timeLeft={deal.timeLeft}
+                    expiresAt={deal.expiresAt ?? new Date()}
                     onBuyNow={handleBuyNow}
                   />
                 ))}
@@ -328,23 +272,15 @@ export default function Marketplace() {
                 </div>
                 <h3 className="text-xl font-medium mb-2">Inga produkter hittades</h3>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  {searchQuery ||
-                    selectedCategory !== 'all' ||
-                    selectedDurations.length > 0 ||
-                    priceRange[0] > 0 ||
-                    priceRange[1] < maxPrice
+                  {searchQuery || selectedCategory !== 'all' || selectedDurations.length > 0 || priceRange[0] > 0 || priceRange[1] < maxPrice
                     ? 'Inga produkter matchar dina filter. Försök att ändra dina sökkriterier.'
                     : 'Det finns inga aktiva erbjudanden just nu. Kom tillbaka senare.'}
                 </p>
-                {(searchQuery ||
-                  selectedCategory !== 'all' ||
-                  selectedDurations.length > 0 ||
-                  priceRange[0] > 0 ||
-                  priceRange[1] < maxPrice) && (
-                    <Button variant="outline" className="mt-4" onClick={handleClearFilters}>
-                      Rensa filter
-                    </Button>
-                  )}
+                {(searchQuery || selectedCategory !== 'all' || selectedDurations.length > 0 || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
+                  <Button variant="outline" className="mt-4" onClick={handleClearFilters}>
+                    Rensa filter
+                  </Button>
+                )}
               </div>
             )}
           </div>

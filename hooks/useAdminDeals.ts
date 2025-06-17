@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { collection, doc, getDocs, query, Timestamp, where } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useFirebase } from "@/components/firebase-provider";
 
@@ -9,14 +9,22 @@ export interface Deal {
     id: string;
     title: string;
     companyId: string;
+    companyName: string;
     expiresAt: Date;
     [key: string]: any;
+}
+
+export interface CompanyInfo {
+    id: string;
+    email: string;
+    companyName: string;
 }
 
 export function useAdminDeals() {
     const { user, userType, loading } = useFirebase();
     const [activeDeals, setActiveDeals] = useState<Deal[]>([]);
     const [expiredDeals, setExpiredDeals] = useState<Deal[]>([]);
+    const [companies, setCompanies] = useState<CompanyInfo[]>([]);
     const [fetching, setFetching] = useState(false);
 
     useEffect(() => {
@@ -24,17 +32,13 @@ export function useAdminDeals() {
             if (!user || loading || userType === 'customer') return;
 
             setFetching(true);
-
             try {
-                let q;
+                const q =
+                    userType === 'superadmin'
+                        ? query(collection(db, 'deals'))
+                        : query(collection(db, 'deals'), where('companyId', '==', user.uid));
 
-                if (userType === 'superadmin') {
-                    q = query(collection(db, 'deals'));
-                } else if (userType === 'company') {
-                    q = query(collection(db, 'deals'), where('companyId', '==', user.uid));
-                }
-
-                const snapshot = await getDocs(q!);
+                const snapshot = await getDocs(q);
                 const now = new Date();
 
                 const active: Deal[] = [];
@@ -48,12 +52,12 @@ export function useAdminDeals() {
                         id: docSnap.id,
                         title: data.title ?? "Okänt erbjudande",
                         companyId: data.companyId ?? "okänt",
+                        companyName: data.companyName ?? "okänt",
                         expiresAt,
-
-                        ...data, 
+                        ...data,
                     };
 
-                    if (expiresAt > new Date()) {
+                    if (expiresAt > now) {
                         active.push(deal);
                     } else {
                         expired.push(deal);
@@ -63,14 +67,34 @@ export function useAdminDeals() {
                 setActiveDeals(active);
                 setExpiredDeals(expired);
             } catch (error) {
-                console.error('Kunde ej hämta deals:', error);
+                console.error("Kunde inte hämta deals:", error);
             } finally {
                 setFetching(false);
             }
         };
 
+        const fetchCompanies = async () => {
+            if (userType !== 'superadmin') return;
+
+            try {
+                const companySnap = await getDocs(collection(db, 'companies'));
+                const companyList: CompanyInfo[] = companySnap.docs.map((doc) => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        email: data.email ?? 'okänd',
+                        companyName: data.companyName ?? 'okänt företag',
+                    };
+                });
+                setCompanies(companyList);
+            } catch (error) {
+                console.error('Kunde inte hämta företag:', error);
+            }
+        };
+
         fetchDeals();
+        fetchCompanies();
     }, [user, userType, loading]);
 
-    return { activeDeals, expiredDeals, fetching };
+    return { activeDeals, expiredDeals, companies, fetching };
 }

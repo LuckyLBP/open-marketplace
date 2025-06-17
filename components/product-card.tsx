@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Clock, ShoppingCart, Heart, Store } from 'lucide-react';
 import { useLanguage } from '@/components/language-provider';
 import { cn } from '@/lib/utils';
+import { TimeLeftLabel } from '@/components/deals/timeLeftLabel';
+
 
 type ProductCardProps = {
   id: string;
@@ -24,11 +26,7 @@ type ProductCardProps = {
   category: string;
   companyName: string;
   duration: number;
-  timeLeft: {
-    hours: number;
-    minutes: number;
-    seconds: number;
-  };
+  expiresAt: Date;
   onBuyNow: (id: string) => void;
   onAddToWishlist?: (id: string) => void;
 };
@@ -43,7 +41,7 @@ export function ProductCard({
   category,
   companyName,
   duration,
-  timeLeft,
+  expiresAt,
   onBuyNow,
   onAddToWishlist,
 }: ProductCardProps) {
@@ -106,11 +104,7 @@ export function ProductCard({
           <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
             <div className="flex items-center">
               <Clock className="h-3.5 w-3.5 mr-1" />
-              <span className="text-xs red">
-                {timeLeft.hours.toString().padStart(2, '0')}:
-                {timeLeft.minutes.toString().padStart(2, '0')}:
-                {timeLeft.seconds.toString().padStart(2, '0')}
-              </span>
+              <TimeLeftLabel expiresAt={expiresAt} /> {/* ✅ korrekt komponent används */}
             </div>
             <div className="text-right">
               {isOnSale && (

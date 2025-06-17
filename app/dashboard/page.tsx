@@ -13,6 +13,7 @@ import DashboardLayout from '@/components/dashboard-layout';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import CreateDealForm from '@/components/create-deal/components/createDealForm';
+import { TimeLeftLabel } from '@/components/deals/timeLeftLabel';
 
 export default function DashboardPage() {
   const { user, loading } = useFirebase();
@@ -102,6 +103,8 @@ export default function DashboardPage() {
                 <li key={deal.id} className="border p-4 rounded-md">
                   <h2 className="text-xl font-semibold">{deal.title}</h2>
                   <p className="text-muted-foreground">{deal.price} kr</p>
+                  <TimeLeftLabel expiresAt={new Date(deal.expiresAt)} />
+
                   <Link href={`/product/${deal.id}`} className="text-purple-600 hover:underline">
                     {t('Visa erbjudande')}
                   </Link>

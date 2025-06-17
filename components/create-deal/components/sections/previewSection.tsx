@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useLanguage } from "@/components/language-provider";
+import { TimeLeftLabel } from "@/components/deals/timeLeftLabel";
 
 interface PreviewSectionProps {
   title: string;
@@ -17,7 +18,7 @@ interface PreviewSectionProps {
   stockQuantity: string;
   sku: string;
   duration: number;
-  companyName: string; 
+  companyName: string;
 }
 
 type ProductImage = {
@@ -53,9 +54,11 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
   stockQuantity,
   sku,
   duration,
-  companyName, // ✅ inkluderat
+  companyName,
 }) => {
   const { t } = useLanguage();
+  const expiresAt = new Date(Date.now() + duration * 60 * 60 * 1000);
+
 
   return (
     <div className="bg-gray-50 border rounded-lg p-6 mb-8">
@@ -87,6 +90,10 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
         {originalPrice && (
           <span className="ml-2 line-through text-gray-400">{originalPrice} kr</span>
         )}
+      </div>
+
+      <div className="text-sm text-purple-700 font-medium mb-2">
+        <TimeLeftLabel expiresAt={expiresAt} />
       </div>
 
       {/* Kategori */}

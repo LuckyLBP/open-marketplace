@@ -95,9 +95,15 @@ export function useDeals(options: UseDealsOptions = {}) {
 
       const results: Deal[] = snapshot.docs.map((docSnap) => {
         const data = docSnap.data();
-        const expiresAt: Date = data.expiresAt?.toDate?.() || now;
-        const diffMs = expiresAt.getTime() - now.getTime();
+        const now = new Date();
 
+        // ExpiresAt korrekt konvertering
+        const expiresAt: Date =
+          data.expiresAt instanceof Date
+            ? data.expiresAt
+            : data.expiresAt?.toDate?.() || now;
+
+        const diffMs = expiresAt.getTime() - now.getTime();
         const hours = Math.floor(diffMs / 3_600_000);
         const minutes = Math.floor((diffMs % 3_600_000) / 60_000);
         const seconds = Math.floor((diffMs % 60_000) / 1_000);
@@ -108,7 +114,6 @@ export function useDeals(options: UseDealsOptions = {}) {
           description: data.description,
           price: data.price,
           originalPrice: data.originalPrice ?? null,
-
           duration: data.duration,
           images: data.images || [],
           imageUrl:
@@ -131,13 +136,13 @@ export function useDeals(options: UseDealsOptions = {}) {
 
           inStock: data.inStock ?? true,
           stockQuantity: data.stockQuantity ?? 0,
+          sku: data.sku ?? '',
 
           timeLeft: {
             hours: Math.max(0, hours),
             minutes: Math.max(0, minutes),
             seconds: Math.max(0, seconds),
           },
-          sku: data.sku ?? '',
         };
       });
 
@@ -168,7 +173,7 @@ export function useDeals(options: UseDealsOptions = {}) {
           };
         })
       );
-    }, 1_000);
+    }, 1000);
 
     return () => {
       active = false;

@@ -16,7 +16,7 @@ import {
 interface UserData {
     id: string;
     email: string;
-    role: 'customer' | 'company' | 'superadmin';
+    role: 'user' | 'company' | 'superadmin' | 'admin';
 }
 
 export default function UserList() {
@@ -89,6 +89,7 @@ export default function UserList() {
                                     <SelectItem value="customer">Customer</SelectItem>
                                     <SelectItem value="company">Company</SelectItem>
                                     <SelectItem value="superadmin">Superadmin</SelectItem>
+                                    <SelectItem value="user">Privatperson</SelectItem>
                                 </SelectContent>
                             </Select>
                         </li>

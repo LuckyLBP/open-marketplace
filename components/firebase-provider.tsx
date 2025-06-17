@@ -1,53 +1,66 @@
-"use client";
+'use client';
 
-import type React from "react";
+import type React from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { type User, onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { type User, onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
-
-type UserType = "customer" | "company" | "superadmin" | null;
+export type UserType = 'customer' | 'company' | 'admin' | 'superadmin';
 
 type FirebaseContextType = {
     user: User | null;
-    userType: UserType;
+    userType: UserType | null;
     loading: boolean;
 };
 
 const FirebaseContext = createContext<FirebaseContextType>({
     user: null,
     userType: null,
-    loading: true
+    loading: true,
 });
 
 export const useFirebase = () => useContext(FirebaseContext);
 
 export function FirebaseProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
-    const [userType, setUserType] = useState<UserType>(null);
+    const [userType, setUserType] = useState<UserType | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            setUser(user);
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            setUser(firebaseUser);
 
-            if (user) {
+            if (firebaseUser) {
                 try {
-                    // Check if user is a company
-                    const companyDoc = await getDoc(
-                        doc(db, "companies", user.uid)
-                    );
-                    if (companyDoc.exists()) {
-                        const data = companyDoc.data();
-                        const role = data.accountType === "superadmin" ? "superadmin" : "company";
+                    const userRef = doc(db, 'users', firebaseUser.uid);
+                    const userSnap = await getDoc(userRef);
+
+                    if (userSnap.exists()) {
+                        const role = userSnap.data()?.role as UserType;
                         setUserType(role);
                     } else {
-                        setUserType("customer");
-                    }
+                        // Kolla istället i companies
+                        const companyRef = doc(db, 'companies', firebaseUser.uid);
+                        const companySnap = await getDoc(companyRef);
 
+                        if (companySnap.exists()) {
+                            const companyData = companySnap.data();
+                            const accountType = companyData.accountType;
+
+                            if (accountType === 'superadmin') {
+                                setUserType('superadmin');
+                            } else if (accountType === 'admin') {
+                                setUserType('admin');
+                            } else {
+                                setUserType('company');
+                            }
+                        } else {
+                            setUserType('customer'); // fallback
+                        }
+                    }
                 } catch (error) {
-                    console.error("Error determining user type:", error);
+                    console.error('Error determining user type:', error);
                     setUserType(null);
                 }
             } else {
