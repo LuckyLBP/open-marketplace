@@ -1,32 +1,36 @@
 'use client';
 
 import Link from 'next/link';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '../ui/badge';
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+} from '../ui/card';
+import { Button } from '../ui/button';
 import { Clock, ShoppingCart, Heart, Store } from 'lucide-react';
-import { useLanguage } from '@/components/language-provider';
-import { cn } from '@/lib/utils';
-import { TimeLeftLabel } from '@/components/deals/timeLeftLabel';
-
+import { useLanguage } from '../language-provider';
+import { cn } from "../../lib/utils"
+import { TimeLeftLabel } from '../deals/timeLeftLabel';
 
 type ProductCardProps = {
   id: string;
   title: string;
   description: string;
   price: number;
-  originalPrice?: number; // Added original price for sale calculation
+  originalPrice?: number;
   imageUrl: string;
   category: string;
   companyName: string;
+  expiresAt: Date | string; // 👈 typ tillåter båda
   duration: number;
-  expiresAt: Date;
+  timeLeft: {
+    hours: number;
+    minutes: number;
+    seconds: number;
+  };
   onBuyNow: (id: string) => void;
   onAddToWishlist?: (id: string) => void;
 };
@@ -40,17 +44,21 @@ export function ProductCard({
   imageUrl,
   category,
   companyName,
-  duration,
   expiresAt,
+  duration,
+  timeLeft,
   onBuyNow,
   onAddToWishlist,
 }: ProductCardProps) {
   const { t } = useLanguage();
 
-  // Calculate discount percentage if original price exists
+  // Se till att expiresAt alltid är ett Date-objekt
+  const expiresAtDate = typeof expiresAt === 'string' ? new Date(expiresAt) : expiresAt;
+
   const discountPercentage = originalPrice
     ? Math.round(((originalPrice - price) / originalPrice) * 100)
     : 0;
+
   const isOnSale = originalPrice && originalPrice > price;
 
   return (
@@ -104,7 +112,9 @@ export function ProductCard({
           <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
             <div className="flex items-center">
               <Clock className="h-3.5 w-3.5 mr-1" />
-              <TimeLeftLabel expiresAt={expiresAt} /> {/* ✅ korrekt komponent används */}
+              <span className="text-xs text-purple-700 font-medium">
+                <TimeLeftLabel expiresAt={expiresAtDate} />
+              </span>
             </div>
             <div className="text-right">
               {isOnSale && (

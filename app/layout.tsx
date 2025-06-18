@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/components/language-provider';
 import { FirebaseProvider } from '@/components/firebase-provider';
+import { CartProvider } from '@/components/cart/cartProvider';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -25,8 +26,10 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light">
           <LanguageProvider>
             <FirebaseProvider>
+              <CartProvider>
               {children}
               <Toaster />
+              </CartProvider>
             </FirebaseProvider>
           </LanguageProvider>
         </ThemeProvider>
