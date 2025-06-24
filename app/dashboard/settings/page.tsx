@@ -6,7 +6,14 @@ import { useFirebase } from '@/components/firebase-provider';
 import DashboardLayout from '@/components/dashboard-layout';
 import UserList from '@/components/admin/userList';
 import { db } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  updateDoc,
+  doc,
+} from 'firebase/firestore';
 import { useAdminDeals } from '@/hooks/useAdminDeals';
 import {
   Tabs,
@@ -15,15 +22,8 @@ import {
   TabsContent,
 } from '@/components/ui/tabs';
 
-type CompanyInfo = {
-  id: string;
-  email: string;
-};
-
-type UserInfo = {
-  id: string;
-  email: string;
-};
+type CompanyInfo = { id: string; email: string };
+type UserInfo = { id: string; email: string };
 
 export default function SettingsPage() {
   const { user, userType, loading } = useFirebase();
@@ -33,8 +33,9 @@ export default function SettingsPage() {
 
   const [companyList, setCompanyList] = useState<CompanyInfo[]>([]);
   const [userList, setUserList] = useState<UserInfo[]>([]);
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>('all');
-  const [tab, setTab] = useState<'active' | 'expired'>('active');
+  const [selectedCompanyId, setSelectedCompanyId] = useState('all');
+  const [tab, setTab] = useState<'active' | 'expired' | 'pending'>('active');
+  const [pendingDeals, setPendingDeals] = useState<any[]>([]);
 
   useEffect(() => {
     if (!loading && !user) router.push('/');
@@ -66,6 +67,30 @@ export default function SettingsPage() {
     fetchData();
   }, [userType]);
 
+  useEffect(() => {
+    if (userType !== 'admin' && userType !== 'superadmin') return;
+
+    const fetchPendingDeals = async () => {
+      const snapshot = await getDocs(
+        query(collection(db, 'deals'), where('status', '==', 'pending'))
+      );
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setPendingDeals(data);
+    };
+
+    fetchPendingDeals();
+  }, [userType]);
+
+  const handleApprove = async (dealId: string) => {
+    await updateDoc(doc(db, 'deals', dealId), { status: 'approved' });
+    setPendingDeals(prev => prev.filter(deal => deal.id !== dealId));
+  };
+
+  const handleReject = async (dealId: string) => {
+    await updateDoc(doc(db, 'deals', dealId), { status: 'rejected' });
+    setPendingDeals(prev => prev.filter(deal => deal.id !== dealId));
+  };
+
   const filteredActive = selectedCompanyId === 'all'
     ? activeDeals
     : activeDeals.filter((d) => d.companyId === selectedCompanyId);
@@ -76,16 +101,14 @@ export default function SettingsPage() {
 
   if (loading) return <p className="p-6">Laddar...</p>;
 
-  if (userType !== 'superadmin') {
+  if (userType !== 'admin' && userType !== 'superadmin') {
     return (
-          <DashboardLayout>
-
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">Inställningar</h1>
-        <p>Du har inte behörighet att se ytterligare innehåll.</p>
-      </div>
-          </DashboardLayout>
-
+      <DashboardLayout>
+        <div className="p-6">
+          <h1 className="text-2xl font-bold mb-4">Inställningar</h1>
+          <p>Du har inte behörighet att se ytterligare innehåll.</p>
+        </div>
+      </DashboardLayout>
     );
   }
 
@@ -130,10 +153,11 @@ export default function SettingsPage() {
         <UserList />
 
         <div className="mt-8">
-          <Tabs value={tab} onValueChange={(val) => setTab(val as 'active' | 'expired')}>
+          <Tabs value={tab} onValueChange={(val) => setTab(val as any)}>
             <TabsList>
               <TabsTrigger value="active">Aktiva erbjudanden</TabsTrigger>
               <TabsTrigger value="expired">Utgångna erbjudanden</TabsTrigger>
+              <TabsTrigger value="pending">Väntande erbjudanden</TabsTrigger>
             </TabsList>
 
             <TabsContent value="active">
@@ -155,6 +179,35 @@ export default function SettingsPage() {
                 <ul className="list-disc list-inside mt-4 opacity-70">
                   {filteredExpired.map((deal) => (
                     <li key={deal.id}>{deal.title}</li>
+                  ))}
+                </ul>
+              )}
+            </TabsContent>
+
+            <TabsContent value="pending">
+              {pendingDeals.length === 0 ? (
+                <p className="mt-4">Inga väntande erbjudanden.</p>
+              ) : (
+                <ul className="space-y-4 mt-4">
+                  {pendingDeals.map((deal) => (
+                    <li key={deal.id} className="border p-4 rounded-md shadow-sm">
+                      <h3 className="font-semibold">{deal.title}</h3>
+                      <p className="text-sm opacity-70">{deal.description}</p>
+                      <div className="mt-2 space-x-2">
+                        <button
+                          onClick={() => handleApprove(deal.id)}
+                          className="bg-green-600 text-white px-3 py-1 rounded-md"
+                        >
+                          Godkänn
+                        </button>
+                        <button
+                          onClick={() => handleReject(deal.id)}
+                          className="bg-red-600 text-white px-3 py-1 rounded-md"
+                        >
+                          Avslå
+                        </button>
+                      </div>
+                    </li>
                   ))}
                 </ul>
               )}

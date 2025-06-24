@@ -14,20 +14,101 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import CreateDealForm from '@/components/create-deal/components/createDealForm';
 import { TimeLeftLabel } from '@/components/deals/timeLeftLabel';
+import { useToast } from '@/hooks/use-toast';
+import { BoostDialog } from '@/components/boost/boostDialog';
 
 export default function DashboardPage() {
   const { user, loading } = useFirebase();
   const { t } = useLanguage();
   const router = useRouter();
+  const { toast } = useToast();
   const searchParams = useSearchParams();
   const editId = searchParams.get('edit');
+  const status = searchParams.get('boost');
 
   const [showActive, setShowActive] = useState(true);
   const [editData, setEditData] = useState<any | null>(null);
 
   const { deals: allDeals, loading: dealsLoading } = useDeals({
     companyId: user?.uid,
+    onlyActive: true,
   });
+
+
+
+
+  useEffect(() => {
+    if (!status) return;
+
+    const handleBoostStatus = async () => {
+      if (status === "success") {
+        const boostType = localStorage.getItem("boostType");
+        const duration = localStorage.getItem("boostDuration");
+        const dealId = localStorage.getItem("boostDealId");
+
+        if (!boostType || !duration || !dealId) return;
+
+        try {
+          const res = await fetch("/api/verify-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              dealId,
+              type: boostType,
+              duration: Number(duration),
+            }),
+          });
+
+          const data = await res.json();
+
+          if (data.success) {
+            setTimeout(() => {
+              toast({
+                title: "Boost aktiverad!",
+                description: "Ditt erbjudande är nu synligt som boost.",
+              });
+            }, 200);
+          } else {
+            setTimeout(() => {
+              toast({
+                title: "Fel vid boost",
+                description: data.error || "Något gick fel.",
+                variant: "destructive",
+              });
+            }, 200);
+          }
+        } catch (error) {
+          setTimeout(() => {
+            toast({
+              title: "Serverfel",
+              description: "Kunde inte verifiera boost.",
+              variant: "destructive",
+            });
+          }, 200);
+        } finally {
+          localStorage.removeItem("boostType");
+          localStorage.removeItem("boostDuration");
+          localStorage.removeItem("boostDealId");
+        }
+      }
+
+      if (status === "cancel") {
+        setTimeout(() => {
+          toast({
+            title: "Betalning avbröts",
+            description: "Ingen boost aktiverades.",
+            variant: "destructive",
+          });
+        }, 200);
+      }
+
+      const newParams = new URLSearchParams(Array.from(searchParams.entries()));
+      newParams.delete("boost");
+      router.replace(`/dashboard?${newParams.toString()}`);
+    };
+
+    handleBoostStatus();
+  }, [status]);
 
   useEffect(() => {
     if (editId) {
@@ -105,16 +186,25 @@ export default function DashboardPage() {
                   <p className="text-muted-foreground">{deal.price} kr</p>
                   <TimeLeftLabel expiresAt={new Date(deal.expiresAt)} />
 
-                  <Link href={`/product/${deal.id}`} className="text-purple-600 hover:underline">
-                    {t('Visa erbjudande')}
-                  </Link>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => router.push(`/dashboard?edit=${deal.id}`)}
-                  >
-                    {t('Redigera')}
-                  </Button>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <Link href={`/product/${deal.id}`} className="text-purple-600 hover:underline">
+                      {t('Visa erbjudande')}
+                    </Link>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push(`/dashboard?edit=${deal.id}`)}
+                    >
+                      {t('Redigera')}
+                    </Button>
+
+                    <BoostDialog
+                      dealId={deal.id}
+                      dealTitle={deal.title}
+                      dealDescription={deal.description}
+                    />
+                  </div>
                 </li>
               ))}
             </ul>

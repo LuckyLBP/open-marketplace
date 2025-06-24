@@ -36,7 +36,11 @@ export function useAdminDeals() {
                 const q =
                     userType === 'superadmin'
                         ? query(collection(db, 'deals'))
-                        : query(collection(db, 'deals'), where('companyId', '==', user.uid));
+                        : query(
+                            collection(db, 'deals'),
+                            where('companyId', '==', user.uid),
+                            where('status', '==', 'approved')
+                        );
 
                 const snapshot = await getDocs(q);
                 const now = new Date();

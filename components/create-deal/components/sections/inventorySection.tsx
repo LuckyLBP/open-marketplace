@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -24,6 +24,13 @@ const InventorySection: React.FC<InventorySectionProps> = ({
   setSku,
 }) => {
   const { t } = useLanguage();
+
+  useEffect(() => {
+    if (!sku) {
+      const generated = `SKU-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
+    }
+  }, [sku, setSku]);
+
 
   return (
     <div className="space-y-6 mb-8">
@@ -65,8 +72,8 @@ const InventorySection: React.FC<InventorySectionProps> = ({
         <Input
           id="sku"
           value={sku}
-          onChange={(e) => setSku(e.target.value)}
-          placeholder={t("Ange produktens artikelnummer")}
+          readOnly
+          className="bg-gray-100 cursor-not-allowed"
         />
       </div>
     </div>

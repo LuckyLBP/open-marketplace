@@ -1,40 +1,53 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 
-type Props = {
+interface Props {
     expiresAt: Date;
-};
+}
 
-export function TimeLeftLabel({ expiresAt }: Props) {
-    const [timeLeft, setTimeLeft] = useState<string>("");
+export const TimeLeftLabel = ({ expiresAt }: Props) => {
+    const [timeLeft, setTimeLeft] = useState<string | null>(null);
 
     useEffect(() => {
-        const updateCountdown = () => {
+        if (!expiresAt || isNaN(new Date(expiresAt).getTime())) {
+            console.warn('Ogiltigt expiresAt-värde:', expiresAt);
+            setTimeLeft(null);
+            return;
+        }
+
+        const updateTimer = () => {
             const now = new Date();
             const diff = expiresAt.getTime() - now.getTime();
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const minutes = Math.floor((diff / (1000 * 60)) % 60);
 
             if (diff <= 0) {
-                setTimeLeft("Erbjudandet har gått ut");
-            } else if (diff < 48 * 60 * 60 * 1000) {
-                setTimeLeft(`${hours}h ${minutes}min kvar`);
+                setTimeLeft('Erbjudandet har gått ut');
+                return;
+            }
+
+            const seconds = Math.floor((diff / 1000) % 60);
+            const minutes = Math.floor((diff / 1000 / 60) % 60);
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+            if (days >= 2) {
+                setTimeLeft(`${days} dagar kvar av erbjudandet`);
             } else {
-                const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-                setTimeLeft(`${days} dagar kvar`);
+                setTimeLeft(
+                    `${days > 0 ? `${days}d ` : ''}${hours}h ${minutes}m ${seconds}s`
+                );
             }
         };
 
-        updateCountdown();
-        const interval = setInterval(updateCountdown, 60 * 1000); 
+        updateTimer(); // direkt
+        const interval = setInterval(updateTimer, 1000); // varje sekund
 
         return () => clearInterval(interval);
     }, [expiresAt]);
 
+    if (!timeLeft) return null;
+
     return (
-        <p className="text-sm text-muted-foreground italic">
+        <p className="text-sm text-muted-foreground mb-2">
             {timeLeft}
         </p>
     );
-}
+};

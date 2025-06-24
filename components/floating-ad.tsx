@@ -6,12 +6,22 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Sparkles, TrendingUp, Clock, ShoppingCart } from 'lucide-react';
 import { useLanguage } from '@/components/language-provider';
+import { db } from '@/lib/firebase';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  Timestamp,
+  orderBy,
+  limit,
+} from 'firebase/firestore';
 
-type FloatingAdProps = {
+interface FloatingAdProps {
   className?: string;
-};
+}
 
-type FloatingAd = {
+interface FloatingAd {
   id: string;
   title: string;
   subtitle: string;
@@ -22,91 +32,94 @@ type FloatingAd = {
   timeLeft: string;
   tag: string;
   tagColor: string;
-};
-
-// Mock floating ads - premium placements
-const floatingAds: FloatingAd[] = [
-  {
-    id: '1',
-    title: 'iPhone 15 Pro Max',
-    subtitle: 'Senaste modellen med titanium',
-    price: 12999,
-    originalPrice: 15999,
-    imageUrl:
-      'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=300&auto=format&fit=crop&q=60',
-    link: '/product/premium-iphone',
-    timeLeft: '2h 15m',
-    tag: 'PREMIUM',
-    tagColor: 'bg-gradient-to-r from-yellow-400 to-orange-500',
-  },
-  {
-    id: '2',
-    title: 'MacBook Pro M3',
-    subtitle: '14" med M3-chip',
-    price: 19999,
-    originalPrice: 24999,
-    imageUrl:
-      'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=300&auto=format&fit=crop&q=60',
-    link: '/product/macbook-pro-m3',
-    timeLeft: '5h 43m',
-    tag: 'EXKLUSIV',
-    tagColor: 'bg-gradient-to-r from-purple-500 to-pink-500',
-  },
-];
+}
 
 export function FloatingAd({ className = '' }: FloatingAdProps) {
   const { t } = useLanguage();
-  const [currentAd, setCurrentAd] = useState<FloatingAd>(floatingAds[0]);
+  const [ads, setAds] = useState<FloatingAd[]>([]);
+  const [currentAd, setCurrentAd] = useState<FloatingAd | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [adIndex, setAdIndex] = useState(0);
 
-  // Show ad after 3 seconds, rotate every 15 seconds
+  useEffect(() => {
+    const fetchAds = async () => {
+      const now = Timestamp.now();
+      const q = query(
+        collection(db, 'deals'),
+        where('isBoosted', '==', true),
+        where('boostType', '==', 'floating'),
+        where('boostEnd', '>', now),
+        orderBy('boostEnd', 'desc'),
+        limit(3)
+      );
+
+      const snapshot = await getDocs(q);
+      const results: FloatingAd[] = snapshot.docs.map((docSnap) => {
+        const data = docSnap.data();
+        const expiresAt = data.boostEnd.toDate();
+        const nowDate = new Date();
+        const timeDiff = Math.max(0, expiresAt.getTime() - nowDate.getTime());
+        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDiff / (1000 * 60)) % 60);
+
+        return {
+          id: docSnap.id,
+          title: data.title,
+          subtitle: data.description || '',
+          price: data.price,
+          originalPrice: data.originalPrice || null,
+          imageUrl: data.imageUrl || data.images?.[0]?.url || '',
+          link: `/product/${docSnap.id}`,
+          timeLeft: `${hours}h ${minutes}m`,
+          tag: 'BOOST',
+          tagColor: 'bg-gradient-to-r from-rose-500 to-pink-500',
+        };
+      });
+
+      setAds(results);
+      setCurrentAd(results[0] || null);
+    };
+
+    fetchAds();
+  }, []);
+
   useEffect(() => {
     const showTimer = setTimeout(() => {
-      setIsVisible(true);
-    }, 3000);
+      if (ads.length > 0) setIsVisible(true);
+    }, 1500);
 
     const rotateTimer = setInterval(() => {
-      setAdIndex((prev) => (prev + 1) % floatingAds.length);
-    }, 15000);
+      if (ads.length > 0) {
+        setAdIndex((prev) => (prev + 1) % ads.length);
+      }
+    }, 6000);
 
     return () => {
       clearTimeout(showTimer);
       clearInterval(rotateTimer);
     };
-  }, []);
+  }, [ads]);
 
   useEffect(() => {
-    setCurrentAd(floatingAds[adIndex]);
-  }, [adIndex]);
+    if (ads.length > 0) setCurrentAd(ads[adIndex]);
+  }, [adIndex, ads]);
 
-  if (!isVisible) {
-    return null;
-  }
+  if (!isVisible || !currentAd) return null;
 
   const discount = currentAd.originalPrice
-    ? Math.round(
-        ((currentAd.originalPrice - currentAd.price) /
-          currentAd.originalPrice) *
-          100
-      )
+    ? Math.round(((currentAd.originalPrice - currentAd.price) / currentAd.originalPrice) * 100)
     : 0;
 
   return (
     <div className={`fixed bottom-4 left-4 z-50 hidden lg:block ${className}`}>
       <div className="w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden transform transition-all duration-500 hover:scale-105">
-        {/* Premium Badge */}
-        <div
-          className={`${currentAd.tagColor} text-white px-4 py-2 text-center relative`}
-        >
+        <div className={`${currentAd.tagColor} text-white px-4 py-2 text-center relative`}>
           <div className="flex items-center justify-center">
             <Sparkles className="h-4 w-4 mr-2" />
             <span className="font-bold text-sm uppercase tracking-wide">
               {currentAd.tag} ERBJUDANDE
             </span>
           </div>
-
-          {/* Close button */}
           <button
             onClick={() => setIsVisible(false)}
             className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-200 transition-colors"
@@ -115,10 +128,8 @@ export function FloatingAd({ className = '' }: FloatingAdProps) {
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-4">
           <div className="flex gap-4">
-            {/* Product Image */}
             <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
               <img
                 src={currentAd.imageUrl}
@@ -127,7 +138,6 @@ export function FloatingAd({ className = '' }: FloatingAdProps) {
               />
             </div>
 
-            {/* Product Info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between mb-2">
                 <div className="min-w-0 flex-1">
@@ -146,7 +156,6 @@ export function FloatingAd({ className = '' }: FloatingAdProps) {
                 )}
               </div>
 
-              {/* Price */}
               <div className="mb-2">
                 {currentAd.originalPrice && (
                   <div className="text-xs line-through text-gray-500">
@@ -164,7 +173,6 @@ export function FloatingAd({ className = '' }: FloatingAdProps) {
                 </div>
               </div>
 
-              {/* Time left */}
               <div className="flex items-center text-xs text-orange-600 mb-3">
                 <Clock className="h-3 w-3 mr-1" />
                 <span className="font-medium">
@@ -174,7 +182,6 @@ export function FloatingAd({ className = '' }: FloatingAdProps) {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex gap-2 pt-3 border-t border-gray-100">
             <Link href={currentAd.link} className="flex-1">
               <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-sm">
@@ -191,7 +198,6 @@ export function FloatingAd({ className = '' }: FloatingAdProps) {
           </div>
         </div>
 
-        {/* Sponsored label */}
         <div className="bg-gray-50 px-4 py-2 text-center border-t border-gray-100">
           <span className="text-xs text-gray-400">Sponsrat innehåll</span>
         </div>

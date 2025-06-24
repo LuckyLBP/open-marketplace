@@ -335,10 +335,10 @@ export function HeroBanner() {
                   {featuredDeals.map((deal, index) => {
                     const discount = deal.originalPrice
                       ? Math.round(
-                          ((deal.originalPrice - deal.price) /
-                            deal.originalPrice) *
-                            100
-                        )
+                        ((deal.originalPrice - deal.price) /
+                          deal.originalPrice) *
+                        100
+                      )
                       : 0;
 
                     return (
@@ -420,17 +420,15 @@ export function HeroBanner() {
 
                   {/* Call to action - different messaging based on deal type */}
                   <div
-                    className={`mt-6 p-4 rounded-xl border ${
-                      hasUrgentDeals
-                        ? 'bg-gradient-to-r from-red-50 to-orange-50 border-red-200'
-                        : 'bg-gradient-to-r from-purple-100 to-pink-100 border-purple-200'
-                    }`}
+                    className={`mt-6 p-4 rounded-xl border ${hasUrgentDeals
+                      ? 'bg-gradient-to-r from-red-50 to-orange-50 border-red-200'
+                      : 'bg-gradient-to-r from-purple-100 to-pink-100 border-purple-200'
+                      }`}
                   >
                     <div className="text-center">
                       <p
-                        className={`text-sm mb-3 ${
-                          hasUrgentDeals ? 'text-red-700' : 'text-purple-700'
-                        }`}
+                        className={`text-sm mb-3 ${hasUrgentDeals ? 'text-red-700' : 'text-purple-700'
+                          }`}
                       >
                         {hasUrgentDeals ? (
                           <>

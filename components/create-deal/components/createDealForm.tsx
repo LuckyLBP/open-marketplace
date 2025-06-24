@@ -15,7 +15,6 @@ import FeatureSection from "./sections/featureSection";
 import SpecificationSection from "./sections/specificationSection";
 import InventorySection from "./sections/inventorySection";
 import PreviewSection from "./sections/previewSection";
-
 import { useToast } from "@/hooks/use-toast";
 import {
   Tabs,
@@ -151,6 +150,11 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
         companyId: user?.uid || null,
         companyName,
         role: userType,
+        isBoosted: false,
+        boostType: null,
+        boostStart: null,
+        boostEnd: null,
+        status: "pending",
       };
 
       if (isEditing && defaultValues?.id) {

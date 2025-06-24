@@ -1,48 +1,43 @@
-/* import { NextResponse } from "next/server"
-import { collection, query, where, getDocs, updateDoc } from "firebase/firestore"
-import { db } from "@/lib/firebase"
-import Stripe from "stripe"
+import { NextResponse } from "next/server";
+import { db } from "@/lib/firebase";
+import { getDoc, doc, updateDoc, Timestamp } from "firebase/firestore";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-04-30.basil",
-})
-
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const sessionId = searchParams.get("session_id")
-
-  if (!sessionId) {
-    return NextResponse.json({ error: "Session ID is required" }, { status: 400 })
-  }
-
+export async function POST(req: Request) {
   try {
-    // Verify the payment with Stripe
-    const session = await stripe.checkout.sessions.retrieve(sessionId)
+    const { dealId, type, duration } = await req.json();
 
-    if (session.payment_status !== "paid") {
-      return NextResponse.json({ error: "Payment not completed" }, { status: 400 })
+    //  Validering
+    const allowedTypes = ["floating", "banner"];
+    if (!dealId || !type || !duration || !allowedTypes.includes(type)) {
+      return NextResponse.json({ error: "Ogiltig eller ofullständig data" }, { status: 400 });
     }
 
-    // Update the checkout session in Firestore
-    const q = query(collection(db, "checkoutSessions"), where("sessionId", "==", sessionId))
+    const dealRef = doc(db, "deals", dealId);
+    const dealSnap = await getDoc(dealRef);
 
-    const querySnapshot = await getDocs(q)
-
-    if (querySnapshot.empty) {
-      return NextResponse.json({ error: "Session not found" }, { status: 404 })
+    if (!dealSnap.exists()) {
+      return NextResponse.json({ error: "Erbjudandet hittades ej" }, { status: 404 });
     }
 
-    const sessionDoc = querySnapshot.docs[0]
-    await updateDoc(sessionDoc.ref, {
-      status: "completed",
-      paymentIntentId: session.payment_intent,
-      updatedAt: new Date().toISOString(),
-    })
+    const now = Timestamp.now();
+    const end = Timestamp.fromDate(new Date(now.toDate().getTime() + duration * 60 * 60 * 1000));
 
-    return NextResponse.json({ success: true })
+    console.log("✔️ Boosting deal:", {
+      dealId,
+      boostType: type,
+      start: now.toDate(),
+      end: end.toDate(),
+    });
+    await updateDoc(dealRef, {
+      isBoosted: true,
+      boostType: type,
+      boostStart: now,
+      boostEnd: end,
+    });
+
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error verifying payment:", error)
-    return NextResponse.json({ error: "Failed to verify payment" }, { status: 500 })
+    console.error("verify-payment error:", error);
+    return NextResponse.json({ error: "Internt fel vid verifiering" }, { status: 500 });
   }
 }
- */

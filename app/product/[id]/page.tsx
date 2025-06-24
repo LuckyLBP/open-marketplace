@@ -6,7 +6,6 @@ import { Loader } from 'lucide-react';
 import ProductPageLayout from '@/components/product/productPageLayout';
 import ImageGallerySection from '@/components/product/imageGallerySection';
 import ProductInfoSection from '@/components/product/productInfoSection';
-import CountdownTimer from '@/components/product/coundownTimer';
 import StockQuantitySection from '@/components/product/stockQuantitySection';
 import BuyActionButtons from '@/components/product/buyActionButtons';
 import ProductDetailsTabs from '@/components/product/productDetailsTab';
@@ -68,7 +67,7 @@ const ProductPage = () => {
             t={t}
           />
 
-          <TimeLeftLabel expiresAt={new Date(deal.expiresAt)} />
+          <TimeLeftLabel expiresAt={deal.expiresAt} />
 
 
           <StockQuantitySection

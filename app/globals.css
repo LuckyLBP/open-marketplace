@@ -21,6 +21,9 @@ body {
     background-size: 20px 20px;
   }
 }
+[data-sonner-toaster] {
+  z-index: 9999 !important;
+}
 
 @layer base {
   :root {

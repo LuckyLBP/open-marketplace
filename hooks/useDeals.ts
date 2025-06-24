@@ -83,6 +83,8 @@ export function useDeals(options: UseDealsOptions = {}) {
         constraints.push(where('subcategory', '==', options.subcategory));
 
       constraints.push(orderBy('createdAt', 'desc'));
+      constraints.push(where('status', '==', 'approved'));
+
 
       const q = query(collection(db, 'deals'), ...constraints);
       const snapshot = await getDocs(q);
