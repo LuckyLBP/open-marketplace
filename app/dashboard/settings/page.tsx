@@ -1,113 +1,31 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirebase } from '@/components/firebase-provider';
 import DashboardLayout from '@/components/dashboard-layout';
-import UserList from '@/components/admin/userList';
-import { db } from '@/lib/firebase';
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  updateDoc,
-  doc,
-} from 'firebase/firestore';
-import { useAdminDeals } from '@/hooks/useAdminDeals';
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from '@/components/ui/tabs';
+import { CompanySelector } from '@/components/admin/companySelector';
 
-type CompanyInfo = { id: string; email: string };
-type UserInfo = { id: string; email: string };
+
+import SuperAdminPanel from '@/components/admin/settingsPanels/superAdminPanel';
+import AdminPanel from '@/components/admin/settingsPanels/adminPanel';
+import CompanyPanel from '@/components/admin/settingsPanels/companyPanel';
+import CustomerPanel from '@/components/admin/settingsPanels/customerPanel';
 
 export default function SettingsPage() {
   const { user, userType, loading } = useFirebase();
   const router = useRouter();
 
-  const { activeDeals, expiredDeals, companies, fetching } = useAdminDeals();
-
-  const [companyList, setCompanyList] = useState<CompanyInfo[]>([]);
-  const [userList, setUserList] = useState<UserInfo[]>([]);
-  const [selectedCompanyId, setSelectedCompanyId] = useState('all');
-  const [tab, setTab] = useState<'active' | 'expired' | 'pending'>('active');
-  const [pendingDeals, setPendingDeals] = useState<any[]>([]);
-
   useEffect(() => {
-    if (!loading && !user) router.push('/');
+    if (!loading && !user) {
+      router.push('/');
+    }
   }, [user, loading]);
 
-  useEffect(() => {
-    if (userType !== 'superadmin') return;
-
-    const fetchData = async () => {
-      const [companySnap, userSnap] = await Promise.all([
-        getDocs(collection(db, 'companies')),
-        getDocs(collection(db, 'users')),
-      ]);
-
-      const companyData = companySnap.docs.map((doc) => ({
-        id: doc.id,
-        email: doc.data().email ?? 'okänt',
-      }));
-
-      const userData = userSnap.docs.map((doc) => ({
-        id: doc.id,
-        email: doc.data().email ?? 'okänt',
-      }));
-
-      setCompanyList(companyData);
-      setUserList(userData);
-    };
-
-    fetchData();
-  }, [userType]);
-
-  useEffect(() => {
-    if (userType !== 'admin' && userType !== 'superadmin') return;
-
-    const fetchPendingDeals = async () => {
-      const snapshot = await getDocs(
-        query(collection(db, 'deals'), where('status', '==', 'pending'))
-      );
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setPendingDeals(data);
-    };
-
-    fetchPendingDeals();
-  }, [userType]);
-
-  const handleApprove = async (dealId: string) => {
-    await updateDoc(doc(db, 'deals', dealId), { status: 'approved' });
-    setPendingDeals(prev => prev.filter(deal => deal.id !== dealId));
-  };
-
-  const handleReject = async (dealId: string) => {
-    await updateDoc(doc(db, 'deals', dealId), { status: 'rejected' });
-    setPendingDeals(prev => prev.filter(deal => deal.id !== dealId));
-  };
-
-  const filteredActive = selectedCompanyId === 'all'
-    ? activeDeals
-    : activeDeals.filter((d) => d.companyId === selectedCompanyId);
-
-  const filteredExpired = selectedCompanyId === 'all'
-    ? expiredDeals
-    : expiredDeals.filter((d) => d.companyId === selectedCompanyId);
-
-  if (loading) return <p className="p-6">Laddar...</p>;
-
-  if (userType !== 'admin' && userType !== 'superadmin') {
+  if (loading) {
     return (
       <DashboardLayout>
-        <div className="p-6">
-          <h1 className="text-2xl font-bold mb-4">Inställningar</h1>
-          <p>Du har inte behörighet att se ytterligare innehåll.</p>
-        </div>
+        <div className="p-6">Laddar...</div>
       </DashboardLayout>
     );
   }
@@ -115,105 +33,16 @@ export default function SettingsPage() {
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
-        <h1 className="text-2xl font-bold">Adminpanel</h1>
-
+        <h1 className="text-2xl font-bold">Inställningar</h1>
         <p className="text-sm text-muted-foreground">
           Inloggad som: <strong>{user?.email}</strong>
         </p>
 
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label className="block font-medium mb-1">Företag i systemet</label>
-            <select
-              className="w-full border rounded-md p-2"
-              value={selectedCompanyId}
-              onChange={(e) => setSelectedCompanyId(e.target.value)}
-            >
-              <option value="all">Visa alla</option>
-              {companyList.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.email}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block font-medium mb-1">Kunder i systemet</label>
-            <select className="w-full border rounded-md p-2">
-              {userList.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.email}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <UserList />
-
-        <div className="mt-8">
-          <Tabs value={tab} onValueChange={(val) => setTab(val as any)}>
-            <TabsList>
-              <TabsTrigger value="active">Aktiva erbjudanden</TabsTrigger>
-              <TabsTrigger value="expired">Utgångna erbjudanden</TabsTrigger>
-              <TabsTrigger value="pending">Väntande erbjudanden</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="active">
-              {fetching ? (
-                <p className="mt-4">Laddar erbjudanden...</p>
-              ) : (
-                <ul className="list-disc list-inside mt-4">
-                  {filteredActive.map((deal) => (
-                    <li key={deal.id}>{deal.title}</li>
-                  ))}
-                </ul>
-              )}
-            </TabsContent>
-
-            <TabsContent value="expired">
-              {fetching ? (
-                <p className="mt-4">Laddar erbjudanden...</p>
-              ) : (
-                <ul className="list-disc list-inside mt-4 opacity-70">
-                  {filteredExpired.map((deal) => (
-                    <li key={deal.id}>{deal.title}</li>
-                  ))}
-                </ul>
-              )}
-            </TabsContent>
-
-            <TabsContent value="pending">
-              {pendingDeals.length === 0 ? (
-                <p className="mt-4">Inga väntande erbjudanden.</p>
-              ) : (
-                <ul className="space-y-4 mt-4">
-                  {pendingDeals.map((deal) => (
-                    <li key={deal.id} className="border p-4 rounded-md shadow-sm">
-                      <h3 className="font-semibold">{deal.title}</h3>
-                      <p className="text-sm opacity-70">{deal.description}</p>
-                      <div className="mt-2 space-x-2">
-                        <button
-                          onClick={() => handleApprove(deal.id)}
-                          className="bg-green-600 text-white px-3 py-1 rounded-md"
-                        >
-                          Godkänn
-                        </button>
-                        <button
-                          onClick={() => handleReject(deal.id)}
-                          className="bg-red-600 text-white px-3 py-1 rounded-md"
-                        >
-                          Avslå
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
+        {/* Render baserat på roll */}
+        {userType === 'superadmin' && <SuperAdminPanel />}
+        {userType === 'admin' && <AdminPanel />}
+        {userType === 'company' && <CompanyPanel />}
+        {userType === 'customer' && <CustomerPanel />}
       </div>
     </DashboardLayout>
   );

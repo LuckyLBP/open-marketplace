@@ -13,9 +13,11 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-
+import { useEffect } from 'react';
+import { db } from '@/lib/firebase';
 import BannerAdPreview from '@/components/boost/adPreview/bannerAdPreview';
 import FloatingAdPreview from '@/components/boost/adPreview/floatingAdPreview';
+import { getDoc, doc } from 'firebase/firestore';
 
 interface BoostDialogProps {
     dealId: string;
@@ -30,6 +32,18 @@ export function BoostDialog({ dealId, dealTitle, dealDescription }: BoostDialogP
     const [placement, setPlacement] = useState<'floating' | 'banner'>('floating');
     const [duration, setDuration] = useState<'12' | '24' | '36'>('12');
     const [loading, setLoading] = useState(false);
+    const [dealData, setDealData] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchDeal = async () => {
+            const ref = doc(db, 'deals', dealId);
+            const snap = await getDoc(ref);
+            if (snap.exists()) {
+                setDealData(snap.data());
+            }
+        };
+        fetchDeal();
+    }, [dealId]);
 
     const getPrice = () => {
         const hours = parseInt(duration);
@@ -57,7 +71,6 @@ export function BoostDialog({ dealId, dealTitle, dealDescription }: BoostDialogP
             const data = await res.json();
 
             if (res.ok && data.url) {
-                // ✅ Spara boostdata inför redirect-verify
                 localStorage.setItem('boostDealId', dealId);
                 localStorage.setItem('boostType', placement);
                 localStorage.setItem('boostDuration', duration);
@@ -119,7 +132,6 @@ export function BoostDialog({ dealId, dealTitle, dealDescription }: BoostDialogP
                             </RadioGroup>
                         </div>
 
-                        {/* Varaktighet */}
                         <div>
                             <Label>Välj varaktighet</Label>
                             <RadioGroup
@@ -136,19 +148,23 @@ export function BoostDialog({ dealId, dealTitle, dealDescription }: BoostDialogP
                             </RadioGroup>
                         </div>
 
-                        {/* Preview */}  
                         <div>
                             <Label>Förhandsgranskning</Label>
-                            <div className="border p-4 mt-2 rounded-md bg-muted">
-                                {placement === 'floating' ? (
-                                    <FloatingAdPreview deal={{ title: dealTitle, description: dealDescription }} />
-                                ) : (
-                                    <BannerAdPreview deal={{ title: dealTitle, description: dealDescription }} />
-                                )}
+                            <div>
+                                <Label>Förhandsgranskning</Label>
+                                <div className="border p-4 mt-2 rounded-md bg-muted">
+                                    {!dealData ? (
+                                        <p className="text-sm text-gray-500">Laddar förhandsgranskning...</p>
+                                    ) : placement === 'floating' ? (
+                                        <FloatingAdPreview deal={dealData} />
+                                    ) : (
+                                        <BannerAdPreview deal={dealData} />
+                                    )}
+                                </div>
                             </div>
+
                         </div>
 
-                        {/* Checkout-knapp */}
                         <div className="flex justify-between items-center mt-4">
                             <p className="text-lg font-semibold">Pris: {getPrice()} kr</p>
                             <Button onClick={handleCheckout} disabled={loading}>
@@ -159,7 +175,7 @@ export function BoostDialog({ dealId, dealTitle, dealDescription }: BoostDialogP
                 </DialogContent>
             </Dialog>
 
-          
+
         </>
     );
 

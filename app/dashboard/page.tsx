@@ -16,6 +16,7 @@ import CreateDealForm from '@/components/create-deal/components/createDealForm';
 import { TimeLeftLabel } from '@/components/deals/timeLeftLabel';
 import { useToast } from '@/hooks/use-toast';
 import { BoostDialog } from '@/components/boost/boostDialog';
+import { Badge } from '@/components/ui/badge';
 
 export default function DashboardPage() {
   const { user, loading } = useFirebase();
@@ -34,24 +35,21 @@ export default function DashboardPage() {
     onlyActive: true,
   });
 
-
-
-
   useEffect(() => {
     if (!status) return;
 
     const handleBoostStatus = async () => {
-      if (status === "success") {
-        const boostType = localStorage.getItem("boostType");
-        const duration = localStorage.getItem("boostDuration");
-        const dealId = localStorage.getItem("boostDealId");
+      if (status === 'success') {
+        const boostType = localStorage.getItem('boostType');
+        const duration = localStorage.getItem('boostDuration');
+        const dealId = localStorage.getItem('boostDealId');
 
         if (!boostType || !duration || !dealId) return;
 
         try {
-          const res = await fetch("/api/verify-payment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+          const res = await fetch('/api/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               dealId,
               type: boostType,
@@ -64,46 +62,46 @@ export default function DashboardPage() {
           if (data.success) {
             setTimeout(() => {
               toast({
-                title: "Boost aktiverad!",
-                description: "Ditt erbjudande är nu synligt som boost.",
+                title: 'Boost aktiverad!',
+                description: 'Ditt erbjudande är nu synligt som boost.',
               });
             }, 200);
           } else {
             setTimeout(() => {
               toast({
-                title: "Fel vid boost",
-                description: data.error || "Något gick fel.",
-                variant: "destructive",
+                title: 'Fel vid boost',
+                description: data.error || 'Något gick fel.',
+                variant: 'destructive',
               });
             }, 200);
           }
         } catch (error) {
           setTimeout(() => {
             toast({
-              title: "Serverfel",
-              description: "Kunde inte verifiera boost.",
-              variant: "destructive",
+              title: 'Serverfel',
+              description: 'Kunde inte verifiera boost.',
+              variant: 'destructive',
             });
           }, 200);
         } finally {
-          localStorage.removeItem("boostType");
-          localStorage.removeItem("boostDuration");
-          localStorage.removeItem("boostDealId");
+          localStorage.removeItem('boostType');
+          localStorage.removeItem('boostDuration');
+          localStorage.removeItem('boostDealId');
         }
       }
 
-      if (status === "cancel") {
+      if (status === 'cancel') {
         setTimeout(() => {
           toast({
-            title: "Betalning avbröts",
-            description: "Ingen boost aktiverades.",
-            variant: "destructive",
+            title: 'Betalning avbröts',
+            description: 'Ingen boost aktiverades.',
+            variant: 'destructive',
           });
         }, 200);
       }
 
       const newParams = new URLSearchParams(Array.from(searchParams.entries()));
-      newParams.delete("boost");
+      newParams.delete('boost');
       router.replace(`/dashboard?${newParams.toString()}`);
     };
 
@@ -199,11 +197,16 @@ export default function DashboardPage() {
                       {t('Redigera')}
                     </Button>
 
-                    <BoostDialog
-                      dealId={deal.id}
-                      dealTitle={deal.title}
-                      dealDescription={deal.description}
-                    />
+                    {deal.boostStart && deal.boostEnd && new Date(deal.boostEnd) > new Date()
+ ? (
+                      <Badge className="bg-green-500 text-white self-center">Boost aktiv</Badge>
+                    ) : (
+                      <BoostDialog
+                        dealId={deal.id}
+                        dealTitle={deal.title}
+                        dealDescription={deal.description}
+                      />
+                    )}
                   </div>
                 </li>
               ))}

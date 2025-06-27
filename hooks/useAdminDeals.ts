@@ -4,15 +4,9 @@ import { useEffect, useState } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useFirebase } from "@/components/firebase-provider";
+import { Deal } from "@/components/types/deal";
 
-export interface Deal {
-    id: string;
-    title: string;
-    companyId: string;
-    companyName: string;
-    expiresAt: Date;
-    [key: string]: any;
-}
+
 
 export interface CompanyInfo {
     id: string;

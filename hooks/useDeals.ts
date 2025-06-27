@@ -49,6 +49,10 @@ export type Deal = {
   createdAt?: Date;
   expiresAt: Date;
 
+  boostStart?: Date;
+  boostEnd?: Date;
+  boostType?: string;
+
   specifications?: Specification[];
   features?: Feature[];
 
@@ -85,7 +89,6 @@ export function useDeals(options: UseDealsOptions = {}) {
       constraints.push(orderBy('createdAt', 'desc'));
       constraints.push(where('status', '==', 'approved'));
 
-
       const q = query(collection(db, 'deals'), ...constraints);
       const snapshot = await getDocs(q);
 
@@ -120,6 +123,10 @@ export function useDeals(options: UseDealsOptions = {}) {
           feePercentage: data.feePercentage || 0,
           createdAt: data.createdAt?.toDate() || now,
           expiresAt,
+
+          boostStart: data.boostStart?.toDate?.(),
+          boostEnd: data.boostEnd?.toDate?.(),
+          boostType: data.boostType || undefined,
 
           specifications: (data.specifications ?? []) as Specification[],
           features: (data.features ?? []) as Feature[],

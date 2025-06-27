@@ -1,9 +1,7 @@
-'use client';
+/*'use client';
 
-import { useEffect, useState } from 'react';
-import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useFirebase } from '@/components/firebase-provider';
 import { Button } from '@/components/ui/button';
 import {
     Select,
@@ -12,55 +10,53 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import {
+    AlertDialog,
+    AlertDialogTrigger,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogFooter,
+    AlertDialogCancel,
+    AlertDialogAction,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/components/ui/use-toast';
+import { useState } from 'react';
 
-interface UserData {
+export interface UserData {
     id: string;
     email: string;
-    role: 'user' | 'company' | 'superadmin' | 'admin';
+    role: 'user' | 'company' | 'superadmin' | 'admin' | 'customer';
 }
 
-export default function UserList() {
-    const { userType, loading } = useFirebase();
-    const [users, setUsers] = useState<UserData[]>([]);
+interface UserListProps {
+    users: UserData[];
+    onDelete: (userId: string) => Promise<void>;
+}
+
+export default function UserList({ users, onDelete }: UserListProps) {
+    const { toast } = useToast();
     const [saving, setSaving] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchUsers = async () => {
-            const snapshot = await getDocs(collection(db, 'users'));
-            const userList: UserData[] = snapshot.docs.map((docSnap) => {
-                const data = docSnap.data();
-                return {
-                    id: docSnap.id,
-                    email: data.email ?? 'okänd',
-                    role: data.role ?? 'customer',
-                };
-            });
-            setUsers(userList);
-        };
-
-        if (userType === 'superadmin') fetchUsers();
-    }, [userType]);
 
     const handleRoleChange = async (userId: string, newRole: UserData['role']) => {
         setSaving(userId);
         try {
             await updateDoc(doc(db, 'users', userId), { role: newRole });
-            setUsers((prev) =>
-                prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
-            );
+            toast({ title: 'Roll uppdaterad', description: `Ny roll: ${newRole}` });
         } catch (err) {
             console.error('Failed to update role:', err);
+            toast({
+                title: 'Fel vid uppdatering',
+                description: 'Försök igen.',
+                variant: 'destructive',
+            });
         } finally {
             setSaving(null);
         }
     };
 
-    if (loading || userType !== 'superadmin') {
-        return <p>Du har inte behörighet att visa användare.</p>;
-    }
-
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 mt-6">
             <h2 className="text-lg font-semibold">Användare</h2>
             {users.length === 0 ? (
                 <p>Inga användare hittades.</p>
@@ -69,29 +65,52 @@ export default function UserList() {
                     {users.map((u) => (
                         <li
                             key={u.id}
-                            className="flex items-center justify-between bg-white shadow-sm rounded px-4 py-2"
+                            className="flex flex-col md:flex-row md:items-center justify-between bg-white shadow-sm rounded px-4 py-2 gap-2"
                         >
                             <div>
                                 <p className="font-medium">{u.email}</p>
                                 <p className="text-sm text-muted-foreground">{u.id}</p>
                             </div>
-                            <Select
-                                value={u.role}
-                                onValueChange={(value) =>
-                                    handleRoleChange(u.id, value as UserData['role'])
-                                }
-                                disabled={saving === u.id}
-                            >
-                                <SelectTrigger className="w-[150px]">
-                                    <SelectValue placeholder="Välj roll" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="customer">Customer</SelectItem>
-                                    <SelectItem value="company">Company</SelectItem>
-                                    <SelectItem value="superadmin">Superadmin</SelectItem>
-                                    <SelectItem value="user">Privatperson</SelectItem>
-                                </SelectContent>
-                            </Select>
+
+                            <div className="flex items-center gap-2">
+                                <Select
+                                    value={u.role}
+                                    onValueChange={(value) => handleRoleChange(u.id, value as UserData['role'])}
+                                    disabled={saving === u.id}
+                                >
+                                    <SelectTrigger className="w-[150px]">
+                                        <SelectValue placeholder="Välj roll" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="customer">Privatperson</SelectItem>
+                                        <SelectItem value="company">Företag</SelectItem>
+                                        <SelectItem value="admin">Admin</SelectItem>
+                                        <SelectItem value="superadmin">Superadmin</SelectItem>
+                                    </SelectContent>
+                                </Select>
+
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="destructive" size="sm">
+                                            Ta bort
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Är du säker?</AlertDialogTitle>
+                                        </AlertDialogHeader>
+                                        <p className="text-sm text-muted-foreground">
+                                            Detta tar permanent bort användaren <strong>{u.email}</strong>.
+                                        </p>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Avbryt</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => onDelete(u.id)}>
+                                                Ta bort
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
                         </li>
                     ))}
                 </ul>
@@ -99,3 +118,4 @@ export default function UserList() {
         </div>
     );
 }
+*/
