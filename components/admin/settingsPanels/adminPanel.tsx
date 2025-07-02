@@ -19,7 +19,7 @@ import { Deal } from '@/components/types/deal';
 export default function AdminPanel() {
     const { activeDeals, expiredDeals, fetching } = useAdminDeals();
     const [companies, setCompanies] = useState<any[]>([]);
-    const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
+    const [selectedCompanyId, setSelectedCompanyId] = useState<string>(''); // '' = alla
     const [selectedCompany, setSelectedCompany] = useState<any | null>(null);
     const [pendingDeals, setPendingDeals] = useState<Deal[]>([]);
     const [tab, setTab] = useState<'active' | 'expired' | 'pending'>('active');
@@ -34,9 +34,12 @@ export default function AdminPanel() {
     }, []);
 
     useEffect(() => {
-        if (!selectedCompanyId) return;
+        if (!selectedCompanyId) {
+            setSelectedCompany(null);
+            return;
+        }
         const company = companies.find((c) => c.id === selectedCompanyId);
-        setSelectedCompany(company);
+        setSelectedCompany(company || null);
     }, [selectedCompanyId, companies]);
 
     useEffect(() => {
@@ -50,7 +53,8 @@ export default function AdminPanel() {
                         !data.companyId ||
                         !data.companyName ||
                         !data.expiresAt
-                    ) return null;
+                    )
+                        return null;
 
                     return {
                         id: doc.id,
@@ -61,6 +65,7 @@ export default function AdminPanel() {
                             ? data.expiresAt.toDate()
                             : new Date(data.expiresAt),
                         status: data.status,
+                        description: data.description,
                     } as Deal;
                 })
                 .filter((deal): deal is Deal => !!deal && deal.status === 'pending');
@@ -82,13 +87,13 @@ export default function AdminPanel() {
 
     const filteredActive = selectedCompanyId
         ? activeDeals.filter((d) => d.companyId === selectedCompanyId)
-        : [];
+        : activeDeals;
     const filteredExpired = selectedCompanyId
         ? expiredDeals.filter((d) => d.companyId === selectedCompanyId)
-        : [];
+        : expiredDeals;
     const filteredPending = selectedCompanyId
         ? pendingDeals.filter((d) => d.companyId === selectedCompanyId)
-        : [];
+        : pendingDeals;
 
     return (
         <div className="space-y-8">
@@ -96,7 +101,7 @@ export default function AdminPanel() {
 
             <div>
                 <CompanySelector
-                    companies={companies.map((c) => ({ id: c.id, email: c.email }))}
+                    companies={[{ id: '', email: 'Visa alla' }, ...companies.map((c) => ({ id: c.id, email: c.email }))]}
                     selectedCompanyId={selectedCompanyId}
                     onChange={setSelectedCompanyId}
                 />
@@ -109,67 +114,78 @@ export default function AdminPanel() {
                     </div>
                 )}
 
-                {selectedCompany && (
-                    <div className="mt-6">
-                        <div className="flex gap-4 border-b">
-                            <button
-                                onClick={() => setTab('active')}
-                                className={tab === 'active' ? 'border-b-2 font-semibold' : ''}
-                            >
-                                Aktiva
-                            </button>
-                            <button
-                                onClick={() => setTab('expired')}
-                                className={tab === 'expired' ? 'border-b-2 font-semibold' : ''}
-                            >
-                                Utgångna
-                            </button>
-                            <button
-                                onClick={() => setTab('pending')}
-                                className={tab === 'pending' ? 'border-b-2 font-semibold' : ''}
-                            >
-                                Väntande
-                            </button>
-                        </div>
-
-                        <div className="mt-4">
-                            {tab === 'active' && (
-                                <DealList title="Aktiva erbjudanden" deals={filteredActive} loading={fetching} />
-                            )}
-                            {tab === 'expired' && (
-                                <DealList title="Utgångna erbjudanden" deals={filteredExpired} loading={fetching} />
-                            )}
-                            {tab === 'pending' && (
-                                <ul className="space-y-4">
-                                    {filteredPending.length === 0 ? (
-                                        <p>Inga väntande erbjudanden.</p>
-                                    ) : (
-                                        filteredPending.map((deal) => (
-                                            <li key={deal.id} className="border p-4 rounded-md shadow-sm">
-                                                <h3 className="font-semibold">{deal.title}</h3>
-                                                <p className="text-sm opacity-70">{deal.description}</p>
-                                                <div className="mt-2 space-x-2">
-                                                    <button
-                                                        onClick={() => handleApprove(deal.id)}
-                                                        className="bg-green-600 text-white px-3 py-1 rounded-md"
-                                                    >
-                                                        Godkänn
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleReject(deal.id)}
-                                                        className="bg-red-600 text-white px-3 py-1 rounded-md"
-                                                    >
-                                                        Avslå
-                                                    </button>
-                                                </div>
-                                            </li>
-                                        ))
-                                    )}
-                                </ul>
-                            )}
-                        </div>
+                <div className="mt-6">
+                    <div className="flex gap-4 border-b">
+                        <button
+                            onClick={() => setTab('active')}
+                            className={tab === 'active' ? 'border-b-2 font-semibold' : ''}
+                        >
+                            Aktiva
+                        </button>
+                        <button
+                            onClick={() => setTab('expired')}
+                            className={tab === 'expired' ? 'border-b-2 font-semibold' : ''}
+                        >
+                            Utgångna
+                        </button>
+                        <button
+                            onClick={() => setTab('pending')}
+                            className={tab === 'pending' ? 'border-b-2 font-semibold' : ''}
+                        >
+                            Väntande
+                        </button>
                     </div>
-                )}
+
+                    <div className="mt-4">
+                        {tab === 'active' && (
+                            <DealList
+                                title="Aktiva erbjudanden"
+                                deals={filteredActive}
+                                loading={fetching}
+                            />
+                        )}
+                        {tab === 'expired' && (
+                            <DealList
+                                title="Utgångna erbjudanden"
+                                deals={filteredExpired}
+                                loading={fetching}
+                            />
+                        )}
+                        {tab === 'pending' && (
+                            <ul className="space-y-4">
+                                {filteredPending.length === 0 ? (
+                                    <p>Inga väntande erbjudanden.</p>
+                                ) : (
+                                    filteredPending.map((deal) => (
+                                        <li
+                                            key={deal.id}
+                                            className="border p-4 rounded-md shadow-sm"
+                                        >
+                                            <h3 className="font-semibold">{deal.title}</h3>
+                                            <p className="text-sm opacity-70">{deal.description}</p>
+                                            <p className="text-sm"><strong>Skapad av:</strong> {deal.companyName}</p>
+
+                                            <div className="mt-2 space-x-2">
+                                                <button
+                                                    onClick={() => handleApprove(deal.id)}
+                                                    className="bg-green-600 text-white px-3 py-1 rounded-md"
+                                                >
+                                                    Godkänn
+                                                </button>
+                                                <button
+                                                    onClick={() => handleReject(deal.id)}
+                                                    className="bg-red-600 text-white px-3 py-1 rounded-md"
+                                                >
+                                                    Avslå
+                                                </button>
+                                            </div>
+                                        </li>
+                                    ))
+                                )}
+                            </ul>
+                        )}
+                    </div>
+                </div>
             </div>
 
             <div>

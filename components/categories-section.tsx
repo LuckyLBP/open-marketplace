@@ -79,23 +79,7 @@ export function CategoriesSection() {
               </div>
             </Link>
           ))}
-        </div>
-
-        {/* Featured subcategories */}
-        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {categories
-            .flatMap((cat) => cat.items.slice(0, 2))
-            .slice(0, 6)
-            .map((item, index) => (
-              <Link key={item.name} href={item.href} className="group">
-                <div className="bg-gray-50 hover:bg-gray-100 rounded-lg p-3 text-center transition-all duration-200 border border-gray-200 group-hover:border-purple-200">
-                  <div className="text-sm font-medium text-gray-700 group-hover:text-purple-600">
-                    {item.name}
-                  </div>
-                </div>
-              </Link>
-            ))}
-        </div>
+        </div>     
       </div>
     </section>
   );

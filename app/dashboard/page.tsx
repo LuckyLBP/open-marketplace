@@ -17,9 +17,10 @@ import { TimeLeftLabel } from '@/components/deals/timeLeftLabel';
 import { useToast } from '@/hooks/use-toast';
 import { BoostDialog } from '@/components/boost/boostDialog';
 import { Badge } from '@/components/ui/badge';
+import { usePendingDeals } from '@/hooks/usePendingDeals';
 
 export default function DashboardPage() {
-  const { user, loading } = useFirebase();
+  const { user, userType, loading } = useFirebase();
   const { t } = useLanguage();
   const router = useRouter();
   const { toast } = useToast();
@@ -29,6 +30,7 @@ export default function DashboardPage() {
 
   const [showActive, setShowActive] = useState(true);
   const [editData, setEditData] = useState<any | null>(null);
+  const { pendingDeals } = usePendingDeals();
 
   const { deals: allDeals, loading: dealsLoading } = useDeals({
     companyId: user?.uid,
@@ -143,6 +145,17 @@ export default function DashboardPage() {
       <div className="px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">{t('Min översikt')}</h1>
 
+        {(userType === 'admin' || userType === 'superadmin') && pendingDeals.length > 0 && (
+          <div className="mb-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md">
+            <p className="font-semibold">
+              {pendingDeals.length} erbjudande{pendingDeals.length > 1 ? 'n' : ''} väntar på godkännande.
+            </p>
+            <p className="text-sm">
+              Gå till <Link href="/dashboard/settings" className="underline text-yellow-700">Inställningar</Link> för att granska och godkänna dem.
+            </p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card>
             <CardHeader>
@@ -188,7 +201,6 @@ export default function DashboardPage() {
                     <Link href={`/product/${deal.id}`} className="text-purple-600 hover:underline">
                       {t('Visa erbjudande')}
                     </Link>
-
                     <Button
                       variant="outline"
                       size="sm"
@@ -198,15 +210,15 @@ export default function DashboardPage() {
                     </Button>
 
                     {deal.boostStart && deal.boostEnd && new Date(deal.boostEnd) > new Date()
- ? (
-                      <Badge className="bg-green-500 text-white self-center">Boost aktiv</Badge>
-                    ) : (
-                      <BoostDialog
-                        dealId={deal.id}
-                        dealTitle={deal.title}
-                        dealDescription={deal.description}
-                      />
-                    )}
+                      ? (
+                        <Badge className="bg-green-500 text-white self-center">Boost aktiv</Badge>
+                      ) : (
+                        <BoostDialog
+                          dealId={deal.id}
+                          dealTitle={deal.title}
+                          dealDescription={deal.description}
+                        />
+                      )}
                   </div>
                 </li>
               ))}

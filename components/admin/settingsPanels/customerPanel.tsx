@@ -13,7 +13,6 @@ export default function CustomerPanel() {
     const [userInfo, setUserInfo] = useState<any>(null);
     const [activeDeals, setActiveDeals] = useState<Deal[]>([]);
     const [expiredDeals, setExpiredDeals] = useState<Deal[]>([]);
-
     const [fetching, setFetching] = useState(false);
 
     useEffect(() => {

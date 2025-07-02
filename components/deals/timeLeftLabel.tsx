@@ -1,25 +1,27 @@
 import { useEffect, useState } from 'react';
+import { Clock } from 'lucide-react';
 
 interface Props {
     expiresAt: Date;
+    className?: string; // Tillåter extern styling som t.ex. position
 }
 
-export const TimeLeftLabel = ({ expiresAt }: Props) => {
-    const [timeLeft, setTimeLeft] = useState<string | null>(null);
+export const TimeLeftLabel = ({ expiresAt, className = '' }: Props) => {
+    const [label, setLabel] = useState<string | null>(null);
+    const [isUrgent, setIsUrgent] = useState(false);
 
     useEffect(() => {
         if (!expiresAt || isNaN(new Date(expiresAt).getTime())) {
-            console.warn('Ogiltigt expiresAt-värde:', expiresAt);
-            setTimeLeft(null);
+            setLabel(null);
             return;
         }
 
-        const updateTimer = () => {
+        const update = () => {
             const now = new Date();
             const diff = expiresAt.getTime() - now.getTime();
 
             if (diff <= 0) {
-                setTimeLeft('Erbjudandet har gått ut');
+                setLabel('Erbjudandet har gått ut');
                 return;
             }
 
@@ -28,26 +30,29 @@ export const TimeLeftLabel = ({ expiresAt }: Props) => {
             const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-            if (days >= 2) {
-                setTimeLeft(`${days} dagar kvar av erbjudandet`);
+            if (diff < 48 * 60 * 60 * 1000) {
+                setLabel(`${hours + days * 24}h ${minutes}m ${seconds}s`);
+                setIsUrgent(true);
             } else {
-                setTimeLeft(
-                    `${days > 0 ? `${days}d ` : ''}${hours}h ${minutes}m ${seconds}s`
-                );
+                setLabel(`${days} dagar kvar`);
+                setIsUrgent(false);
             }
         };
 
-        updateTimer(); // direkt
-        const interval = setInterval(updateTimer, 1000); // varje sekund
-
+        update();
+        const interval = setInterval(update, 1000);
         return () => clearInterval(interval);
     }, [expiresAt]);
 
-    if (!timeLeft) return null;
+    if (!label) return null;
+
+    const badgeColor = isUrgent ? 'bg-red-600 text-white' : 'bg-gray-800 text-white';
 
     return (
-        <p className="text-sm text-muted-foreground mb-2">
-            {timeLeft}
-        </p>
+        <div className={`inline-flex items-center gap-1 w-fit px-3 py-1 text-xs font-medium rounded-full shadow-sm ${badgeColor} ${className}`}>
+            <Clock className="h-3 w-3" />
+            {label}
+        </div>
     );
+
 };

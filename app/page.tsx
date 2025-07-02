@@ -1,4 +1,3 @@
-// filepath: /Users/lucaspohl/Documents/Effektiv Media/Projekt/open-marketplace/app/page.tsx
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { HeroBanner } from '@/components/hero-banner';

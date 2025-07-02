@@ -38,7 +38,6 @@ export default function SettingsPage() {
           Inloggad som: <strong>{user?.email}</strong>
         </p>
 
-        {/* Render baserat på roll */}
         {userType === 'superadmin' && <SuperAdminPanel />}
         {userType === 'admin' && <AdminPanel />}
         {userType === 'company' && <CompanyPanel />}

@@ -55,6 +55,7 @@ export function HeroBanner() {
         // Fetch 3 featured deals with short time left for urgency
         const q = query(
           collection(db, 'deals'),
+          where('status', '==', 'approved'),
           where('expiresAt', '>', now),
           orderBy('expiresAt', 'asc'),
           limit(3)
@@ -125,6 +126,7 @@ export function HeroBanner() {
         if (fetchedDeals.length === 0) {
           const regularDealsQuery = query(
             collection(db, 'deals'),
+            where('status', '==', 'approved'),
             where('expiresAt', '>', now),
             orderBy('createdAt', 'desc'),
             limit(3)
