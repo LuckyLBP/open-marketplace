@@ -53,7 +53,6 @@ const ProductPage = () => {
 
   return (
     <ProductPageLayout>
-      {/* Tillbaka till startsidan knapp */}
       <div className="container mx-auto px-4 mt-4">
         <Button
           variant="ghost"
@@ -65,7 +64,6 @@ const ProductPage = () => {
         </Button>
       </div>
 
-      {/* Produktdetaljer */}
       <div className="grid gap-8 md:grid-cols-2 px-4">
         <ImageGallerySection images={deal.images} title={deal.title} />
 
@@ -82,7 +80,7 @@ const ProductPage = () => {
             t={t}
           />
 
-          <TimeLeftLabel expiresAt={deal.expiresAt} />
+          {deal.expiresAt && <TimeLeftLabel expiresAt={deal.expiresAt} />}
 
           <StockQuantitySection
             inStock={deal.inStock}
@@ -105,7 +103,12 @@ const ProductPage = () => {
         t={t}
       />
 
-      <RelatedProductsSection t={t} />
+      <RelatedProductsSection
+        t={t}
+        category={deal.category}
+        subcategory={deal.subcategory}
+        excludeId={deal.id}
+      />
     </ProductPageLayout>
   );
 };

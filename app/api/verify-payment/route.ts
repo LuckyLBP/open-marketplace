@@ -6,7 +6,6 @@ export async function POST(req: Request) {
   try {
     const { dealId, type, duration } = await req.json();
 
-    //  Validering
     const allowedTypes = ["floating", "banner"];
     if (!dealId || !type || !duration || !allowedTypes.includes(type)) {
       return NextResponse.json({ error: "Ogiltig eller ofullständig data" }, { status: 400 });
@@ -22,12 +21,7 @@ export async function POST(req: Request) {
     const now = Timestamp.now();
     const end = Timestamp.fromDate(new Date(now.toDate().getTime() + duration * 60 * 60 * 1000));
 
-    console.log("✔️ Boosting deal:", {
-      dealId,
-      boostType: type,
-      start: now.toDate(),
-      end: end.toDate(),
-    });
+   
     await updateDoc(dealRef, {
       isBoosted: true,
       boostType: type,

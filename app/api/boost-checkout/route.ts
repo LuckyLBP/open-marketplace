@@ -39,7 +39,6 @@ export async function POST(req: Request) {
 
         const deal = dealSnap.data();
 
-        // Begränsning av floating annonser
         if (type === 'floating') {
             const now = Timestamp.now();
             const activeBoostsQuery = query(

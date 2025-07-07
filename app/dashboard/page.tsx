@@ -32,9 +32,9 @@ export default function DashboardPage() {
   const [editData, setEditData] = useState<any | null>(null);
   const { pendingDeals } = usePendingDeals();
 
+  // 🟢 ändringen sker här: tar bort onlyActive
   const { deals: allDeals, loading: dealsLoading } = useDeals({
     companyId: user?.uid,
-    onlyActive: true,
   });
 
   useEffect(() => {

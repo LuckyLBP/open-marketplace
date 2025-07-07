@@ -1,12 +1,17 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { useFirebase } from "@/components/firebase-provider";
-import { Deal } from "@/components/types/deal";
-
-
+import { useEffect, useState } from 'react';
+import {
+    collection,
+    getDocs,
+    query,
+    where,
+    orderBy,
+    DocumentData,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useFirebase } from '@/components/firebase-provider';
+import { Deal } from '@/components/types/deal';
 
 export interface CompanyInfo {
     id: string;
@@ -27,30 +32,42 @@ export function useAdminDeals() {
 
             setFetching(true);
             try {
+                const now = new Date();
+
                 const q =
                     userType === 'superadmin'
-                        ? query(collection(db, 'deals'))
+                        ? query(
+                            collection(db, 'deals'),
+                            where('status', '==', 'approved'),
+                            orderBy('createdAt', 'desc')
+                        )
                         : query(
                             collection(db, 'deals'),
                             where('companyId', '==', user.uid),
-                            where('status', '==', 'approved')
+                            where('status', '==', 'approved'),
+                            orderBy('createdAt', 'desc')
                         );
 
                 const snapshot = await getDocs(q);
-                const now = new Date();
+
+                const toDateSafe = (input: any): Date => {
+                    if (input instanceof Date) return input;
+                    if (input?.toDate) return input.toDate();
+                    return new Date(0);
+                };
 
                 const active: Deal[] = [];
                 const expired: Deal[] = [];
 
                 snapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const expiresAt: Date = data.expiresAt?.toDate?.() || new Date(0);
+                    const data: DocumentData = docSnap.data();
+                    const expiresAt = toDateSafe(data.expiresAt);
 
                     const deal: Deal = {
                         id: docSnap.id,
-                        title: data.title ?? "Okänt erbjudande",
-                        companyId: data.companyId ?? "okänt",
-                        companyName: data.companyName ?? "okänt",
+                        title: data.title ?? 'Okänt erbjudande',
+                        companyId: data.companyId ?? 'okänt',
+                        companyName: data.companyName ?? 'okänt',
                         expiresAt,
                         ...data,
                     };
@@ -65,7 +82,7 @@ export function useAdminDeals() {
                 setActiveDeals(active);
                 setExpiredDeals(expired);
             } catch (error) {
-                console.error("Kunde inte hämta deals:", error);
+                console.error('Kunde inte hämta deals:', error);
             } finally {
                 setFetching(false);
             }

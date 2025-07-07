@@ -10,6 +10,7 @@ import {
     doc,
     updateDoc,
     deleteDoc,
+    getDoc
 } from 'firebase/firestore';
 import { useAdminDeals } from '@/hooks/useAdminDeals';
 import { DealList } from '../dealList';
@@ -29,7 +30,7 @@ export default function SuperAdminPanel() {
     const { activeDeals, expiredDeals, fetching } = useAdminDeals();
     const [selectedType, setSelectedType] = useState<'company' | 'customer'>('company');
     const [entities, setEntities] = useState<EntityData[]>([]);
-    const [selectedId, setSelectedId] = useState<string>(''); // tomt = Visa alla
+    const [selectedId, setSelectedId] = useState<string>('');
     const [pendingDeals, setPendingDeals] = useState<Deal[]>([]);
     const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
     const [tab, setTab] = useState<'active' | 'expired' | 'pending'>('active');
@@ -59,13 +60,13 @@ export default function SuperAdminPanel() {
             const deals: Deal[] = snapshot.docs
                 .map((doc) => {
                     const data = doc.data();
-                    if (!data.title || !data.companyId || !data.companyName || !data.expiresAt) return null;
+                    if (!data.title || !data.companyId || !data.companyName) return null;
                     return {
                         id: doc.id,
                         title: data.title,
                         companyId: data.companyId,
                         companyName: data.companyName,
-                        expiresAt: data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt),
+                        expiresAt: data.expiresAt?.toDate?.() || null,
                         status: data.status,
                         description: data.description,
                     } as Deal;
@@ -97,8 +98,30 @@ export default function SuperAdminPanel() {
     };
 
     const handleApprove = async (dealId: string) => {
-        await updateDoc(doc(db, 'deals', dealId), { status: 'approved' });
-        setPendingDeals((prev) => prev.filter((d) => d.id !== dealId));
+        try {
+            const dealRef = doc(db, 'deals', dealId);
+            const dealSnap = await getDoc(dealRef);
+
+            if (!dealSnap.exists()) {
+                console.warn('Deal not found');
+                return;
+            }
+
+            const dealData = dealSnap.data();
+            const now = new Date();
+
+            const duration = dealData.duration || 24;
+            const newExpiresAt = new Date(now.getTime() + duration * 60 * 60 * 1000);
+
+            await updateDoc(dealRef, {
+                status: 'approved',
+                expiresAt: newExpiresAt,
+            });
+
+            setPendingDeals((prev) => prev.filter((d) => d.id !== dealId));
+        } catch (error) {
+            console.error('Fel vid godkännande av erbjudande:', error);
+        }
     };
 
     const handleReject = async (dealId: string) => {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, setDoc, doc, serverTimestamp } from 'firebase/firestore'; 
 import { db } from '@/lib/firebase';
 import Stripe from 'stripe';
 
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     }
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card', 'klarna' ],
+      payment_method_types: ['card', 'klarna'],
       mode: 'payment',
       line_items: body.items.map((item: any) => ({
         price_data: {
@@ -29,11 +29,11 @@ export async function POST(request: Request) {
         },
         quantity: item.quantity,
       })),
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}&dealId=${body.items[0]?.id}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/varukorg`,
     });
 
-    await addDoc(collection(db, 'checkoutSessions'), {
+    await setDoc(doc(db, 'checkoutSessions', session.id), {
       createdAt: serverTimestamp(),
       sessionId: session.id,
       items: body.items,

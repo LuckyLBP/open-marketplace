@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/components/language-provider";
+import { generateUniqueSKU } from "@/lib/generateSKU";
 
 interface InventorySectionProps {
   inStock: boolean;
@@ -26,17 +27,19 @@ const InventorySection: React.FC<InventorySectionProps> = ({
   const { t } = useLanguage();
 
   useEffect(() => {
-    if (!sku) {
-      const generated = `SKU-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
-    }
+    const assignSKU = async () => {
+      if (!sku) {
+        const newSKU = await generateUniqueSKU();
+        setSku(newSKU);
+      }
+    };
+    assignSKU();
   }, [sku, setSku]);
-
 
   return (
     <div className="space-y-6 mb-8">
       <h2 className="text-xl font-semibold">{t("Lager & Artikelnummer")}</h2>
 
-      {/* Lagerstatus */}
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
           <Label htmlFor="in-stock">{t("I lager?")}</Label>
@@ -51,7 +54,6 @@ const InventorySection: React.FC<InventorySectionProps> = ({
         />
       </div>
 
-      {/* Antal i lager */}
       {inStock && (
         <div className="space-y-2">
           <Label htmlFor="stock-quantity">{t("Antal i lager")}</Label>
@@ -66,7 +68,6 @@ const InventorySection: React.FC<InventorySectionProps> = ({
         </div>
       )}
 
-      {/* SKU */}
       <div className="space-y-2">
         <Label htmlFor="sku">{t("Artikelnummer (SKU)")}</Label>
         <Input

@@ -4,7 +4,7 @@ const StockQuantitySection = ({ inStock, stockQuantity, t }: { inStock?: boolean
       {inStock ? (
         <div className="flex items-center text-green-600">
           <span className="font-medium">
-            {t('In Stock')} ({stockQuantity ?? 0} {t('available')})
+            {t('I Lager ')} ({stockQuantity ?? 0} {t('Kvar')})
           </span>
         </div>
       ) : (

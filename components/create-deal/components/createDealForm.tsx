@@ -80,7 +80,7 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
     userType === "company" ? 336 :
       userType === "customer" ? 168 :
         userType === "admin" ? 336 :
-          userType === "superadmin" ? 336 : 168; // default fallback
+          userType === "superadmin" ? 336 : 168;
 
   useEffect(() => {
     if (defaultValues) {
@@ -145,7 +145,7 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
         images: uploadedImages,
         imageUrl: uploadedImages.find((img) => img.isPrimary)?.url || "",
         duration,
-        expiresAt: new Date(Date.now() + duration * 60 * 60 * 1000),
+        expiresAt: null,
         createdAt: serverTimestamp(),
         companyId: user?.uid || null,
         companyName,
@@ -207,7 +207,6 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
                     );
                   })}
               </select>
-
             </div>
           </TabsContent>
 

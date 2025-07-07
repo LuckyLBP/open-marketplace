@@ -1,5 +1,5 @@
 import React from 'react';
-import { Deal } from '@/hooks/useAdminDeals';
+import { Deal } from '../types/deal';
 
 interface DealListProps {
     deals: Deal[];

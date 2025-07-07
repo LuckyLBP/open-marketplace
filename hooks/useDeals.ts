@@ -46,7 +46,7 @@ export type Deal = {
 
   feePercentage: number;
 
-  createdAt?: Date;
+  createdAt: Date;
   expiresAt: Date;
 
   boostStart?: Date;
@@ -85,9 +85,8 @@ export function useDeals(options: UseDealsOptions = {}) {
         constraints.push(where('category', '==', options.category));
       if (options.subcategory)
         constraints.push(where('subcategory', '==', options.subcategory));
-
-      constraints.push(orderBy('createdAt', 'desc'));
       constraints.push(where('status', '==', 'approved'));
+      constraints.push(orderBy('createdAt', 'desc'));
 
       const q = query(collection(db, 'deals'), ...constraints);
       const snapshot = await getDocs(q);
@@ -96,10 +95,11 @@ export function useDeals(options: UseDealsOptions = {}) {
         const data = docSnap.data();
         const now = new Date();
 
-        const expiresAt: Date =
-          data.expiresAt instanceof Date
-            ? data.expiresAt
-            : data.expiresAt?.toDate?.() || now;
+        const toDateSafe = (input: any): Date => {
+          if (input instanceof Date) return input;
+          if (input?.toDate) return input.toDate();
+          return new Date(0); // fallback
+        };
 
         return {
           id: docSnap.id,
@@ -121,11 +121,11 @@ export function useDeals(options: UseDealsOptions = {}) {
           subcategory: data.subcategory ?? '',
 
           feePercentage: data.feePercentage || 0,
-          createdAt: data.createdAt?.toDate() || now,
-          expiresAt,
+          createdAt: toDateSafe(data.createdAt),
+          expiresAt: toDateSafe(data.expiresAt),
 
-          boostStart: data.boostStart?.toDate?.(),
-          boostEnd: data.boostEnd?.toDate?.(),
+          boostStart: data.boostStart ? toDateSafe(data.boostStart) : undefined,
+          boostEnd: data.boostEnd ? toDateSafe(data.boostEnd) : undefined,
           boostType: data.boostType || undefined,
 
           specifications: (data.specifications ?? []) as Specification[],

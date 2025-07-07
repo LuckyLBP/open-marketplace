@@ -24,7 +24,7 @@ const ProductInfoSection = ({
         </Badge>
         {isOnSale && (
           <Badge className="bg-red-600 hover:bg-red-700">
-            {t('Sale')} {discountPercentage}% {t('Off')}
+            {t('')} {discountPercentage}% {t('Billigare')}
           </Badge>
         )}
       </div>
@@ -34,15 +34,7 @@ const ProductInfoSection = ({
         <span>{companyName}</span>
       </div>
       <div className="flex items-center mb-4">
-        <div className="flex">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star
-              key={star}
-              className={cn('h-4 w-4', star <= 4 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300')}
-            />
-          ))}
-        </div>
-        <span className="ml-2 text-sm text-muted-foreground">(24 {t('reviews')})</span>
+       
       </div>
       <div className="mb-6">
         {originalPrice && (
