@@ -59,7 +59,7 @@ export function Navbar() {
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'cart') {
+      if (event.key?.startsWith('cart-')) {
         try {
           const updatedCart = event.newValue ? JSON.parse(event.newValue) : [];
           const count = updatedCart.reduce((sum: number, item: any) => sum + item.quantity, 0);
@@ -85,6 +85,17 @@ export function Navbar() {
     e.preventDefault();
     if (searchQuery.trim()) {
       window.location.href = `/marketplace?search=${encodeURIComponent(searchQuery)}`;
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      if (user?.uid) {
+        localStorage.removeItem(`cart-${user.uid}`);
+      }
+      await signOut(auth);
+    } catch (error) {
+      console.error('Fel vid utloggning:', error);
     }
   };
 
@@ -153,7 +164,6 @@ export function Navbar() {
                     </>
                   )}
 
-
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard/settings" className={cn('flex items-center text-muted-foreground hover:text-foreground', pathname === '/inställningar' && 'text-purple-600')}>
                       <Settings className="mr-2 h-4 w-4" />
@@ -162,7 +172,7 @@ export function Navbar() {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => signOut(auth)}
+                    onClick={handleLogout}
                     className="text-red-600 focus:text-red-600"
                   >
                     <LogOut className="mr-2 h-4 w-4 text-red-600" />

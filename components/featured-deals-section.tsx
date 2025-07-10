@@ -38,10 +38,9 @@ export function FeaturedDealsSection() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
- const handleBuyNow = (id: string) => {
-  router.push(`/product/${id}`);
-};
-
+  const handleBuyNow = (id: string) => {
+    router.push(`/product/${id}`);
+  };
 
   useEffect(() => {
     const fetchFeaturedDeals = async () => {
@@ -52,7 +51,7 @@ export function FeaturedDealsSection() {
           where('status', '==', 'approved'),
           where('expiresAt', '>', now),
           orderBy('expiresAt', 'asc'),
-          limit(6)
+          limit(20) // hämta fler än du visar för säkerhets skull
         );
 
         const querySnapshot = await getDocs(q);
@@ -79,29 +78,31 @@ export function FeaturedDealsSection() {
           }
         }
 
+        const nowDate = new Date();
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           const expiresAt = data.expiresAt.toDate();
-          const now = new Date();
+          const timeDiff = expiresAt.getTime() - nowDate.getTime();
 
-          const duration =
-            data.duration || Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60));
-
-          fetchedDeals.push({
-            id: doc.id,
-            title: data.title,
-            description: data.description,
-            price: data.price,
-            originalPrice: data.originalPrice,
-            imageUrl: data.imageUrl,
-            category: data.category || 'other',
-            companyName: companyData[data.companyId] || 'BudFynd.se',
-            duration,
-            expiresAt,
-          });
+          if (timeDiff <= 24 * 60 * 60 * 1000) {
+            fetchedDeals.push({
+              id: doc.id,
+              title: data.title,
+              description: data.description,
+              price: data.price,
+              originalPrice: data.originalPrice,
+              imageUrl: data.imageUrl,
+              category: data.category || 'other',
+              companyName: companyData[data.companyId] || 'BudFynd.se',
+              duration:
+                data.duration ||
+                Math.ceil(timeDiff / (1000 * 60 * 60)),
+              expiresAt,
+            });
+          }
         });
 
-        setDeals(fetchedDeals.slice(0, 3));
+        setDeals(fetchedDeals.slice(0, 6));
       } catch (error) {
         console.error('Error fetching featured deals:', error);
       } finally {
@@ -137,7 +138,7 @@ export function FeaturedDealsSection() {
           </Link>
         </div>
 
-        <div className="grid sm:grid-cols-7 md:grid-cols-7 gap-4 justify-center">
+        <div className="grid sm:grid-cols-6 md:grid-cols-5 gap-4 justify-center">
           {deals.map((deal) => (
             <ProductCard
               key={deal.id}
@@ -152,7 +153,7 @@ export function FeaturedDealsSection() {
               duration={deal.duration}
               expiresAt={deal.expiresAt}
               onAddToWishlist={() => { }}
-              onBuyNow={handleBuyNow}
+              onBuyNow={() => handleBuyNow(deal.id)}
             />
           ))}
         </div>

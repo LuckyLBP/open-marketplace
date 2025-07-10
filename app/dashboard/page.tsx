@@ -32,10 +32,10 @@ export default function DashboardPage() {
   const [editData, setEditData] = useState<any | null>(null);
   const { pendingDeals } = usePendingDeals();
 
-  // 🟢 ändringen sker här: tar bort onlyActive
-  const { deals: allDeals, loading: dealsLoading } = useDeals({
-    companyId: user?.uid,
-  });
+  // 🟢 Justering här: superadmin får se allt, andra ser bara sina egna
+  const { deals: allDeals, loading: dealsLoading } = useDeals(
+    userType === 'superadmin' ? {} : { companyId: user?.uid }
+  );
 
   useEffect(() => {
     if (!status) return;
@@ -128,11 +128,11 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login');
+      router.push('/auth/signin');
     }
   }, [loading, user, router]);
 
-  if (loading || !user) {
+  if (loading || !user || dealsLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
@@ -156,29 +156,32 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* 🔢 INFO-KORT: visas alltid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <Card>
             <CardHeader>
-              <CardTitle>{t('Totalt antal erbjudanden')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{allDeals.length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('Aktiva erbjudanden')}</CardTitle>
+              <CardTitle>{t("Aktiva erbjudanden")}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">{activeDeals.length}</p>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader>
-              <CardTitle>{t('Utgångna erbjudanden')}</CardTitle>
+              <CardTitle>{t("Utgångna erbjudanden")}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">{expiredDeals.length}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("Totalt antal")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{allDeals.length}</p>
             </CardContent>
           </Card>
         </div>
@@ -201,24 +204,15 @@ export default function DashboardPage() {
                     <Link href={`/product/${deal.id}`} className="text-purple-600 hover:underline">
                       {t('Visa erbjudande')}
                     </Link>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.push(`/dashboard?edit=${deal.id}`)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => router.push(`/dashboard?edit=${deal.id}`)}>
                       {t('Redigera')}
                     </Button>
 
-                    {deal.boostStart && deal.boostEnd && new Date(deal.boostEnd) > new Date()
-                      ? (
-                        <Badge className="bg-green-500 text-white self-center">Boost aktiv</Badge>
-                      ) : (
-                        <BoostDialog
-                          dealId={deal.id}
-                          dealTitle={deal.title}
-                          dealDescription={deal.description}
-                        />
-                      )}
+                    {deal.boostStart && deal.boostEnd && new Date(deal.boostEnd) > new Date() ? (
+                      <Badge className="bg-green-500 text-white self-center">Boost aktiv</Badge>
+                    ) : (
+                      <BoostDialog dealId={deal.id} dealTitle={deal.title} dealDescription={deal.description} />
+                    )}
                   </div>
                 </li>
               ))}

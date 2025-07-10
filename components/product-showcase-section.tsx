@@ -199,7 +199,7 @@ export function ProductShowcaseSection() {
           </div>
 
           <TabsContent value="all" className="mt-8">
-            <div className="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-5 gap-4">
               {allProducts.map((product) => (
                 <ProductCard
                   key={product.id}

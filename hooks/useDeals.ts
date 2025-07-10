@@ -81,6 +81,8 @@ export function useDeals(options: UseDealsOptions = {}) {
 
       if (options.onlyActive)
         constraints.push(where('expiresAt', '>', Timestamp.fromDate(now)));
+      if (options.companyId)
+        constraints.push(where('companyId', '==', options.companyId));
       if (options.category)
         constraints.push(where('category', '==', options.category));
       if (options.subcategory)

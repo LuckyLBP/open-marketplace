@@ -12,8 +12,16 @@ import { useLanguage } from "@/components/language-provider"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
+import { Home } from "lucide-react"
 
 export default function SignIn() {
   const [email, setEmail] = useState("")
@@ -30,20 +38,20 @@ export default function SignIn() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       const user = userCredential.user
-      
-      // Check if user is a company or customer
+
+      // Kontrollera om användaren är ett företag genom att kolla 'companies'-kollektionen
       const companyDoc = await getDoc(doc(db, "companies", user.uid))
-      
+
       toast({
         title: "Framgång",
         description: "Du har loggat in framgångsrikt.",
       })
-      
+
       if (companyDoc.exists()) {
-        // User is a company, redirect to dashboard
+        // Om användaren är ett företag, skicka till dashboard
         router.push("/dashboard")
       } else {
-        // User is a customer, redirect to marketplace
+        // Annars är det en privatperson, skicka till marketplace
         router.push("/marketplace")
       }
     } catch (error) {
@@ -62,10 +70,13 @@ export default function SignIn() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Logga in</CardTitle>
-          <CardDescription>Ange din e-post och lösenord för att logga in på ditt konto</CardDescription>
+          <CardDescription>
+            Ange din e-post och lösenord för att logga in på ditt konto
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSignIn}>
           <CardContent className="space-y-4">
+            {/* E-postfält */}
             <div className="space-y-2">
               <Label htmlFor="email">E-post</Label>
               <Input
@@ -77,6 +88,8 @@ export default function SignIn() {
                 required
               />
             </div>
+
+            {/* Lösenordfält */}
             <div className="space-y-2">
               <Label htmlFor="password">Lösenord</Label>
               <Input
@@ -89,6 +102,7 @@ export default function SignIn() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
+            {/* Logga in-knapp */}
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
@@ -96,10 +110,20 @@ export default function SignIn() {
             >
               {loading ? "Laddar..." : "Logga in"}
             </Button>
+
+            {/* Länk till registrering */}
             <div className="text-center text-sm">
               Har du inget konto?{" "}
               <Link href="/auth/signup" className="text-purple-600 hover:underline">
                 Registrera dig
+              </Link>
+            </div>
+
+            {/* Länk till startsidan */}
+            <div className="text-center text-sm">
+              <Link href="/" className="text-gray-500 hover:underline inline-flex items-center gap-1">
+                <Home className="w-4 h-4" />
+                Till startsidan
               </Link>
             </div>
           </CardFooter>

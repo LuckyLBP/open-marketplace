@@ -133,7 +133,7 @@ export function TrendingDealsSection() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-5 gap-3">
           {deals.map((deal) => (
             <ProductCard
               key={deal.id}

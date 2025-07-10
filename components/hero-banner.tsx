@@ -26,6 +26,7 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { TimeLeftLabel } from './deals/timeLeftLabel';
 
 type FeaturedDeal = {
   id: string;
@@ -391,22 +392,12 @@ export function HeroBanner() {
                                   }).format(deal.price)}
                                 </span>
                               </div>
-                              <div className="flex items-center text-xs text-orange-600">
-                                <Timer className="h-3 w-3 mr-1" />
-                                <span className="font-medium">
-                                  {deal.timeLeft.hours
-                                    .toString()
-                                    .padStart(2, '0')}
-                                  :
-                                  {deal.timeLeft.minutes
-                                    .toString()
-                                    .padStart(2, '0')}
-                                  :
-                                  {deal.timeLeft.seconds
-                                    .toString()
-                                    .padStart(2, '0')}
-                                </span>
-                              </div>
+                              <TimeLeftLabel expiresAt={new Date(Date.now() + (
+                                deal.timeLeft.hours * 3600000 +
+                                deal.timeLeft.minutes * 60000 +
+                                deal.timeLeft.seconds * 1000
+                              ))} className="text-xs" />
+
                             </div>
                           </div>
 
@@ -420,7 +411,6 @@ export function HeroBanner() {
                     );
                   })}
 
-                  {/* Call to action - different messaging based on deal type */}
                   <div
                     className={`mt-6 p-4 rounded-xl border ${hasUrgentDeals
                       ? 'bg-gradient-to-r from-red-50 to-orange-50 border-red-200'

@@ -1,51 +1,68 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { usePathname } from "next/navigation"; 
+import { usePathname } from "next/navigation";
 import { Deal } from "@/hooks/useDeals";
+import { useFirebase } from "@/components/firebase-provider";
 
 export interface CartItem extends Deal {
   quantity: number;
 }
 
 export function useCart() {
+  const { user, loading: loadingUser } = useFirebase(); 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
 
-  useEffect(() => {
-    const storedCart = localStorage.getItem("cart");
-    if (storedCart) {
-      try {
-        const parsed = JSON.parse(storedCart);
-        setCartItems(parsed);
-      } catch (err) {
-        console.error("Kunde inte parsa cart:", err);
-      }
-    }
-    setLoading(false);
-  }, []);
+  const storageKey = user ? `cart-${user.uid}` : null;
 
   useEffect(() => {
+    if (loadingUser) return; 
+
+    if (!user || !storageKey) {
+      setCartItems([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const stored = localStorage.getItem("cart");
+      const storedCart = localStorage.getItem(storageKey);
+      if (storedCart) {
+        const parsed = JSON.parse(storedCart);
+        setCartItems(parsed);
+      }
+    } catch (err) {
+      console.error("Kunde inte parsa cart:", err);
+    }
+
+    setLoading(false);
+  }, [user, loadingUser, storageKey]);
+
+  useEffect(() => {
+    if (!storageKey || loadingUser) return;
+
+    try {
+      const stored = localStorage.getItem(storageKey);
       if (stored) {
         setCartItems(JSON.parse(stored));
       }
     } catch (err) {
       console.error("Fel vid synkning av cart på route change:", err);
     }
-  }, [pathname]);
+  }, [pathname, storageKey, loadingUser]);
 
   useEffect(() => {
-    if (!loading) {
-      localStorage.setItem("cart", JSON.stringify(cartItems));
+    if (!loading && user && storageKey) {
+      localStorage.setItem(storageKey, JSON.stringify(cartItems));
     }
-  }, [cartItems, loading]);
+  }, [cartItems, loading, user, storageKey]);
 
   useEffect(() => {
+    if (!storageKey) return;
+
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "cart") {
+      if (event.key === storageKey) {
         try {
           const updatedCart = event.newValue ? JSON.parse(event.newValue) : [];
           setCartItems(updatedCart);
@@ -54,41 +71,45 @@ export function useCart() {
         }
       }
     };
+
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+  }, [storageKey]);
 
   const addToCart = useCallback((item: Deal, quantity: number = 1) => {
     setCartItems((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       const updated = existing
         ? prev.map((i) =>
-            i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i
-          )
+          i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i
+        )
         : [...prev, { ...item, quantity }];
-      localStorage.setItem("cart", JSON.stringify(updated)); 
+      if (user && storageKey) {
+        localStorage.setItem(storageKey, JSON.stringify(updated));
+      }
       return updated;
     });
-  }, []);
+  }, [user, storageKey]);
 
   const removeFromCart = useCallback((id: string) => {
     setCartItems((prev) => {
       const updated = prev.filter((i) => i.id !== id);
-      localStorage.setItem("cart", JSON.stringify(updated)); 
+      if (user && storageKey) {
+        localStorage.setItem(storageKey, JSON.stringify(updated));
+      }
       return updated;
     });
-  }, []);
+  }, [user, storageKey]);
 
   const clearCart = useCallback(() => {
     setCartItems([]);
-    localStorage.removeItem("cart"); 
-  }, []);
+    if (user && storageKey) {
+      localStorage.removeItem(storageKey);
+    }
+  }, [user, storageKey]);
 
   const getTotal = useCallback(() => {
-    return cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
+    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
   }, [cartItems]);
 
   return {

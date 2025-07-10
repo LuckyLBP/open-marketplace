@@ -23,7 +23,6 @@ interface EntityData {
     email: string;
     name?: string;
     orgNumber?: string;
-    role: 'company' | 'customer';
 }
 
 export default function SuperAdminPanel() {

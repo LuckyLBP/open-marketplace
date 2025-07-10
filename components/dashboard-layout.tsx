@@ -34,12 +34,16 @@ export default function DashboardLayout({
 
   const handleSignOut = async () => {
     try {
+      if (user?.uid) {
+        localStorage.removeItem(`cart-${user.uid}`);
+      }
       await signOut(auth);
       router.push('/');
     } catch (error) {
       console.error('Error signing out:', error);
     }
   };
+
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -62,7 +66,6 @@ export default function DashboardLayout({
           size="icon"
           className="fixed top-4 left-4 z-40"
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          //testar nu bara igen
         >
           {sidebarOpen ? (
             <X className="h-6 w-6" />
@@ -79,9 +82,8 @@ export default function DashboardLayout({
         )}
 
         <aside
-          className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white transition-transform duration-300 ease-in-out ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          className={`fixed inset-y-0 left-0 z-30 w-64 transform bg-white transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
         >
           <div className="flex h-16 items-center justify-center border-b">
             <h2 className="text-xl font-bold text-purple-600">BudFynd.se</h2>
@@ -91,19 +93,17 @@ export default function DashboardLayout({
               <Link
                 key={item.name}
                 href={item.href}
-                className={`group flex items-center rounded-md px-2 py-2 text-sm font-medium ${
-                  pathname === item.href
+                className={`group flex items-center rounded-md px-2 py-2 text-sm font-medium ${pathname === item.href
                     ? 'bg-purple-100 text-purple-600'
                     : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600'
-                }`}
+                  }`}
                 onClick={() => setSidebarOpen(false)}
               >
                 <item.icon
-                  className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                    pathname === item.href
+                  className={`mr-3 h-5 w-5 flex-shrink-0 ${pathname === item.href
                       ? 'text-purple-600'
                       : 'text-gray-400 group-hover:text-purple-600'
-                  }`}
+                    }`}
                 />
                 {t(item.name)}
               </Link>
@@ -129,18 +129,16 @@ export default function DashboardLayout({
             <Link
               key={item.name}
               href={item.href}
-              className={`group flex items-center rounded-md px-2 py-2 text-sm font-medium ${
-                pathname === item.href
+              className={`group flex items-center rounded-md px-2 py-2 text-sm font-medium ${pathname === item.href
                   ? 'bg-purple-100 text-purple-600'
                   : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600'
-              }`}
+                }`}
             >
               <item.icon
-                className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                  pathname === item.href
+                className={`mr-3 h-5 w-5 flex-shrink-0 ${pathname === item.href
                     ? 'text-purple-600'
                     : 'text-gray-400 group-hover:text-purple-600'
-                }`}
+                  }`}
               />
               {t(item.name)}
             </Link>

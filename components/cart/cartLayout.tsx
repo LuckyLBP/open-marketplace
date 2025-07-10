@@ -3,14 +3,15 @@
 import React from "react";
 import CartItemList from "./cartItemList";
 import CartSummary from "./cartSummary";
-import RelatedProducts from "./relatedProducts";
+import { RelatedProductsSection } from './relatedProducts';
+
 import { useCartContext } from "@/components/cart/cartProvider";
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 const CartLayout = () => {
-  const { cartItems, loading } = useCartContext(); 
+  const { cartItems, loading } = useCartContext();
   const isCartEmpty = cartItems.length === 0;
 
   if (loading) {
@@ -61,7 +62,7 @@ const CartLayout = () => {
         </div>
       )}
 
-      {!isCartEmpty && <RelatedProducts />}
+      {!isCartEmpty && <RelatedProductsSection />}
     </div>
   );
 };

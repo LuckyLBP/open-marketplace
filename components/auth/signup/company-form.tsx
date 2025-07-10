@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 
 const companySchema = z.object({
+    companyName: z.string().min(2, 'Företagsnamn krävs'),
     orgNumber: z.string().min(6, 'Orgnummer krävs'),
     address: z.string().min(2, 'Adress krävs'),
     phone: z.string().min(6, 'Telefonnummer krävs'),
@@ -47,13 +48,14 @@ export default function CompanyForm() {
             const uid = userCredential.user.uid;
 
             await setDoc(doc(db, 'companies', uid), {
+                companyName: data.companyName,
                 orgNumber: data.orgNumber,
                 address: data.address,
                 phone: data.phone,
                 postalCode: data.postalCode,
                 city: data.city,
                 email: data.email,
-                role: 'company',
+                accountType: 'company',
                 createdAt: new Date(),
             });
 
@@ -68,6 +70,12 @@ export default function CompanyForm() {
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+                <Label>Företagsnamn</Label>
+                <Input {...register('companyName')} />
+                {errors.companyName && <p className="text-sm text-red-500">{errors.companyName.message}</p>}
+            </div>
+
             <div className="space-y-2">
                 <Label>Organisationsnummer</Label>
                 <Input {...register('orgNumber')} />

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Clock } from 'lucide-react';
+import { Clock, Flame } from 'lucide-react';
 
 interface Props {
     expiresAt: Date;
-    className?: string; // Tillåter extern styling som t.ex. position
+    className?: string;
 }
 
 export const TimeLeftLabel = ({ expiresAt, className = '' }: Props) => {
@@ -46,13 +46,16 @@ export const TimeLeftLabel = ({ expiresAt, className = '' }: Props) => {
 
     if (!label) return null;
 
-    const badgeColor = isUrgent ? 'bg-red-600 text-white' : 'bg-gray-800 text-white';
-
     return (
-        <div className={`inline-flex items-center gap-1 w-fit px-3 py-1 text-xs font-medium rounded-full shadow-sm ${badgeColor} ${className}`}>
-            <Clock className="h-3 w-3" />
+        <div
+            className={`inline-flex items-center gap-2 w-fit px-3 py-1.5 text-sm font-semibold rounded-full shadow-lg transition-all 
+        ${isUrgent
+                    ? 'bg-gradient-to-r from-red-600 to-orange-500 text-white animate-pulse'
+                    : 'bg-gray-800 text-white'}
+        ${className}`}
+        >
+            {isUrgent ? <Flame className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
             {label}
         </div>
     );
-
 };
