@@ -27,6 +27,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { TimeLeftLabel } from './deals/timeLeftLabel';
+import { ProductCard } from './components/product-card';
 
 type FeaturedDeal = {
   id: string;
@@ -207,15 +208,15 @@ export function HeroBanner() {
   return (
     <section className="relative py-20 bg-gradient-to-br from-purple-50 via-white to-pink-50 overflow-hidden">
       {/* Background decorations */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-      <div className="absolute top-10 right-10 text-purple-200">
-        <TrendingUp className="h-32 w-32" />
+      <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none" />
+      <div className="hidden md:block absolute top-6 right-6 text-purple-200">
+        <TrendingUp className="h-24 w-24" />
       </div>
-      <div className="absolute bottom-10 left-10 text-pink-200">
-        <Clock className="h-24 w-24" />
+      <div className="hidden md:block absolute bottom-6 left-6 text-pink-200">
+        <Clock className="h-20 w-20" />
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left side - Main content */}
           <div className="text-center lg:text-left">
@@ -228,16 +229,14 @@ export function HeroBanner() {
               </div>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 leading-tight">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 max-w-xl mx-auto lg:mx-0 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 leading-tight break-words">
               Hitta de bästa tidsbegränsade erbjudandena
             </h1>
 
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto lg:mx-0 leading-relaxed">
-              Upptäck exklusiva erbjudanden från ledande företag med begränsad
-              tid.
+              Upptäck exklusiva erbjudanden från ledande företag med begränsad tid.
               <span className="font-semibold text-purple-600">
-                {' '}
-                Ju kortare tid, desto bättre pris!
+                {' '}Ju kortare tid, desto bättre pris!
               </span>
             </p>
 
@@ -245,7 +244,7 @@ export function HeroBanner() {
               <Link href="/marketplace">
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-lg px-6 py-4 sm:px-8 sm:py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                 >
                   Utforska erbjudanden
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -255,7 +254,7 @@ export function HeroBanner() {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-purple-200 text-purple-700 hover:bg-purple-50 px-8 py-6 text-lg rounded-full"
+                className="border-purple-200 text-purple-700 hover:bg-purple-50 text-lg px-6 py-4 sm:px-8 sm:py-6 rounded-full"
               >
                 Så fungerar det
               </Button>
@@ -279,9 +278,7 @@ export function HeroBanner() {
                 <div className="text-2xl md:text-3xl font-bold text-purple-600 mb-1">
                   85%
                 </div>
-                <div className="text-sm text-gray-600">
-                  Genomsnittlig rabatt
-                </div>
+                <div className="text-sm text-gray-600">Genomsnittlig rabatt</div>
               </div>
               <div className="text-center lg:text-left">
                 <div className="text-2xl md:text-3xl font-bold text-pink-600 mb-1">
@@ -293,10 +290,10 @@ export function HeroBanner() {
           </div>
 
           {/* Right side - Featured products showcase */}
-          <div className="relative">
+          <div className="relative max-w-full overflow-hidden">
             {/* Floating urgency badge - only show for urgent deals */}
             {featuredDeals.length > 0 && hasUrgentDeals && (
-              <div className="absolute -top-4 -left-4 z-20">
+              <div className="absolute top-2 left-2 z-20 hidden sm:block">
                 <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-4 py-2 rounded-full shadow-lg animate-pulse">
                   <div className="flex items-center">
                     <Zap className="h-4 w-4 mr-2" />
@@ -318,175 +315,52 @@ export function HeroBanner() {
                 </Badge>
               </div>
 
-              {loading ? (
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="animate-pulse">
-                      <div className="flex gap-4 p-4 bg-gray-100 rounded-xl">
-                        <div className="w-16 h-16 bg-gray-300 rounded-lg"></div>
-                        <div className="flex-1 space-y-2">
-                          <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-                          <div className="h-3 bg-gray-300 rounded w-1/2"></div>
-                          <div className="h-4 bg-gray-300 rounded w-1/3"></div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : featuredDeals.length > 0 ? (
-                <div className="space-y-4">
-                  {featuredDeals.map((deal, index) => {
-                    const discount = deal.originalPrice
-                      ? Math.round(
-                        ((deal.originalPrice - deal.price) /
-                          deal.originalPrice) *
-                        100
+              {/* Product cards list using your reusable component */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {featuredDeals.map((deal) => (
+                  <ProductCard
+                    key={deal.id}
+                    id={deal.id}
+                    title={deal.title}
+                    description="Exklusivt erbjudande från utvalt företag"
+                    price={deal.price}
+                    originalPrice={deal.originalPrice}
+                    imageUrl={deal.imageUrl}
+                    category="elektronik" // replace with actual category if available
+                    companyName={deal.companyName}
+                    duration={
+                      Math.ceil(
+                        (deal.timeLeft.hours * 60 + deal.timeLeft.minutes) / 60
+                      ) || 1
+                    }
+                    expiresAt={
+                      new Date(
+                        Date.now() +
+                        deal.timeLeft.hours * 3600000 +
+                        deal.timeLeft.minutes * 60000 +
+                        deal.timeLeft.seconds * 1000
                       )
-                      : 0;
-
-                    return (
-                      <Link
-                        key={deal.id}
-                        href={`/product/${deal.id}`}
-                        className="block group transition-all duration-300 hover:scale-[1.02]"
-                      >
-                        <div className="flex gap-4 p-4 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-100 group-hover:shadow-lg group-hover:border-purple-200 transition-all">
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                            <img
-                              src={
-                                deal.imageUrl ||
-                                '/placeholder.svg?height=64&width=64'
-                              }
-                              alt={deal.title}
-                              className="w-full h-full object-cover"
-                            />
-                            {discount > 0 && (
-                              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 py-0.5 rounded-full font-bold">
-                                -{discount}%
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-gray-900 truncate group-hover:text-purple-600 transition-colors">
-                              {deal.title}
-                            </h4>
-                            <p className="text-xs text-gray-500 mb-1">
-                              {deal.companyName}
-                            </p>
-
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                {deal.originalPrice && (
-                                  <span className="text-xs line-through text-gray-400">
-                                    {new Intl.NumberFormat('sv-SE', {
-                                      style: 'currency',
-                                      currency: 'SEK',
-                                    }).format(deal.originalPrice)}
-                                  </span>
-                                )}
-                                <span className="font-bold text-red-600">
-                                  {new Intl.NumberFormat('sv-SE', {
-                                    style: 'currency',
-                                    currency: 'SEK',
-                                  }).format(deal.price)}
-                                </span>
-                              </div>
-                              <TimeLeftLabel expiresAt={new Date(Date.now() + (
-                                deal.timeLeft.hours * 3600000 +
-                                deal.timeLeft.minutes * 60000 +
-                                deal.timeLeft.seconds * 1000
-                              ))} className="text-xs" />
-
-                            </div>
-                          </div>
-
-                          <div className="flex items-center">
-                            <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 rounded-lg group-hover:from-purple-600 group-hover:to-pink-600 transition-all">
-                              <ShoppingBag className="h-4 w-4" />
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    );
-                  })}
-
-                  <div
-                    className={`mt-6 p-4 rounded-xl border ${hasUrgentDeals
-                      ? 'bg-gradient-to-r from-red-50 to-orange-50 border-red-200'
-                      : 'bg-gradient-to-r from-purple-100 to-pink-100 border-purple-200'
-                      }`}
-                  >
-                    <div className="text-center">
-                      <p
-                        className={`text-sm mb-3 ${hasUrgentDeals ? 'text-red-700' : 'text-purple-700'
-                          }`}
-                      >
-                        {hasUrgentDeals ? (
-                          <>
-                            <span className="font-semibold">
-                              Missa inte dessa!
-                            </span>{' '}
-                            Endast få timmar kvar.
-                          </>
-                        ) : (
-                          <>
-                            <span className="font-semibold">
-                              Upptäck fler erbjudanden!
-                            </span>{' '}
-                            Nya deals läggs till dagligen.
-                          </>
-                        )}
-                      </p>
-                      <Link
-                        href={
-                          hasUrgentDeals
-                            ? '/marketplace?sort=time-left'
-                            : '/marketplace'
-                        }
-                      >
-                        <Button
-                          size="sm"
-                          className={
-                            hasUrgentDeals
-                              ? 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white rounded-full'
-                              : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full'
-                          }
-                        >
-                          {hasUrgentDeals
-                            ? 'Se alla brådskande'
-                            : 'Utforska alla erbjudanden'}
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-4">⏰</div>
-                  <p className="text-gray-600 mb-4">
-                    Inga brådskande erbjudanden just nu
-                  </p>
-                  <Link href="/marketplace">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="rounded-full"
-                    >
-                      Utforska alla erbjudanden
-                    </Button>
-                  </Link>
-                </div>
-              )}
+                    }
+                    onBuyNow={(id) => {
+                      window.location.href = `/checkout/${id}`;
+                    }}
+                    onAddToWishlist={(id) => {
+                      console.log('wishlist:', id);
+                    }}
+                    compact={true}
+                  />
+                ))}
+              </div>
             </div>
 
-            {/* Decorative floating elements */}
-            <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 blur-xl"></div>
-            <div className="absolute -top-6 -right-6 w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full opacity-30 blur-lg"></div>
+            {/* Decorative floating blobs - only show on larger screens */}
+            <div className="hidden md:block absolute -bottom-6 -right-6 w-24 h-24 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 blur-xl pointer-events-none"></div>
+            <div className="hidden md:block absolute -top-6 -right-6 w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full opacity-30 blur-lg pointer-events-none"></div>
           </div>
         </div>
       </div>
     </section>
   );
+
+
 }

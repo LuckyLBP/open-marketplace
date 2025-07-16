@@ -15,7 +15,7 @@ import { useLanguage } from '@/components/language-provider';
 import { cn } from '@/lib/utils';
 import { TimeLeftLabel } from '@/components/deals/timeLeftLabel';
 
-type ProductCardProps = {
+export type ProductCardProps = {
   id: string;
   title: string;
   description: string;

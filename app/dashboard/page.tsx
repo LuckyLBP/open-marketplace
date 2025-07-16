@@ -32,7 +32,6 @@ export default function DashboardPage() {
   const [editData, setEditData] = useState<any | null>(null);
   const { pendingDeals } = usePendingDeals();
 
-  // 🟢 Justering här: superadmin får se allt, andra ser bara sina egna
   const { deals: allDeals, loading: dealsLoading } = useDeals(
     userType === 'superadmin' ? {} : { companyId: user?.uid }
   );
@@ -156,7 +155,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* 🔢 INFO-KORT: visas alltid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <Card>
             <CardHeader>

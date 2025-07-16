@@ -51,7 +51,7 @@ export function FeaturedDealsSection() {
           where('status', '==', 'approved'),
           where('expiresAt', '>', now),
           orderBy('expiresAt', 'asc'),
-          limit(20) // hämta fler än du visar för säkerhets skull
+          limit(20) 
         );
 
         const querySnapshot = await getDocs(q);
