@@ -44,6 +44,8 @@ const CartSummary = () => {
 
   const handleCheckout = async () => {
     try {
+      console.log('[CART → CHECKOUT] items:', cartItems);
+
       const res = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

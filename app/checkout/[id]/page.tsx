@@ -33,6 +33,7 @@ type Deal = {
   category: string;
   feePercentage: number;
   expiresAt: Date;
+  accountType: 'company' | 'customer';
   timeLeft: {
     hours: number;
     minutes: number;
@@ -55,7 +56,6 @@ export default function Checkout({ params }: { params: { id: string } }) {
     const fetchDeal = async () => {
       try {
         const dealDoc = await getDoc(doc(db, 'deals', id));
-
         if (!dealDoc.exists()) {
           toast({
             title: t('Error'),
@@ -68,19 +68,22 @@ export default function Checkout({ params }: { params: { id: string } }) {
 
         const data = dealDoc.data();
 
-        // Fetch company name
+        const accountType: 'company' | 'customer' =
+          data.accountType === 'company' ? 'company' : 'customer';
+
         let companyName = 'BudFynd.se';
         try {
-          const companyDoc = await getDoc(doc(db, 'companies', data.companyId));
+          const companyDoc = await getDoc(
+            doc(db, accountType === 'company' ? 'companies' : 'customers', data.companyId)
+          );
           if (companyDoc.exists()) {
-            companyName = companyDoc.data().companyName;
+            companyName = companyDoc.data().companyName || companyDoc.data().name;
           }
         } catch (error) {
           console.error('Error fetching company:', error);
         }
 
         const category = data.category || 'other';
-
         const expiresAt = data.expiresAt.toDate();
         const now = new Date();
         const diffMs = expiresAt.getTime() - now.getTime();
@@ -107,15 +110,12 @@ export default function Checkout({ params }: { params: { id: string } }) {
           duration: data.duration,
           imageUrl: data.imageUrl,
           companyId: data.companyId,
-          companyName: companyName,
-          category: category,
+          companyName,
+          category,
           feePercentage: data.feePercentage,
-          expiresAt: expiresAt,
-          timeLeft: {
-            hours,
-            minutes,
-            seconds,
-          },
+          expiresAt,
+          accountType,
+          timeLeft: { hours, minutes, seconds },
         });
       } catch (error) {
         console.error('Error fetching deal:', error);
@@ -132,7 +132,6 @@ export default function Checkout({ params }: { params: { id: string } }) {
 
     fetchDeal();
 
-    // Update countdown every second
     const interval = setInterval(() => {
       setDeal((prevDeal) => {
         if (!prevDeal) return null;
@@ -171,7 +170,16 @@ export default function Checkout({ params }: { params: { id: string } }) {
     setProcessingPayment(true);
 
     try {
-      // Create a checkout session on the server
+      console.log('[CHECKOUT PAYLOAD]', {
+        dealId: deal.id,
+        price: deal.price,
+        title: deal.title,
+        feePercentage: deal.feePercentage,
+        companyId: deal.companyId,
+        userId: user?.uid || 'anonymous',
+        accountType: deal.accountType,
+      });
+
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
@@ -184,22 +192,16 @@ export default function Checkout({ params }: { params: { id: string } }) {
           feePercentage: deal.feePercentage,
           companyId: deal.companyId,
           userId: user?.uid || 'anonymous',
+          accountType: deal.accountType,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
+      if (!response.ok) throw new Error('Network response was not ok');
 
       const { sessionId } = await response.json();
 
-      // Redirect to Stripe Checkout
-      const stripe = await loadStripe(
-        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-      );
-      if (stripe) {
-        await stripe.redirectToCheckout({ sessionId });
-      }
+      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+      if (stripe) await stripe.redirectToCheckout({ sessionId });
     } catch (error) {
       console.error('Error creating checkout session:', error);
       toast({
@@ -212,7 +214,7 @@ export default function Checkout({ params }: { params: { id: string } }) {
     }
   };
 
-  if (loading) {
+  if (loading || !deal) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-purple-50 to-white">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
@@ -220,32 +222,10 @@ export default function Checkout({ params }: { params: { id: string } }) {
     );
   }
 
-  if (!deal) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-purple-50 to-white p-4">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold mb-4">{t('Deal Not Found')}</h1>
-          <p className="mb-6 text-muted-foreground">
-            {t('This deal may have expired or been removed.')}
-          </p>
-          <Link href="/marketplace">
-            <Button>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t('Back to Marketplace')}
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white py-12 px-4">
       <div className="container mx-auto max-w-4xl">
-        <Link
-          href="/marketplace"
-          className="inline-flex items-center text-purple-600 hover:text-purple-800 mb-6"
-        >
+        <Link href="/marketplace" className="inline-flex items-center text-purple-600 hover:text-purple-800 mb-6">
           <ArrowLeft className="mr-2 h-4 w-4" />
           {t('Back to Marketplace')}
         </Link>
@@ -327,9 +307,7 @@ export default function Checkout({ params }: { params: { id: string } }) {
                     {t('Payment Information')}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {t(
-                      'You will be redirected to Stripe to complete your purchase securely.'
-                    )}
+                    {t('You will be redirected to Stripe to complete your purchase securely.')}
                   </p>
                 </div>
               </CardContent>

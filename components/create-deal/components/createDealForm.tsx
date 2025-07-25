@@ -23,6 +23,17 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 
+const calculateFeePercentage = (duration: number): number => {
+  if (duration <= 12) return 3;
+  if (duration <= 24) return 4;
+  if (duration <= 36) return 5;
+  if (duration <= 48) return 6;
+  if (duration <= 72) return 7;
+  if (duration <= 96) return 8;
+  if (duration <= 120) return 9;
+  return 10;
+};
+
 type ProductImage = {
   file: File;
   preview: string;
@@ -56,6 +67,7 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
   const isEditing = !!defaultValues?.id;
   const [activeTab, setActiveTab] = useState("basic");
   const [duration, setDuration] = useState(24);
+  const [feePercentage, setFeePercentage] = useState<number>(calculateFeePercentage(24));
   const [images, setImages] = useState<ProductImage[]>([]);
   const [inStock, setInStock] = useState(true);
   const [stockQuantity, setStockQuantity] = useState("10");
@@ -79,8 +91,7 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
   const maxDuration =
     userType === "company" ? 336 :
       userType === "customer" ? 168 :
-        userType === "admin" ? 336 :
-          userType === "superadmin" ? 336 : 168;
+        userType === "admin" || userType === "superadmin" ? 336 : 168;
 
   useEffect(() => {
     if (defaultValues) {
@@ -93,6 +104,7 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
       setCompanyName(defaultValues.companyName || "");
       setImages(defaultValues.images || []);
       setDuration(defaultValues.duration || 24);
+      setFeePercentage(defaultValues.feePercentage ?? calculateFeePercentage(defaultValues.duration || 24));
       setInStock(defaultValues.inStock ?? true);
       setStockQuantity(defaultValues.stockQuantity?.toString() || "10");
       setSku(defaultValues.sku || "");
@@ -130,6 +142,10 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
         })
       );
 
+      // 🔴 NEW: normalisera accountType från userType
+      const normalizedAccountType: 'company' | 'customer' =
+        userType === 'customer' ? 'customer' : 'company';
+
       const dealData = {
         title,
         description,
@@ -145,11 +161,13 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
         images: uploadedImages,
         imageUrl: uploadedImages.find((img) => img.isPrimary)?.url || "",
         duration,
+        feePercentage,
         expiresAt: null,
         createdAt: serverTimestamp(),
         companyId: user?.uid || null,
         companyName,
-        role: userType,
+        role: userType,                     // finns kvar om du vill
+        accountType: normalizedAccountType, // ✅ SPARAS HÄR
         isBoosted: false,
         boostType: null,
         boostStart: null,
@@ -193,7 +211,11 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
               <label className="block text-sm font-medium text-gray-700 mb-1">{t("Varaktighet")}</label>
               <select
                 value={duration}
-                onChange={(e) => setDuration(parseInt(e.target.value))}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  setDuration(value);
+                  setFeePercentage(calculateFeePercentage(value));
+                }}
                 className="block w-full mt-1 border-gray-300 rounded-md shadow-sm"
               >
                 {[12, 24, 36, 48, 72, 96, 120, 144, 168, 192, 216, 240, 264, 288, 312, 336]
@@ -207,6 +229,9 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
                     );
                   })}
               </select>
+              <p className="mt-2 text-sm text-gray-600">
+                {t("Serviceavgift")}: <span className="font-medium">{feePercentage}%</span>
+              </p>
             </div>
           </TabsContent>
 

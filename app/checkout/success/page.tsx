@@ -39,6 +39,7 @@ export default function CheckoutSuccessPage() {
           console.warn('Session saknar giltiga produkter');
           return;
         }
+        
 
         await fetch('/api/verify-order', {
           method: 'POST',

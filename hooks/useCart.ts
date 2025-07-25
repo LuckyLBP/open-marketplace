@@ -2,15 +2,16 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
-import { Deal } from "@/hooks/useDeals";
+import { Deal } from "@/components/types/deal";
 import { useFirebase } from "@/components/firebase-provider";
 
 export interface CartItem extends Deal {
   quantity: number;
+  accountType: "company" | "customer";
 }
 
 export function useCart() {
-  const { user, loading: loadingUser } = useFirebase(); 
+  const { user, loading: loadingUser } = useFirebase();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
@@ -18,7 +19,7 @@ export function useCart() {
   const storageKey = user ? `cart-${user.uid}` : null;
 
   useEffect(() => {
-    if (loadingUser) return; 
+    if (loadingUser) return;
 
     if (!user || !storageKey) {
       setCartItems([]);
@@ -77,16 +78,23 @@ export function useCart() {
   }, [storageKey]);
 
   const addToCart = useCallback((item: Deal, quantity: number = 1) => {
+    if (!item.accountType) {
+      console.warn("⚠️ Saknar accountType i item som läggs till i cart:", item);
+    }
+
     setCartItems((prev) => {
       const existing = prev.find((i) => i.id === item.id);
+
       const updated = existing
         ? prev.map((i) =>
           i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i
         )
-        : [...prev, { ...item, quantity }];
+        : [...prev, { ...item, quantity, accountType: item.accountType ?? "company" }];
+
       if (user && storageKey) {
         localStorage.setItem(storageKey, JSON.stringify(updated));
       }
+
       return updated;
     });
   }, [user, storageKey]);
