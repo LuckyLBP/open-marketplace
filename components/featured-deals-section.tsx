@@ -164,7 +164,67 @@ export function FeaturedDealsSection() {
           <div className="flex items-center">
             <div className="flex items-center bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1 rounded-full mr-4 animate-pulse">
               <Timer className="h-4 w-4 mr-1" />
-              <span className="text-sm font-medium">SNART SLUT</span>
+              <span className="text-sm font-medium">
+                Sint aute esse elit cillum laboris id incididunt. Exercitation
+                ipsum laborum sit nulla. Nisi aute est et ea exercitation quis
+                aute pariatur deserunt ut cupidatat sunt veniam in. Nulla ut
+                reprehenderit reprehenderit qui voluptate occaecat laborum
+                deserunt incididunt mollit.Sint aute esse elit cillum laboris id
+                incididunt. Exercitation ipsum laborum sit nulla. Nisi aute est
+                et ea exercitation quis aute pariatur deserunt ut cupidatat sunt
+                veniam in. Nulla ut reprehenderit reprehenderit qui voluptate
+                occaecat laborum deserunt incididunt mollit.Sint aute esse elit
+                cillum laboris id incididunt. Exercitation ipsum laborum sit
+                nulla. Nisi aute est et ea exercitation quis aute pariatur
+                deserunt ut cupidatat sunt veniam in. Nulla ut reprehenderit
+                reprehenderit qui voluptate occaecat laborum deserunt incididunt
+                mollit.Sint aute esse elit cillum laboris id incididunt.
+                Exercitation ipsum laborum sit nulla. Nisi aute est et ea
+                exercitation quis aute pariatur deserunt ut cupidatat sunt
+                veniam in. Nulla ut reprehenderit reprehenderit qui voluptate
+                occaecat laborum deserunt incididunt mollit.Sint aute esse elit
+                cillum laboris id incididunt. Exercitation ipsum laborum sit
+                nulla. Nisi aute est et ea exercitation quis aute pariatur
+                deserunt ut cupidatat sunt veniam in. Nulla ut reprehenderit
+                reprehenderit qui voluptate occaecat laborum deserunt incididunt
+                mollit.Sint aute esse elit cillum laboris id incididunt.
+                Exercitation ipsum laborum sit nulla. Nisi aute est et ea
+                exercitation quis aute pariatur deserunt ut cupidatat sunt
+                veniam in. Nulla ut reprehenderit reprehenderit qui voluptate
+                occaecat laborum deserunt incididunt mollit.Sint aute esse elit
+                cillum laboris id incididunt. Exercitation ipsum laborum sit
+                nulla. Nisi aute est et ea exercitation quis aute pariatur
+                deserunt ut cupidatat sunt veniam in. Nulla ut reprehenderit
+                reprehenderit qui voluptate occaecat laborum deserunt incididunt
+                mollit.Sint aute esse elit cillum laboris id incididunt.
+                Exercitation ipsum laborum sit nulla. Nisi aute est et ea
+                exercitation quis aute pariatur deserunt ut cupidatat sunt
+                veniam in. Nulla ut reprehenderit reprehenderit qui voluptate
+                occaecat laborum deserunt incididunt mollit.Sint aute esse elit
+                cillum laboris id incididunt. Exercitation ipsum laborum sit
+                nulla. Nisi aute est et ea exercitation quis aute pariatur
+                deserunt ut cupidatat sunt veniam in. Nulla ut reprehenderit
+                reprehenderit qui voluptate occaecat laborum deserunt incididunt
+                mollit.Sint aute esse elit cillum laboris id incididunt.
+                Exercitation ipsum laborum sit nulla. Nisi aute est et ea
+                exercitation quis aute pariatur deserunt ut cupidatat sunt
+                veniam in. Nulla ut reprehenderit reprehenderit qui voluptate
+                occaecat laborum deserunt incididunt mollit.Sint aute esse elit
+                cillum laboris id incididunt. Exercitation ipsum laborum sit
+                nulla. Nisi aute est et ea exercitation quis aute pariatur
+                deserunt ut cupidatat sunt veniam in. Nulla ut reprehenderit
+                reprehenderit qui voluptate occaecat laborum deserunt incididunt
+                mollit.Sint aute esse elit cillum laboris id incididunt.
+                Exercitation ipsum laborum sit nulla. Nisi aute est et ea
+                exercitation quis aute pariatur deserunt ut cupidatat sunt
+                veniam in. Nulla ut reprehenderit reprehenderit qui voluptate
+                occaecat laborum deserunt incididunt mollit.Sint aute esse elit
+                cillum laboris id incididunt. Exercitation ipsum laborum sit
+                nulla. Nisi aute est et ea exercitation quis aute pariatur
+                deserunt ut cupidatat sunt veniam in. Nulla ut reprehenderit
+                reprehenderit qui voluptate occaecat laborum deserunt incididunt
+                mollit.
+              </span>
             </div>
             <div>
               <h2 className="text-3xl font-bold mb-2 text-gray-900">
