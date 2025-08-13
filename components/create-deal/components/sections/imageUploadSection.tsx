@@ -5,18 +5,11 @@ import { Label } from "@/components/ui/label";
 import { ImageIcon, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/language-provider";
-
-type ProductImage = {
-  file: File;
-  preview: string;
-  isPrimary: boolean;
-  uploading?: boolean;
-  progress?: number;
-};
+import type { ProductImage } from "@/components/types/deal"; 
 
 interface ImageUploadSectionProps {
   images: ProductImage[];
-  setImages: (images: ProductImage[]) => void;
+  setImages: React.Dispatch<React.SetStateAction<ProductImage[]>>;
 }
 
 const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
@@ -27,13 +20,17 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   const { t } = useLanguage();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("Selected files:", e.target.files);
     if (e.target.files) {
-      const newImages: ProductImage[] = Array.from(e.target.files).map((file) => ({
-        file,
-        preview: URL.createObjectURL(file),
-        isPrimary: images.length === 0,
-      }));
-      setImages([...images, ...newImages]);
+      console.log("Files count:", e.target.files.length);
+      const newImages: ProductImage[] = Array.from(e.target.files).map(
+        (file) => ({
+          file,
+          preview: URL.createObjectURL(file),
+          isPrimary: images.length === 0,
+        })
+      );
+      setImages((prev) => [...prev, ...newImages]);
     }
   };
 
@@ -50,7 +47,9 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
   };
 
   const handleSetPrimaryImage = (index: number) => {
-    setImages(images.map((img, i) => ({ ...img, isPrimary: i === index })));
+    setImages(
+      images.map((img, i) => ({ ...img, isPrimary: i === index }))
+    );
   };
 
   return (
@@ -84,9 +83,8 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
           {images.map((image, index) => (
             <div
               key={index}
-              className={`relative border rounded-md overflow-hidden ${
-                image.isPrimary ? "ring-2 ring-purple-600" : ""
-              }`}
+              className={`relative border rounded-md overflow-hidden ${image.isPrimary ? "ring-2 ring-purple-600" : ""
+                }`}
             >
               <img
                 src={image.preview}
@@ -98,11 +96,10 @@ const ImageUploadSection: React.FC<ImageUploadSectionProps> = ({
                 <button
                   type="button"
                   onClick={() => handleSetPrimaryImage(index)}
-                  className={`p-1 rounded-full ${
-                    image.isPrimary
+                  className={`p-1 rounded-full ${image.isPrimary
                       ? "bg-purple-600 text-white"
                       : "bg-white/80 text-gray-700 hover:bg-white"
-                  }`}
+                    }`}
                   title={t("Ange som huvudbild")}
                 >
                   <Star className="h-4 w-4" />

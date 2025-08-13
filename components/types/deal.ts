@@ -1,8 +1,13 @@
 export interface ProductImage {
-  url: string;
+  url?: string;              
+  file?: File;             
+  preview: string;           
   alt?: string;
   isPrimary?: boolean;
+  uploading?: boolean;
+  progress?: number;
 }
+
 
 export interface Feature {
   id: string;
@@ -26,7 +31,7 @@ export type Deal = {
   images: ProductImage[];
   imageUrl?: string;
 
-  companyId: string;        
+  companyId: string;
   companyName: string;
 
   category: string;
@@ -47,7 +52,7 @@ export type Deal = {
   inStock?: boolean;
   stockQuantity?: number;
   sku?: string;
-
+  stripeAccountId?: string;
   accountType: 'company' | 'customer';
   role?: string;
 };

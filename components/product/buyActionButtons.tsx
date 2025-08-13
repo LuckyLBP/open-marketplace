@@ -2,7 +2,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useCartContext } from "../cart/cartProvider";
-import { Deal } from "@/hooks/useDeals";
+import { Deal } from "../types/deal";
 import { Heart, Share, ShoppingCart } from "lucide-react";
 
 interface Props {
@@ -26,7 +26,7 @@ const BuyActionButtons = ({ t, handleAddToWishlist, handleShare, deal }: Props) 
 
   const handleBuyNow = async () => {
     try {
-      const res = await fetch("/api/create-checkout-session", {
+      const res = await fetch("/api/payments/create-intent", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -38,7 +38,9 @@ const BuyActionButtons = ({ t, handleAddToWishlist, handleShare, deal }: Props) 
               title: deal.title,
               price: deal.price,
               quantity: 1,
-              companyName: deal.companyName,
+              sellerId: deal.companyId,
+              stripeAccountId: deal.stripeAccountId,
+              feePercentage: deal.feePercentage,
             },
           ],
         }),
@@ -56,7 +58,7 @@ const BuyActionButtons = ({ t, handleAddToWishlist, handleShare, deal }: Props) 
         });
       }
     } catch (error) {
-      console.error("Stripe Checkout Error:", error);
+      console.error("Stripe Payment Intent Error:", error);
       toast({
         title: t("Fel"),
         description: t("Ett tekniskt fel uppstod."),

@@ -63,9 +63,12 @@ export function ProductCard({
       <Link href={`/product/${id}`} className="group relative block">
         <div className="relative w-full bg-gray-100 aspect-[2/1] overflow-hidden">
           <img
-            src={imageUrl || '/placeholder.svg?height=200&width=400'}
+            src={imageUrl}
             alt={title}
             className="w-full h-full object-cover transition-transform group-hover:scale-105"
+            onError={(e) => {
+              e.currentTarget.src = '/placeholder.svg?height=200&width=400';
+            }}
           />
           <div className="absolute top-2 left-2">
             <TimeLeftLabel expiresAt={expiresAt} />

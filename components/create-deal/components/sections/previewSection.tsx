@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useLanguage } from "@/components/language-provider";
 import { TimeLeftLabel } from "@/components/deals/timeLeftLabel";
+import { ProductImage, Feature, Specification } from "@/components/types/deal";
 
 interface PreviewSectionProps {
   title: string;
@@ -20,25 +21,6 @@ interface PreviewSectionProps {
   duration: number;
   companyName: string;
 }
-
-type ProductImage = {
-  file: File;
-  preview: string;
-  isPrimary: boolean;
-  uploading?: boolean;
-  progress?: number;
-};
-
-type Feature = {
-  id: string;
-  text: string;
-};
-
-type Specification = {
-  id: string;
-  key: string;
-  value: string;
-};
 
 const PreviewSection: React.FC<PreviewSectionProps> = ({
   title,
@@ -58,7 +40,6 @@ const PreviewSection: React.FC<PreviewSectionProps> = ({
 }) => {
   const { t } = useLanguage();
   const expiresAt = new Date(Date.now() + duration * 60 * 60 * 1000);
-
 
   return (
     <div className="bg-gray-50 border rounded-lg p-6 mb-8">

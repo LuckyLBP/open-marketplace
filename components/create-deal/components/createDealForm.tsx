@@ -8,6 +8,7 @@ import { useLanguage } from "@/components/language-provider";
 import { db } from "@/lib/firebase";
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
 import BasicInfoSection from "./sections/basicInfoSection";
 import ImageUploadSection from "./sections/imageUploadSection";
 import CategorySection from "./sections/categorySection";
@@ -15,13 +16,11 @@ import FeatureSection from "./sections/featureSection";
 import SpecificationSection from "./sections/specificationSection";
 import InventorySection from "./sections/inventorySection";
 import PreviewSection from "./sections/previewSection";
+
 import { useToast } from "@/hooks/use-toast";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import type { ProductImage, Feature, Specification } from "@/components/types/deal";
 
 const calculateFeePercentage = (duration: number): number => {
   if (duration <= 12) return 3;
@@ -32,25 +31,6 @@ const calculateFeePercentage = (duration: number): number => {
   if (duration <= 96) return 8;
   if (duration <= 120) return 9;
   return 10;
-};
-
-type ProductImage = {
-  file: File;
-  preview: string;
-  isPrimary: boolean;
-  uploading?: boolean;
-  progress?: number;
-};
-
-type Feature = {
-  id: string;
-  text: string;
-};
-
-type Specification = {
-  id: string;
-  key: string;
-  value: string;
 };
 
 type CreateDealFormProps = {
@@ -73,12 +53,8 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
   const [stockQuantity, setStockQuantity] = useState("10");
   const [sku, setSku] = useState("");
 
-  const [features, setFeatures] = useState<Feature[]>([
-    { id: crypto.randomUUID(), text: "" },
-  ]);
-  const [specifications, setSpecifications] = useState<Specification[]>([
-    { id: crypto.randomUUID(), key: "", value: "" },
-  ]);
+  const [features, setFeatures] = useState<Feature[]>([{ id: crypto.randomUUID(), text: "" }]);
+  const [specifications, setSpecifications] = useState<Specification[]>([{ id: crypto.randomUUID(), key: "", value: "" }]);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -129,12 +105,14 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-
+    console.log("clicked");
     try {
+      console.log("Uploading images:", images);
       const storage = getStorage();
       const uploadedImages = await Promise.all(
         images.map(async (img) => {
-          if (img.preview.startsWith("https://")) return { url: img.preview, isPrimary: img.isPrimary };
+          if (img.url?.startsWith("http://")) return { url: img.url, isPrimary: img.isPrimary };
+          if (!img.file) throw new Error("Missing file for image upload");
           const fileRef = ref(storage, `deals/${crypto.randomUUID()}`);
           await uploadBytes(fileRef, img.file);
           const url = await getDownloadURL(fileRef);
@@ -142,7 +120,6 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
         })
       );
 
-      // 🔴 NEW: normalisera accountType från userType
       const normalizedAccountType: 'company' | 'customer' =
         userType === 'customer' ? 'customer' : 'company';
 
@@ -166,8 +143,8 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
         createdAt: serverTimestamp(),
         companyId: user?.uid || null,
         companyName,
-        role: userType,                     // finns kvar om du vill
-        accountType: normalizedAccountType, // ✅ SPARAS HÄR
+        role: userType,
+        accountType: normalizedAccountType,
         isBoosted: false,
         boostType: null,
         boostStart: null,

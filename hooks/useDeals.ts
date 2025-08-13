@@ -50,16 +50,19 @@ export function useDeals(options: UseDealsOptions = {}) {
       const q = query(collection(db, 'deals'), ...constraints);
       const snapshot = await getDocs(q);
 
-      const results: Deal[] = snapshot.docs.map((docSnap) => {
-        const data = docSnap.data();
+      const rawDeals = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<Deal, 'id'>),
+      }));
 
-        // Här sätter vi accountType robust:
+      console.log('📦 Raw deals från Firestore:', rawDeals);
+
+      const results: Deal[] = rawDeals.map((data) => {
         const accountType: 'company' | 'customer' =
-          data.accountType ??
-          (data.role === 'customer' ? 'customer' : 'company');
+          data.accountType ?? (data.role === 'customer' ? 'customer' : 'company');
 
         return {
-          id: docSnap.id,
+          id: data.id,
           title: data.title,
           description: data.description,
           price: data.price,
@@ -85,8 +88,8 @@ export function useDeals(options: UseDealsOptions = {}) {
           inStock: data.inStock ?? true,
           stockQuantity: data.stockQuantity ?? 0,
           sku: data.sku ?? '',
-          accountType,       // <= VIKTIGT
-          role: data.role,   // valfritt, kan hjälpa vid fallback
+          accountType,
+          role: data.role,
         };
       });
 
