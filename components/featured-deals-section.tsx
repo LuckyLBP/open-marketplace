@@ -30,6 +30,8 @@ type Deal = {
   companyName: string;
   duration: number;
   expiresAt: Date;
+  stockQuantity?: number; 
+  inStock?: boolean;     
 };
 
 export function FeaturedDealsSection() {
@@ -51,7 +53,7 @@ export function FeaturedDealsSection() {
           where('status', '==', 'approved'),
           where('expiresAt', '>', now),
           orderBy('expiresAt', 'asc'),
-          limit(20) 
+          limit(20)
         );
 
         const querySnapshot = await getDocs(q);
@@ -60,9 +62,7 @@ export function FeaturedDealsSection() {
         const companyIds = new Set<string>();
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          if (data.companyId) {
-            companyIds.add(data.companyId);
-          }
+          if (data.companyId) companyIds.add(data.companyId);
         });
 
         const companyData: Record<string, string> = {};
@@ -94,15 +94,19 @@ export function FeaturedDealsSection() {
               imageUrl: data.imageUrl,
               category: data.category || 'other',
               companyName: companyData[data.companyId] || 'BudFynd.se',
-              duration:
-                data.duration ||
-                Math.ceil(timeDiff / (1000 * 60 * 60)),
+              duration: data.duration || Math.ceil(timeDiff / (1000 * 60 * 60)),
               expiresAt,
+              stockQuantity: data.stockQuantity,
+              inStock: data.inStock,
             });
           }
         });
 
-        setDeals(fetchedDeals.slice(0, 6));
+        const visible = fetchedDeals.filter(
+          (d) => d.inStock !== false && ((d.stockQuantity ?? 0) > 0)
+        );
+
+        setDeals(visible.slice(0, 6));
       } catch (error) {
         console.error('Error fetching featured deals:', error);
       } finally {
@@ -118,26 +122,6 @@ export function FeaturedDealsSection() {
   return (
     <section className="py-16 bg-gradient-to-r from-red-50 to-orange-50 border-y border-red-100">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center">
-            <div className="flex items-center bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1 rounded-full mr-4 animate-pulse text-sm">
-              <Timer className="h-4 w-4 mr-1" />
-              SNART SLUT
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold mb-1 text-gray-900">Sista chansen!</h2>
-              <p className="text-gray-600 text-sm">Dessa erbjudanden försvinner snart</p>
-            </div>
-          </div>
-          <Link
-            href="/marketplace?sort=time-left"
-            className="text-red-600 hover:text-red-800 flex items-center font-medium text-sm"
-          >
-            Se alla brådskande
-            <ArrowRight className="ml-1 h-4 w-4" />
-          </Link>
-        </div>
-
         <div className="grid sm:grid-cols-6 md:grid-cols-5 gap-4 justify-center">
           {deals.map((deal) => (
             <ProductCard
@@ -152,6 +136,8 @@ export function FeaturedDealsSection() {
               companyName={deal.companyName}
               duration={deal.duration}
               expiresAt={deal.expiresAt}
+              stockQuantity={deal.stockQuantity}
+              inStock={deal.inStock}
               onAddToWishlist={() => { }}
               onBuyNow={() => handleBuyNow(deal.id)}
             />

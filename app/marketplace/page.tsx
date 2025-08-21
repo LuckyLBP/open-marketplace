@@ -11,7 +11,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { FilterSidebar } from '@/components/filter-sidebar';
 import { ProductCard } from '@/components/product-card';
 import { useMobile } from '@/hooks/use-mobile';
-import { useDeals, Deal } from '@/hooks/useDeals';
+import { useDeals} from '@/hooks/useDeals';
+import { Deal } from '@/components/types/deal';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 
@@ -250,6 +251,8 @@ export default function Marketplace() {
                     duration={deal.duration}
                     expiresAt={deal.expiresAt ?? new Date()}
                     onBuyNow={handleBuyNow}
+                    inStock={deal.inStock !== false && (deal.stockQuantity ?? 0) > 0}
+                    stockQuantity={deal.stockQuantity ?? 0}
                   />
                 ))}
               </div>

@@ -1,75 +1,50 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useCartContext } from '@/components/cart/cartProvider';
-import { useToast } from '@/components/ui/use-toast';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { useCartContext } from '@/components/cart/cartProvider';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
 export default function CheckoutSuccessPage() {
-  const { clearCart } = useCartContext();
-  const { toast } = useToast();
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const { clearCart } = useCartContext();
+  const paymentIntentId = searchParams.get('payment_intent');
 
-  const sessionId = searchParams.get('session_id');
+  const [status, setStatus] = useState<'loading' | 'ok' | 'notfound'>('loading');
 
   useEffect(() => {
-    const processOrder = async () => {
-      if (!sessionId) return;
-
+    const run = async () => {
       clearCart();
-
-      try {
-        const sessionRef = doc(db, 'checkoutSessions', sessionId);
-        const sessionSnap = await getDoc(sessionRef);
-
-        if (!sessionSnap.exists()) {
-          console.warn('Kunde inte hitta session i Firestore');
-          return;
-        }
-
-        const { items } = sessionSnap.data();
-
-
-        if (!items || !Array.isArray(items)) {
-          console.warn('Session saknar giltiga produkter');
-          return;
-        }
-        
-
-        await fetch('/api/verify-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items }),
-        });
-
-        toast({
-          title: 'Tack för ditt köp!',
-          description: 'Din beställning är bekräftad. Kvitto skickas via e-post.',
-        });
-      } catch (error) {
-        console.error('Fel vid orderverifiering:', error);
-      }
+      if (!paymentIntentId) { setStatus('notfound'); return; }
+      const ref = doc(db, 'checkoutSessions', paymentIntentId);
+      const snap = await getDoc(ref);
+      setStatus(snap.exists() ? 'ok' : 'ok'); // visa ändå – webhook uppdaterar snart
     };
+    run();
+  }, [paymentIntentId, clearCart]);
 
-    processOrder();
-  }, [clearCart, toast, sessionId]);
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-b-2 border-purple-600 rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center text-center px-4">
-      <h1 className="text-3xl font-bold mb-4">Tack för ditt köp!</h1>
-      <p className="text-muted-foreground mb-6">
-        Din betalning har slutförts. Du kommer få en bekräftelse via e-post.
+      <h1 className="text-3xl font-bold mb-3">Tack för ditt köp!</h1>
+      <p className="text-muted-foreground mb-4">
+        Din betalning har slutförts. Du får en bekräftelse via e-post.
       </p>
-
-      <p className="text-sm text-gray-500 mb-6">
-        Orderreferens: <span className="font-mono">{sessionId}</span>
-      </p>
-
+      {paymentIntentId && (
+        <p className="text-sm text-gray-500 mb-6">
+          Orderreferens: <span className="font-mono">{paymentIntentId}</span>
+        </p>
+      )}
       <Link href="/marketplace">
         <Button className="bg-purple-600 hover:bg-purple-700 text-white">
           Fortsätt handla

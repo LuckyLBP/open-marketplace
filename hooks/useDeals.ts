@@ -55,8 +55,6 @@ export function useDeals(options: UseDealsOptions = {}) {
         ...(docSnap.data() as Omit<Deal, 'id'>),
       }));
 
-      console.log('📦 Raw deals från Firestore:', rawDeals);
-
       const results: Deal[] = rawDeals.map((data) => {
         const accountType: 'company' | 'customer' =
           data.accountType ?? (data.role === 'customer' ? 'customer' : 'company');
@@ -86,15 +84,20 @@ export function useDeals(options: UseDealsOptions = {}) {
           specifications: (data.specifications ?? []) as Specification[],
           features: (data.features ?? []) as Feature[],
           inStock: data.inStock ?? true,
-          stockQuantity: data.stockQuantity ?? 0,
+          stockQuantity: data.stockQuantity,
           sku: data.sku ?? '',
           accountType,
           role: data.role,
         };
       });
 
+      const visible = results.filter((d) => {
+        if (typeof d.stockQuantity === 'number') return d.stockQuantity > 0;
+        return true; 
+      });
+
       if (active) {
-        setDeals(results);
+        setDeals(visible);
         setLoading(false);
       }
     };

@@ -90,7 +90,17 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
   }, [defaultValues]);
 
   const validateForm = () => {
-    if (!title || !companyName || !description || !price || isNaN(Number(price)) || Number(price) <= 0 || images.length === 0 || !category || !subcategory) {
+    if (
+      !title ||
+      !companyName ||
+      !description ||
+      !price ||
+      isNaN(Number(price)) ||
+      Number(price) <= 0 ||
+      images.length === 0 ||
+      !category ||
+      !subcategory
+    ) {
       toast({ title: t("Fel"), description: t("Kontrollera att alla fält är ifyllda korrekt."), variant: "destructive" });
       setActiveTab("basic");
       return false;
@@ -105,58 +115,102 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    console.log("clicked");
+
     try {
-      console.log("Uploading images:", images);
       const storage = getStorage();
-      const uploadedImages = await Promise.all(
+
+      const uploadedOrKept = await Promise.all(
         images.map(async (img) => {
-          if (img.url?.startsWith("http://")) return { url: img.url, isPrimary: img.isPrimary };
-          if (!img.file) throw new Error("Missing file for image upload");
-          const fileRef = ref(storage, `deals/${crypto.randomUUID()}`);
-          await uploadBytes(fileRef, img.file);
-          const url = await getDownloadURL(fileRef);
-          return { url, isPrimary: img.isPrimary };
+          if (img.url && /^https?:\/\//i.test(img.url)) {
+            return {
+              url: img.url,
+              isPrimary: !!img.isPrimary,
+              alt: img.alt?.trim() || undefined,
+            };
+          }
+          if (img.file) {
+            const fileRef = ref(storage, `deals/${crypto.randomUUID()}`);
+            await uploadBytes(fileRef, img.file);
+            const url = await getDownloadURL(fileRef);
+            return {
+              url,
+              isPrimary: !!img.isPrimary,
+              alt: img.alt?.trim() || undefined,
+            };
+          }
+          return null;
         })
       );
+
+      let imagesToSave = (uploadedOrKept.filter(Boolean) as Array<{ url: string; isPrimary: boolean; alt?: string }>)
+        .filter((img, idx, arr) => arr.findIndex((x) => x.url === img.url) === idx);
+
+      if (imagesToSave.length > 0 && !imagesToSave.some((i) => i.isPrimary)) {
+        imagesToSave[0].isPrimary = true;
+      }
+
+      const cleanImage = (img: { url: string; isPrimary: boolean; alt?: string }) => {
+        const out: any = { url: img.url, isPrimary: !!img.isPrimary };
+        if (img.alt && img.alt.length > 0) out.alt = img.alt;
+        return out;
+      };
+      imagesToSave = imagesToSave.map(cleanImage);
+
+      const cleanedFeatures = (features || [])
+        .filter((f) => f?.text && f.text.trim().length > 0)
+        .map((f) => ({ id: f.id, text: f.text.trim() }));
+
+      const cleanedSpecs = (specifications || [])
+        .filter((s) => s?.key && s?.value && s.key.trim().length > 0 && s.value.trim().length > 0)
+        .map((s) => ({ id: s.id, key: s.key.trim(), value: s.value.trim() }));
 
       const normalizedAccountType: 'company' | 'customer' =
         userType === 'customer' ? 'customer' : 'company';
 
-      const dealData = {
-        title,
-        description,
+      const editableFields = {
+        title: title.trim(),
+        description: description.trim(),
         price: parseFloat(price),
         originalPrice: originalPrice ? parseFloat(originalPrice) : null,
-        category,
-        subcategory,
-        inStock,
-        stockQuantity: parseInt(stockQuantity),
-        sku,
-        features: features.filter((f) => f.text),
-        specifications: specifications.filter((s) => s.key && s.value),
-        images: uploadedImages,
-        imageUrl: uploadedImages.find((img) => img.isPrimary)?.url || "",
+        category: category || '',
+        subcategory: subcategory || '',
+        inStock: !!inStock,
+        stockQuantity: parseInt(stockQuantity, 10),
+        sku: sku || '',
+        features: cleanedFeatures,
+        specifications: cleanedSpecs,
+        images: imagesToSave,
+        imageUrl: imagesToSave.find((img) => img.isPrimary)?.url || imagesToSave[0]?.url || '',
         duration,
         feePercentage,
-        expiresAt: null,
-        createdAt: serverTimestamp(),
-        companyId: user?.uid || null,
-        companyName,
-        role: userType,
-        accountType: normalizedAccountType,
-        isBoosted: false,
-        boostType: null,
-        boostStart: null,
-        boostEnd: null,
-        status: "pending",
       };
 
+      const stripUndefined = (obj: Record<string, any>) =>
+        Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
+
       if (isEditing && defaultValues?.id) {
-        await updateDoc(doc(db, "deals", defaultValues.id), dealData);
+        const updatePayload = {
+          ...stripUndefined(editableFields),
+          updatedAt: serverTimestamp(),
+        };
+        await updateDoc(doc(db, "deals", defaultValues.id), updatePayload);
         toast({ title: t("Succé"), description: t("Ändringarna har sparats!") });
       } else {
-        await addDoc(collection(db, "deals"), dealData);
+        const createPayload = {
+          ...stripUndefined(editableFields),
+          expiresAt: null,
+          createdAt: serverTimestamp(),
+          companyId: user?.uid || null,
+          companyName: companyName.trim(),
+          role: userType,
+          accountType: normalizedAccountType,
+          isBoosted: false,
+          boostType: null,
+          boostStart: null,
+          boostEnd: null,
+          status: "pending",
+        };
+        await addDoc(collection(db, "deals"), createPayload);
         toast({ title: t("Succé"), description: t("Erbjudandet har sparats!") });
       }
 

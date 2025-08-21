@@ -22,18 +22,24 @@ export const TimeLeftLabel = ({ expiresAt, className = '' }: Props) => {
 
             if (diff <= 0) {
                 setLabel('Erbjudandet har gått ut');
+                setIsUrgent(false);
                 return;
             }
 
-            const seconds = Math.floor((diff / 1000) % 60);
-            const minutes = Math.floor((diff / 1000 / 60) % 60);
-            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const secondMs = 1000;
+            const minuteMs = 60 * secondMs;
+            const hourMs = 60 * minuteMs;
+            const dayMs = 24 * hourMs;
 
-            if (diff < 48 * 60 * 60 * 1000) {
-                setLabel(`${hours + days * 24}h ${minutes}m ${seconds}s`);
+            // Urgent om < 48 timmar kvar
+            if (diff < 48 * hourMs) {
+                const seconds = Math.floor((diff / secondMs) % 60);
+                const minutes = Math.floor((diff / minuteMs) % 60);
+                const hours = Math.floor((diff / hourMs) % 24) + Math.floor(diff / dayMs) * 24;
+                setLabel(`${hours}h ${minutes}m ${seconds}s`);
                 setIsUrgent(true);
             } else {
+                const days = Math.max(1, Math.ceil(diff / dayMs));
                 setLabel(`${days} dagar kvar`);
                 setIsUrgent(false);
             }

@@ -97,7 +97,7 @@ export function HeroBanner() {
           const now = new Date();
           const diffMs = expiresAt.getTime() - now.getTime();
 
-          if (diffMs > 0) {
+          if (diffMs > 0 && data.stockQuantity > 0) {
             const hours = Math.floor(diffMs / (1000 * 60 * 60));
             const minutes = Math.floor(
               (diffMs % (1000 * 60 * 60)) / (1000 * 60)
@@ -141,7 +141,7 @@ export function HeroBanner() {
             const now = new Date();
             const diffMs = expiresAt.getTime() - now.getTime();
 
-            if (diffMs > 0) {
+            if (diffMs > 0 && data.stockQuantity > 0) {
               const hours = Math.floor(diffMs / (1000 * 60 * 60));
               const minutes = Math.floor(
                 (diffMs % (1000 * 60 * 60)) / (1000 * 60)

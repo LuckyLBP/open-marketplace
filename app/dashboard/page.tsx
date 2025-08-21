@@ -109,17 +109,40 @@ export default function DashboardPage() {
     handleBoostStatus();
   }, [status]);
 
+  // 🔥 Fix: normalisera editData innan vi skickar in det i CreateDealForm
   useEffect(() => {
-    if (editId) {
-      const fetchData = async () => {
-        const docRef = doc(db, 'deals', editId);
-        const snap = await getDoc(docRef);
-        if (snap.exists()) {
-          setEditData({ id: snap.id, ...snap.data() });
-        }
-      };
-      fetchData();
-    }
+    if (!editId) return;
+
+    const fetchData = async () => {
+      const docRef = doc(db, 'deals', editId);
+      const snap = await getDoc(docRef);
+      if (!snap.exists()) return;
+
+      const data = snap.data() as any;
+
+      const normalizedImages = Array.isArray(data.images)
+        ? data.images
+          .map((im: any) => {
+            const preview = (im?.preview || im?.url || '').trim();
+            const url = (im?.url || '').trim();
+            return {
+              ...im,
+              preview: preview || undefined,
+              url: url || undefined,
+            };
+          })
+          .filter((im: any) => im.preview || im.url)
+        : [];
+
+      setEditData({
+        id: snap.id,
+        ...data,
+        images: normalizedImages,
+        imageUrl: (data.imageUrl || '').trim() || undefined,
+      });
+    };
+
+    fetchData();
   }, [editId]);
 
   const expiredDeals = allDeals.filter((d) => new Date(d.expiresAt) < new Date());

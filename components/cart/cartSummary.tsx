@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -9,6 +10,7 @@ import { useCartContext } from './cartProvider';
 import { useToast } from '@/components/ui/use-toast';
 
 const CartSummary = () => {
+  const router = useRouter();
   const { cartItems, getTotal } = useCartContext();
   const { toast } = useToast();
 
@@ -18,13 +20,16 @@ const CartSummary = () => {
 
   const subtotal = getTotal();
   const discountAmount = subtotal * (discount / 100);
-  const shipping = subtotal > 500 ? 0 : 49;
+
+  // ✔ Frakt: 50 kr om delsumma < 500, annars 0
+  const shipping = subtotal < 500 ? 50 : 0;
+
   const total = subtotal - discountAmount + shipping;
 
   const applyPromoCode = () => {
     if (!promoCode.trim()) return;
 
-    if (promoCode.toUpperCase() === 'Test10') {
+    if (promoCode.toUpperCase() === 'TEST10') {
       setDiscount(10);
       setAppliedPromo(promoCode);
       toast({
@@ -42,27 +47,13 @@ const CartSummary = () => {
     setPromoCode('');
   };
 
-  const handleCheckout = async () => {
-    try {
-      console.log('[CART → CHECKOUT] items:', cartItems);
-
-      const res = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: cartItems }),
-      });
-
-      const data = await res.json();
-
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        toast({ title: 'Kunde inte initiera betalning', variant: 'destructive' });
-      }
-    } catch (error) {
-      console.error('Checkout error:', error);
-      toast({ title: 'Något gick fel', variant: 'destructive' });
+  const handleCheckout = () => {
+    if (!cartItems.length) {
+      toast({ title: 'Varukorgen är tom', variant: 'destructive' });
+      return;
     }
+    // Ny route för Payment Intent-flödet
+    router.push('/checkout/intent');
   };
 
   return (
@@ -112,7 +103,7 @@ const CartSummary = () => {
               Använd
             </Button>
           </div>
-          <p className="text-xs text-gray-500 mt-1">Testa "Test10" för 10% rabatt</p>
+          <p className="text-xs text-gray-500 mt-1">Testa "TEST10" för 10% rabatt</p>
         </div>
       ) : (
         <div className="mb-6 bg-green-50 p-3 rounded-md flex justify-between items-center">

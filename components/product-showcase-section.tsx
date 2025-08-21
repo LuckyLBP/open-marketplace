@@ -32,6 +32,9 @@ interface Product {
   companyName: string;
   expiresAt: Date;
   duration: number;
+  // 🔽 nya fält
+  stockQuantity?: number;
+  inStock?: boolean;
 }
 
 interface CategoryData {
@@ -44,42 +47,12 @@ interface CategoryData {
 }
 
 const categoryConfig: Record<string, { displayName: string; icon: string; color: string; bgColor: string }> = {
-  elektronik: {
-    displayName: 'Elektronik',
-    icon: '📱',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-  },
-  mode: {
-    displayName: 'Mode',
-    icon: '👕',
-    color: 'text-pink-600',
-    bgColor: 'bg-pink-50',
-  },
-  hemmet: {
-    displayName: 'Hemmet',
-    icon: '🏠',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
-  },
-  'halsa-skonhet': {
-    displayName: 'Hälsa & Skönhet',
-    icon: '💄',
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-  },
-  'hobby-fritid': {
-    displayName: 'Hobby & Fritid',
-    icon: '🎯',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-  },
-  other: {
-    displayName: 'Annat',
-    icon: '📦',
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-50',
-  },
+  elektronik: { displayName: 'Elektronik', icon: '📱', color: 'text-blue-600', bgColor: 'bg-blue-50' },
+  mode: { displayName: 'Mode', icon: '👕', color: 'text-pink-600', bgColor: 'bg-pink-50' },
+  hemmet: { displayName: 'Hemmet', icon: '🏠', color: 'text-green-600', bgColor: 'bg-green-50' },
+  'halsa-skonhet': { displayName: 'Hälsa & Skönhet', icon: '💄', color: 'text-purple-600', bgColor: 'bg-purple-50' },
+  'hobby-fritid': { displayName: 'Hobby & Fritid', icon: '🎯', color: 'text-orange-600', bgColor: 'bg-orange-50' },
+  other: { displayName: 'Annat', icon: '📦', color: 'text-gray-600', bgColor: 'bg-gray-50' },
 };
 
 export function ProductShowcaseSection() {
@@ -133,6 +106,9 @@ export function ProductShowcaseSection() {
           companyName: companyNames[data.companyId] || 'BudFynd.se',
           expiresAt,
           duration: data.duration || 24,
+          // 🔽 hämta lagerfält
+          stockQuantity: data.stockQuantity,
+          inStock: data.inStock,
         };
 
         products.push(product);
@@ -140,17 +116,24 @@ export function ProductShowcaseSection() {
         categories[product.category].push(product);
       });
 
-      const categoryArray: CategoryData[] = Object.entries(categories).map(([name, products]) => ({
-        name,
-        displayName: categoryConfig[name]?.displayName || name,
-        icon: categoryConfig[name]?.icon || '📦',
-        color: categoryConfig[name]?.color || 'text-gray-600',
-        bgColor: categoryConfig[name]?.bgColor || 'bg-gray-50',
-        products: products.slice(0, 8),
-      }));
+      // 🔽 Filtrera bort slut-i-lager
+      const inStockFilter = (p: Product) =>
+        (p.inStock !== false) && ((p.stockQuantity ?? 0) > 0);
+
+      const categoryArray: CategoryData[] = Object.entries(categories).map(([name, products]) => {
+        const filtered = products.filter(inStockFilter);
+        return {
+          name,
+          displayName: categoryConfig[name]?.displayName || name,
+          icon: categoryConfig[name]?.icon || '📦',
+          color: categoryConfig[name]?.color || 'text-gray-600',
+          bgColor: categoryConfig[name]?.bgColor || 'bg-gray-50',
+          products: filtered.slice(0, 8),
+        };
+      });
 
       setCategories(categoryArray);
-      setAllProducts(products.slice(0, 16));
+      setAllProducts(products.filter(inStockFilter).slice(0, 16));
       setLoading(false);
     };
 

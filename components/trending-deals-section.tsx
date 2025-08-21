@@ -61,9 +61,7 @@ export function TrendingDealsSection() {
 
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          if (data.companyId) {
-            companyIds.add(data.companyId);
-          }
+          if (data.companyId) companyIds.add(data.companyId);
         });
 
         const companyData: Record<string, string> = {};
@@ -94,10 +92,19 @@ export function TrendingDealsSection() {
             companyName: companyData[data.companyId] || 'BudFynd.se',
             category: data.category || 'other',
             expiresAt,
-          });
+            // 🔽 lagerfält:
+            // @ts-ignore – om din Deal-typ saknar dessa i filen, lägg gärna till i interfacet.
+            stockQuantity: data.stockQuantity,
+            inStock: data.inStock,
+          } as any);
         });
 
-        setDeals(fetchedDeals);
+        // 🔽 filtrera bort slut i lager
+        const visible = fetchedDeals.filter(
+          (d: any) => d.inStock !== false && ((d.stockQuantity ?? 0) > 0)
+        );
+
+        setDeals(visible);
       } catch (error) {
         console.error('Error fetching trending deals:', error);
       } finally {
@@ -113,28 +120,9 @@ export function TrendingDealsSection() {
   return (
     <section className="py-16 bg-gradient-to-b from-white to-gray-50">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center">
-            <div className="flex items-center bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full mr-4">
-              <Flame className="h-4 w-4 mr-1" />
-              <span className="text-sm font-medium">HOT</span>
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold mb-1 text-gray-900">Trending erbjudanden</h2>
-              <p className="text-gray-600 text-sm">De mest populära erbjudandena just nu</p>
-            </div>
-          </div>
-          <Link
-            href="/marketplace?sort=newest"
-            className="text-purple-600 hover:text-purple-800 flex items-center font-medium text-sm"
-          >
-            Visa alla erbjudanden
-            <ArrowRight className="ml-1 h-4 w-4" />
-          </Link>
-        </div>
-
+        {/* ...header */}
         <div className="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-5 gap-3">
-          {deals.map((deal) => (
+          {deals.map((deal: any) => (
             <ProductCard
               key={deal.id}
               id={deal.id}
@@ -147,6 +135,8 @@ export function TrendingDealsSection() {
               companyName={deal.companyName}
               duration={deal.duration}
               expiresAt={deal.expiresAt}
+              stockQuantity={deal.stockQuantity}   // 🔽 pass through
+              inStock={deal.inStock}               // 🔽 pass through
               onAddToWishlist={() => { }}
               onBuyNow={handleBuyNow}
             />
@@ -156,3 +146,4 @@ export function TrendingDealsSection() {
     </section>
   );
 }
+

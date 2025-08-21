@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,33 +16,32 @@ interface Props {
 }
 
 const BuyActionButtons = ({ t, handleAddToWishlist, handleShare, deal }: Props) => {
+  const router = useRouter();
   const { addToCart } = useCartContext();
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
   const handleAddToCart = () => {
     addToCart(deal, 1);
     toast({
-      title: t("Produkt tillagt."),
+      title: t("Produkt tillagd."),
       description: `${deal.title} har lagts till i din varukorg.`,
     });
   };
 
   const handleBuyNow = async () => {
+    if (loading) return;
+    setLoading(true);
     try {
       const res = await fetch("/api/payments/create-intent", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: [
             {
               id: deal.id,
-              title: deal.title,
-              price: deal.price,
               quantity: 1,
-              sellerId: deal.companyId,
-              stripeAccountId: deal.stripeAccountId,
+              accountType: deal.accountType === "customer" ? "customer" : "company",
               feePercentage: deal.feePercentage,
             },
           ],
@@ -47,40 +49,63 @@ const BuyActionButtons = ({ t, handleAddToWishlist, handleShare, deal }: Props) 
       });
 
       const data = await res.json();
-
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
+      if (!res.ok) {
         toast({
-          title: t("Fel"),
-          description: t("Kunde inte starta betalningen."),
+          title: t("Kunde inte starta betalningen"),
+          description: data?.error || "Okänt fel.",
           variant: "destructive",
         });
+        return;
       }
+
+      const clientSecret: string | undefined = data?.clientSecret;
+      const paymentIntentId = clientSecret?.split("_secret_")?.[0];
+
+      if (!clientSecret || !paymentIntentId) {
+        toast({
+          title: t("Fel"),
+          description: t("Oväntat svar från betalningstjänsten."),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // ✅ Dirigera till din nya checkout/[id]
+      router.push(`/checkout/${paymentIntentId}`);
     } catch (error) {
-      console.error("Stripe Payment Intent Error:", error);
+      console.error("BuyNow error:", error);
       toast({
         title: t("Fel"),
         description: t("Ett tekniskt fel uppstod."),
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="mt-4 flex flex-col sm:flex-row gap-3">
-      <Button onClick={handleAddToCart} className="bg-purple-600 text-white">
+      <Button type="button" onClick={handleAddToCart} className="bg-purple-600 text-white">
         <ShoppingCart className="w-4 h-4 mr-2" />
         {t("Lägg till i varukorgen")}
       </Button>
-      <Button onClick={handleBuyNow} className="bg-pink-600 text-white">
-        {t("Köp nu")}
+
+      <Button
+        type="button"
+        onClick={handleBuyNow}
+        disabled={loading}
+        className="bg-pink-600 text-white"
+      >
+        {loading ? t("Initierar…") : t("Köp nu")}
       </Button>
-      <Button onClick={handleAddToWishlist} variant="outline">
+
+      <Button type="button" onClick={handleAddToWishlist} variant="outline">
         <Heart className="w-4 h-4 mr-2" />
         {t("Önskelista")}
       </Button>
-      <Button onClick={handleShare} variant="outline">
+
+      <Button type="button" onClick={handleShare} variant="outline">
         <Share className="w-4 h-4 mr-2" />
         {t("Dela")}
       </Button>
