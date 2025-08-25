@@ -116,7 +116,7 @@ export function Navbar() {
         <div className="flex h-14 items-center justify-between">
           <Link href="/" className="flex items-center">
             <Image
-              src="/logo/Clickfynd.svg"
+              src="/logo/Clickfynd-blank.svg"
               alt="Clickfynd"
               width={120}
               height={32}
