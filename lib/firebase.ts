@@ -13,11 +13,6 @@ const requiredEnvVars = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Check if we're in a build environment and env vars are missing
-const isBuildTime =
-  process.env.NODE_ENV === 'production' &&
-  !process.env.VERCEL_ENV &&
-  !process.env.VERCEL_URL;
 const hasRequiredVars = Object.values(requiredEnvVars).every(
   (val) => val && val.length > 0
 );
@@ -27,25 +22,8 @@ let auth: any = null;
 let db: any = null;
 let storage: any = null;
 
-// Only initialize Firebase if we have all required environment variables
-// Skip initialization during build time if env vars are missing
-if (hasRequiredVars && !isBuildTime) {
-  try {
-    const firebaseConfig = requiredEnvVars;
-
-    // Initialize Firebase
-    app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    auth = getAuth(app);
-    db = getFirestore(app);
-    storage = getStorage(app);
-  } catch (error) {
-    console.warn('Firebase initialization failed:', error);
-    // Continue without Firebase for build-time scenarios
-  }
-}
-
-// Lazy initialization function for API routes
-export function initializeFirebase() {
+// Initialize Firebase for client-side or when env vars are available
+function initializeFirebaseApp() {
   if (!app && hasRequiredVars) {
     try {
       const firebaseConfig = requiredEnvVars;
@@ -54,9 +32,28 @@ export function initializeFirebase() {
       db = getFirestore(app);
       storage = getStorage(app);
     } catch (error) {
-      console.error('Firebase lazy initialization failed:', error);
-      throw new Error('Firebase initialization failed');
+      console.error('Firebase initialization failed:', error);
     }
+  }
+}
+
+// Initialize immediately if we have env vars and we're not in Node.js build context
+if (hasRequiredVars) {
+  // Only skip during SSR/build if we explicitly detect build environment
+  const isServerBuild =
+    typeof window === 'undefined' &&
+    process.env.NODE_ENV === 'production' &&
+    !process.env.VERCEL_ENV;
+
+  if (!isServerBuild) {
+    initializeFirebaseApp();
+  }
+}
+
+// Lazy initialization function for API routes and client-side
+export function initializeFirebase() {
+  if (!app && hasRequiredVars) {
+    initializeFirebaseApp();
   }
 
   if (!app || !db) {
@@ -65,6 +62,14 @@ export function initializeFirebase() {
     );
   }
 
+  return { app, auth, db, storage };
+}
+
+// Client-side hook to ensure Firebase is initialized
+export function useFirebaseApp() {
+  if (typeof window !== 'undefined' && !app && hasRequiredVars) {
+    initializeFirebaseApp();
+  }
   return { app, auth, db, storage };
 }
 
