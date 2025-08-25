@@ -89,7 +89,6 @@ export function ProductCard({
             </Badge>
           )}
 
-          {/* 🔽 Slut i lager-badge */}
           {soldOut && (
             <Badge className="absolute bottom-2 left-2 bg-red-600 hover:bg-red-700">
               {t('Slut i lager')}

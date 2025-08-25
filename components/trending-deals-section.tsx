@@ -16,8 +16,11 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { ProductCard } from '@/components/product-card';
 import { useRouter } from 'next/navigation';
+import { ProductCard } from './product-card';
+
+// ⬇️ KORRIGERAD IMPORT (namngiven) från /app/product-card.tsx
+
 
 interface Deal {
   id: string;
@@ -92,14 +95,14 @@ export function TrendingDealsSection() {
             companyName: companyData[data.companyId] || 'BudFynd.se',
             category: data.category || 'other',
             expiresAt,
-            // 🔽 lagerfält:
+            // 🔽 lagerfält (lämnas orörda):
             // @ts-ignore – om din Deal-typ saknar dessa i filen, lägg gärna till i interfacet.
             stockQuantity: data.stockQuantity,
             inStock: data.inStock,
           } as any);
         });
 
-        // 🔽 filtrera bort slut i lager
+        // 🔽 filtrera bort slut i lager (lämnas orört)
         const visible = fetchedDeals.filter(
           (d: any) => d.inStock !== false && ((d.stockQuantity ?? 0) > 0)
         );
@@ -135,8 +138,8 @@ export function TrendingDealsSection() {
               companyName={deal.companyName}
               duration={deal.duration}
               expiresAt={deal.expiresAt}
-              stockQuantity={deal.stockQuantity}   // 🔽 pass through
-              inStock={deal.inStock}               // 🔽 pass through
+              stockQuantity={deal.stockQuantity}   // 🔽 lämnas orört
+              inStock={deal.inStock}               // 🔽 lämnas orört
               onAddToWishlist={() => { }}
               onBuyNow={handleBuyNow}
             />
@@ -146,4 +149,3 @@ export function TrendingDealsSection() {
     </section>
   );
 }
-
