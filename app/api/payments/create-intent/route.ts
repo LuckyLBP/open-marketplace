@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Initialize Stripe
+    // Initialize Stripes
     const stripe = getStripe();
 
     const body = await req.json();
