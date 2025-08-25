@@ -1,7 +1,13 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
+import { getStorage, FirebaseStorage } from 'firebase/storage';
+
+// Check if we're in a build environment
+const isBuildTime =
+  process.env.NEXT_PHASE === 'phase-production-build' ||
+  (process.env.NODE_ENV === 'production' &&
+    !process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
 
 // Validate Firebase configuration
 const requiredEnvVars = [
@@ -30,23 +36,33 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:123456789:web:mockappid',
 };
 
-if (missingEnvVars.length > 0) {
+if (missingEnvVars.length > 0 && !isBuildTime) {
   console.warn(
     `Missing Firebase environment variables: ${missingEnvVars.join(', ')}`
   );
-  // During build time, we'll use mock configuration
-  if (
-    process.env.NODE_ENV === 'production' &&
-    (process.env.NEXT_PHASE === 'phase-production-build' || process.env.VERCEL)
-  ) {
-    console.log('Using mock Firebase config during build/deploy');
+}
+
+// Initialize Firebase only if not in build time
+let firebaseApp: FirebaseApp | null = null;
+let firebaseAuth: Auth | null = null;
+let firebaseDb: Firestore | null = null;
+let firebaseStorage: FirebaseStorage | null = null;
+
+if (!isBuildTime) {
+  try {
+    firebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+    firebaseAuth = getAuth(firebaseApp);
+    firebaseDb = getFirestore(firebaseApp);
+    firebaseStorage = getStorage(firebaseApp);
+  } catch (error) {
+    console.error('Firebase initialization error:', error);
   }
 }
 
-// Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+// Export with safe fallbacks
+export const app = firebaseApp;
+export const auth = firebaseAuth;
+export const storage = firebaseStorage;
 
-export { app, auth, db, storage };
+// Export db with runtime check for backward compatibility
+export const db = firebaseDb;
