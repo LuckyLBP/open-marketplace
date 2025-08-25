@@ -1,9 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { ArrowRight, Timer } from 'lucide-react';
-import { useLanguage } from '@/components/language-provider';
 import {
   collection,
   query,
@@ -16,44 +13,43 @@ import {
   getDoc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { ProductCard } from '@/components/product-card';
 import { useRouter } from 'next/navigation';
+import { ProductCard } from '@/components/product-card';
 
 type Deal = {
   id: string;
   title: string;
   description: string;
   price: number;
-  originalPrice?: number;
+  originalPrice?: number | null;
+  duration: number;
   imageUrl: string;
   category: string;
   companyName: string;
-  duration: number;
   expiresAt: Date;
-  stockQuantity?: number; 
-  inStock?: boolean;     
+  stockQuantity?: number;
+  inStock?: boolean;
 };
 
 export function FeaturedDealsSection() {
-  const { t } = useLanguage();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const handleBuyNow = (id: string) => {
+  const handleProductClick = (id: string) => {
     router.push(`/product/${id}`);
   };
 
   useEffect(() => {
-    const fetchFeaturedDeals = async () => {
+    const fetchLatestProducts = async () => {
       try {
         const now = Timestamp.now();
         const q = query(
           collection(db, 'deals'),
           where('status', '==', 'approved'),
-          where('expiresAt', '>', now),
+          where('expiresAt', '>', now), // Filter out expired products
           orderBy('expiresAt', 'asc'),
-          limit(20)
+          limit(10)
         );
 
         const querySnapshot = await getDocs(q);
@@ -84,17 +80,18 @@ export function FeaturedDealsSection() {
           const expiresAt = data.expiresAt.toDate();
           const timeDiff = expiresAt.getTime() - nowDate.getTime();
 
-          if (timeDiff <= 24 * 60 * 60 * 1000) {
+          // Only include non-expired deals
+          if (timeDiff > 0) {
             fetchedDeals.push({
               id: doc.id,
               title: data.title,
               description: data.description,
               price: data.price,
               originalPrice: data.originalPrice,
+              duration: data.duration || Math.ceil(timeDiff / (1000 * 60 * 60)),
               imageUrl: data.imageUrl,
               category: data.category || 'other',
               companyName: companyData[data.companyId] || 'BudFynd.se',
-              duration: data.duration || Math.ceil(timeDiff / (1000 * 60 * 60)),
               expiresAt,
               stockQuantity: data.stockQuantity,
               inStock: data.inStock,
@@ -103,44 +100,49 @@ export function FeaturedDealsSection() {
         });
 
         const visible = fetchedDeals.filter(
-          (d) => d.inStock !== false && ((d.stockQuantity ?? 0) > 0)
+          (d) => d.inStock !== false && (d.stockQuantity ?? 0) > 0
         );
 
-        setDeals(visible.slice(0, 6));
+        setDeals(visible);
       } catch (error) {
-        console.error('Error fetching featured deals:', error);
+        console.error('Error fetching latest products:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFeaturedDeals();
+    fetchLatestProducts();
   }, []);
 
   if (loading || deals.length === 0) return null;
 
   return (
-    <section className="py-16 bg-gradient-to-r from-red-50 to-orange-50 border-y border-red-100">
+    <section className="py-8 bg-white">
       <div className="container mx-auto px-4">
-        <div className="grid sm:grid-cols-6 md:grid-cols-5 gap-4 justify-center">
+        <h2 className="text-2xl font-semibold mb-6 text-gray-900">
+          Senaste produkter
+        </h2>
+        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
           {deals.map((deal) => (
-            <ProductCard
-              key={deal.id}
-              id={deal.id}
-              title={deal.title}
-              description={deal.description}
-              price={deal.price}
-              originalPrice={deal.originalPrice}
-              imageUrl={deal.imageUrl}
-              category={deal.category}
-              companyName={deal.companyName}
-              duration={deal.duration}
-              expiresAt={deal.expiresAt}
-              stockQuantity={deal.stockQuantity}
-              inStock={deal.inStock}
-              onAddToWishlist={() => { }}
-              onBuyNow={() => handleBuyNow(deal.id)}
-            />
+            <div key={deal.id} className="flex-shrink-0 w-64">
+              <ProductCard
+                id={deal.id}
+                title={deal.title}
+                description={deal.description}
+                price={deal.price}
+                originalPrice={deal.originalPrice || undefined}
+                imageUrl={deal.imageUrl}
+                category={deal.category}
+                companyName={deal.companyName}
+                duration={deal.duration}
+                expiresAt={deal.expiresAt}
+                stockQuantity={deal.stockQuantity}
+                inStock={deal.inStock}
+                onAddToWishlist={() => {}}
+                onBuyNow={() => handleProductClick(deal.id)}
+                compact={true}
+              />
+            </div>
           ))}
         </div>
       </div>

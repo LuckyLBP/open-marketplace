@@ -1,9 +1,9 @@
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
-import { HeroBanner } from '@/components/hero-banner';
 import { CategoriesSection } from '@/components/categories-section';
 import { TrendingDealsSection } from '@/components/trending-deals-section';
 import { FeaturedDealsSection } from '@/components/featured-deals-section';
+import { CategoryProductsSection } from '@/components/category-products-section';
 import { HowItWorksSection } from '@/components/how-it-works-section';
 import { BusinessCTASection } from '@/components/business-cta-section';
 import { ProductShowcaseSection } from '@/components/product-showcase-section';
@@ -11,8 +11,18 @@ import { BannerAd } from '@/components/banner-ad';
 import { ProductSpotlight } from '@/components/product-spotlight';
 import { FloatingAd } from '@/components/floating-ad';
 import { InlineAd } from '@/components/inline-ad';
+import BannerAdPreview from '@/components/boost/adPreview/bannerAdPreview';
 
 export default function Home() {
+  // Main Category Keys
+  /*
+    elektronik
+    mode
+    hemmet
+    halsa-skonhet
+    hobby-fritid
+  */
+
   return (
     <div className="flex min-h-screen flex-col">
       <BannerAd position="top" />
@@ -22,15 +32,15 @@ export default function Home() {
         {/* Single sidebar ad on right side only */}
         <FeaturedDealsSection />
 
-        <HeroBanner />
-
         <CategoriesSection />
 
+        {/* Category sections */}
+        <CategoryProductsSection categoryKey="elektronik" />
+        <CategoryProductsSection categoryKey="mode" />
         <FloatingAd className="lg:fixed lg:bottom-4" />
-
-        <TrendingDealsSection />
-
-        <ProductShowcaseSection />
+        <CategoryProductsSection categoryKey="hemmet" />
+        <CategoryProductsSection categoryKey="halsa-skonhet" />
+        <CategoryProductsSection categoryKey="hobby-fritid" />
 
         <HowItWorksSection />
 

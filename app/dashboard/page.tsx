@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +19,7 @@ import { BoostDialog } from '@/components/boost/boostDialog';
 import { Badge } from '@/components/ui/badge';
 import { usePendingDeals } from '@/hooks/usePendingDeals';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { user, userType, loading } = useFirebase();
   const { t } = useLanguage();
   const router = useRouter();
@@ -122,16 +122,16 @@ export default function DashboardPage() {
 
       const normalizedImages = Array.isArray(data.images)
         ? data.images
-          .map((im: any) => {
-            const preview = (im?.preview || im?.url || '').trim();
-            const url = (im?.url || '').trim();
-            return {
-              ...im,
-              preview: preview || undefined,
-              url: url || undefined,
-            };
-          })
-          .filter((im: any) => im.preview || im.url)
+            .map((im: any) => {
+              const preview = (im?.preview || im?.url || '').trim();
+              const url = (im?.url || '').trim();
+              return {
+                ...im,
+                preview: preview || undefined,
+                url: url || undefined,
+              };
+            })
+            .filter((im: any) => im.preview || im.url)
         : [];
 
       setEditData({
@@ -145,8 +145,12 @@ export default function DashboardPage() {
     fetchData();
   }, [editId]);
 
-  const expiredDeals = allDeals.filter((d) => new Date(d.expiresAt) < new Date());
-  const activeDeals = allDeals.filter((d) => new Date(d.expiresAt) >= new Date());
+  const expiredDeals = allDeals.filter(
+    (d) => new Date(d.expiresAt) < new Date()
+  );
+  const activeDeals = allDeals.filter(
+    (d) => new Date(d.expiresAt) >= new Date()
+  );
 
   useEffect(() => {
     if (!loading && !user) {
@@ -167,21 +171,30 @@ export default function DashboardPage() {
       <div className="px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">{t('Min översikt')}</h1>
 
-        {(userType === 'admin' || userType === 'superadmin') && pendingDeals.length > 0 && (
-          <div className="mb-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md">
-            <p className="font-semibold">
-              {pendingDeals.length} erbjudande{pendingDeals.length > 1 ? 'n' : ''} väntar på godkännande.
-            </p>
-            <p className="text-sm">
-              Gå till <Link href="/dashboard/settings" className="underline text-yellow-700">Inställningar</Link> för att granska och godkänna dem.
-            </p>
-          </div>
-        )}
+        {(userType === 'admin' || userType === 'superadmin') &&
+          pendingDeals.length > 0 && (
+            <div className="mb-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md">
+              <p className="font-semibold">
+                {pendingDeals.length} erbjudande
+                {pendingDeals.length > 1 ? 'n' : ''} väntar på godkännande.
+              </p>
+              <p className="text-sm">
+                Gå till{' '}
+                <Link
+                  href="/dashboard/settings"
+                  className="underline text-yellow-700"
+                >
+                  Inställningar
+                </Link>{' '}
+                för att granska och godkänna dem.
+              </p>
+            </div>
+          )}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <Card>
             <CardHeader>
-              <CardTitle>{t("Aktiva erbjudanden")}</CardTitle>
+              <CardTitle>{t('Aktiva erbjudanden')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">{activeDeals.length}</p>
@@ -190,7 +203,7 @@ export default function DashboardPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>{t("Utgångna erbjudanden")}</CardTitle>
+              <CardTitle>{t('Utgångna erbjudanden')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">{expiredDeals.length}</p>
@@ -199,7 +212,7 @@ export default function DashboardPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>{t("Totalt antal")}</CardTitle>
+              <CardTitle>{t('Totalt antal')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-2xl font-bold">{allDeals.length}</p>
@@ -207,7 +220,10 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <Tabs value={showActive ? 'active' : 'expired'} onValueChange={(val) => setShowActive(val === 'active')}>
+        <Tabs
+          value={showActive ? 'active' : 'expired'}
+          onValueChange={(val) => setShowActive(val === 'active')}
+        >
           <TabsList>
             <TabsTrigger value="active">{t('Aktiva')}</TabsTrigger>
             <TabsTrigger value="expired">{t('Utgångna')}</TabsTrigger>
@@ -222,17 +238,32 @@ export default function DashboardPage() {
                   <TimeLeftLabel expiresAt={new Date(deal.expiresAt)} />
 
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <Link href={`/product/${deal.id}`} className="text-purple-600 hover:underline">
+                    <Link
+                      href={`/product/${deal.id}`}
+                      className="text-purple-600 hover:underline"
+                    >
                       {t('Visa erbjudande')}
                     </Link>
-                    <Button variant="outline" size="sm" onClick={() => router.push(`/dashboard?edit=${deal.id}`)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => router.push(`/dashboard?edit=${deal.id}`)}
+                    >
                       {t('Redigera')}
                     </Button>
 
-                    {deal.boostStart && deal.boostEnd && new Date(deal.boostEnd) > new Date() ? (
-                      <Badge className="bg-green-500 text-white self-center">Boost aktiv</Badge>
+                    {deal.boostStart &&
+                    deal.boostEnd &&
+                    new Date(deal.boostEnd) > new Date() ? (
+                      <Badge className="bg-green-500 text-white self-center">
+                        Boost aktiv
+                      </Badge>
                     ) : (
-                      <BoostDialog dealId={deal.id} dealTitle={deal.title} dealDescription={deal.description} />
+                      <BoostDialog
+                        dealId={deal.id}
+                        dealTitle={deal.title}
+                        dealDescription={deal.description}
+                      />
                     )}
                   </div>
                 </li>
@@ -246,7 +277,10 @@ export default function DashboardPage() {
                 <li key={deal.id} className="border p-4 rounded-md opacity-60">
                   <h2 className="text-xl font-semibold">{deal.title}</h2>
                   <p className="text-muted-foreground">{deal.price} kr</p>
-                  <Link href={`/product/${deal.id}`} className="text-purple-600 hover:underline">
+                  <Link
+                    href={`/product/${deal.id}`}
+                    className="text-purple-600 hover:underline"
+                  >
                     {t('Visa erbjudande')}
                   </Link>
                 </li>
@@ -258,8 +292,13 @@ export default function DashboardPage() {
         {editId && editData && (
           <div className="mt-6 border p-6 rounded-lg bg-muted">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">{t('Redigera erbjudande')}</h2>
-              <Button variant="ghost" onClick={() => router.replace('/dashboard')}>
+              <h2 className="text-xl font-semibold">
+                {t('Redigera erbjudande')}
+              </h2>
+              <Button
+                variant="ghost"
+                onClick={() => router.replace('/dashboard')}
+              >
                 {t('Stäng')}
               </Button>
             </div>
@@ -274,5 +313,13 @@ export default function DashboardPage() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div>Laddar...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }

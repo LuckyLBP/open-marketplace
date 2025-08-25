@@ -97,7 +97,7 @@ export function BusinessCTASection() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm px-8 py-6 text-lg rounded-full"
+                    className="border-white/30 bg-transparent text-white hover:bg-white/10 backdrop-blur-sm px-8 py-6 text-lg rounded-full"
                   >
                     Läs mer
                   </Button>

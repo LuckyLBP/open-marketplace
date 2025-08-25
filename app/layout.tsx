@@ -10,8 +10,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'BudFynd.se',
-  description: 'A marketplace for limited-time deals',
+  title: 'Clickfynd.se',
+  description: 'En marknadsplats',
   generator: 'v0.dev',
 };
 
@@ -27,8 +27,8 @@ export default function RootLayout({
           <LanguageProvider>
             <FirebaseProvider>
               <CartProvider>
-              {children}
-              <Toaster />
+                {children}
+                <Toaster />
               </CartProvider>
             </FirebaseProvider>
           </LanguageProvider>

@@ -4,6 +4,7 @@ import type React from 'react';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -62,7 +63,10 @@ export function Navbar() {
       if (event.key?.startsWith('cart-')) {
         try {
           const updatedCart = event.newValue ? JSON.parse(event.newValue) : [];
-          const count = updatedCart.reduce((sum: number, item: any) => sum + item.quantity, 0);
+          const count = updatedCart.reduce(
+            (sum: number, item: any) => sum + item.quantity,
+            0
+          );
           setLocalCartCount(count);
         } catch (error) {
           console.error('Fel vid synk av cart i Navbar:', error);
@@ -84,7 +88,9 @@ export function Navbar() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      window.location.href = `/marketplace?search=${encodeURIComponent(searchQuery)}`;
+      window.location.href = `/marketplace?search=${encodeURIComponent(
+        searchQuery
+      )}`;
     }
   };
 
@@ -108,7 +114,15 @@ export function Navbar() {
     >
       <div className="container mx-auto px-4">
         <div className="flex h-14 items-center justify-between">
-          <div className="flex items-center"></div>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/logo/Clickfynd-blank.svg"
+              alt="Clickfynd"
+              width={120}
+              height={32}
+              className="h-8 w-auto"
+            />
+          </Link>
 
           <div className="flex items-center gap-1 sm:gap-2">
             <form onSubmit={handleSearch} className="hidden md:flex relative">
@@ -123,7 +137,11 @@ export function Navbar() {
             </form>
 
             <Link href="/varukorg">
-              <Button variant="ghost" size="sm" className="relative h-8 w-8 p-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="relative h-8 w-8 p-0"
+              >
                 <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                 {localCartCount > 0 && (
                   <Badge
@@ -139,7 +157,11 @@ export function Navbar() {
             {!loading && user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 rounded-full"
+                  >
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user.photoURL || ''} />
                       <AvatarFallback className="bg-muted text-purple-600 font-semibold">
@@ -149,13 +171,18 @@ export function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {['company', 'superadmin', 'customer'].includes(userType || '') && (
+                  {['company', 'superadmin', 'customer'].includes(
+                    userType || ''
+                  ) && (
                     <>
                       <DropdownMenuItem asChild>
-                        <Link href="/dashboard" className={cn(
-                          'flex items-center text-muted-foreground hover:text-foreground',
-                          pathname === '/dashboard' && 'text-purple-600'
-                        )}>
+                        <Link
+                          href="/dashboard"
+                          className={cn(
+                            'flex items-center text-muted-foreground hover:text-foreground',
+                            pathname === '/dashboard' && 'text-purple-600'
+                          )}
+                        >
                           <LayoutDashboard className="mr-2 h-4 w-4" />
                           Dashboard
                         </Link>
@@ -165,7 +192,13 @@ export function Navbar() {
                   )}
 
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/settings" className={cn('flex items-center text-muted-foreground hover:text-foreground', pathname === '/inställningar' && 'text-purple-600')}>
+                    <Link
+                      href="/dashboard/settings"
+                      className={cn(
+                        'flex items-center text-muted-foreground hover:text-foreground',
+                        pathname === '/inställningar' && 'text-purple-600'
+                      )}
+                    >
                       <Settings className="mr-2 h-4 w-4" />
                       Inställningar
                     </Link>

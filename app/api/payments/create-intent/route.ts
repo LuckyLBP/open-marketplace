@@ -1,12 +1,24 @@
 // /api/payments/create-intent/route.ts
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, serverTimestamp, collection } from 'firebase/firestore';
+import { initializeFirebase } from '@/lib/firebase';
+import {
+  doc,
+  getDoc,
+  setDoc,
+  serverTimestamp,
+  collection,
+} from 'firebase/firestore';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-04-30.basil',
-});
+// Initialize Stripe only when needed
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is required');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-04-30.basil',
+  });
+}
 
 // Duration → fee %-trappa
 function feePctFromDuration(hours?: number): number {
@@ -23,6 +35,19 @@ function feePctFromDuration(hours?: number): number {
 
 export async function POST(req: Request) {
   try {
+    // Initialize Firebase and get db instance
+    const { db } = initializeFirebase();
+
+    if (!db) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
+    // Initialize Stripe
+    const stripe = getStripe();
+
     const body = await req.json();
     const { items } = body as {
       items: Array<{
@@ -35,7 +60,10 @@ export async function POST(req: Request) {
     };
 
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: 'Varukorgen är tom.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Varukorgen är tom.' },
+        { status: 400 }
+      );
     }
 
     const currency = 'sek';
@@ -63,7 +91,11 @@ export async function POST(req: Request) {
 
       const accountType: 'company' | 'customer' =
         item.accountType === 'customer' ? 'customer' : 'company';
-      const sellerRef = doc(db, accountType === 'company' ? 'companies' : 'customers', sellerId);
+      const sellerRef = doc(
+        db,
+        accountType === 'company' ? 'companies' : 'customers',
+        sellerId
+      );
       const sellerSnap = await getDoc(sellerRef);
       if (!sellerSnap.exists()) continue;
       const { stripeAccountId } = sellerSnap.data() as { stripeAccountId?: string };
@@ -99,7 +131,10 @@ export async function POST(req: Request) {
     }
 
     if (subtotalSEK <= 0) {
-      return NextResponse.json({ error: 'Ogiltigt totalbelopp.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Ogiltigt totalbelopp.' },
+        { status: 400 }
+      );
     }
 
     const shippingFeeSEK = subtotalSEK < 500 ? 50 : 0;
