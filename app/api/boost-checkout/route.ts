@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { db } from '@/lib/firebase';
+import { initializeFirebase } from '@/lib/firebase';
 import {
   doc,
   getDoc,
@@ -13,14 +13,33 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-07-30.basil',
-});
+// Initialize Stripe only when needed
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is required');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-07-30.basil',
+  });
+}
 
 export async function POST(req: Request) {
   const body = await req.json();
 
   try {
+    // Initialize Firebase and get db instance
+    const { db } = initializeFirebase();
+
+    if (!db) {
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
+    }
+
+    // Initialize Stripe
+    const stripe = getStripe();
+
     const { dealId, type, duration, price } = body;
 
     if (!dealId || !type || !duration || !price) {

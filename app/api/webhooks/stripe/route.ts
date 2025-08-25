@@ -1,17 +1,43 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { db } from '@/lib/firebase';
+import { initializeFirebase } from '@/lib/firebase';
 import {
-  doc, getDoc, writeBatch, increment, serverTimestamp, collection, addDoc, updateDoc,
+  doc,
+  getDoc,
+  writeBatch,
+  increment,
+  serverTimestamp,
+  collection,
+  addDoc,
+  updateDoc,
 } from 'firebase/firestore';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-04-30.basil',
-});
+// Initialize Stripe only when needed
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is required');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-07-30.basil',
+  });
+}
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: Request) {
+  // Initialize Firebase and get db instance
+  const { db } = initializeFirebase();
+
+  if (!db) {
+    return NextResponse.json(
+      { error: 'Database connection failed' },
+      { status: 500 }
+    );
+  }
+
+  // Initialize Stripe
+  const stripe = getStripe();
+
   const sig = req.headers.get('stripe-signature');
   const rawBody = await req.text();
 
@@ -35,7 +61,8 @@ export async function POST(req: Request) {
     try {
       const sessionRef = doc(db, 'checkoutSessions', sessionId);
       const sessionSnap = await getDoc(sessionRef);
-      if (!sessionSnap.exists()) throw new Error('Session not found in Firestore');
+      if (!sessionSnap.exists())
+        throw new Error('Session not found in Firestore');
       const s = sessionSnap.data() as any;
 
       const currency = (pi.currency || s.currency || 'sek').toLowerCase();
@@ -55,7 +82,9 @@ export async function POST(req: Request) {
 
       console.log(`\n=== Payment Intent Succeeded ===`);
       console.log(`Session ID: ${sessionId}`);
-      console.log(`Total Amount (SEK): ${Number.isFinite(totalSEK) ? totalSEK : 'N/A'}`);
+      console.log(
+        `Total Amount (SEK): ${Number.isFinite(totalSEK) ? totalSEK : 'N/A'}`
+      );
       console.log(`Sellers in this order:`, sellerIds);
 
       for (const sellerId of sellerIds) {
@@ -67,7 +96,9 @@ export async function POST(req: Request) {
           continue;
         }
 
-        console.log(`→ Sending ${amountSEK} SEK to seller ${sellerId} (${stripeAccountId})`);
+        console.log(
+          `→ Sending ${amountSEK} SEK to seller ${sellerId} (${stripeAccountId})`
+        );
         const idempotencyKey = `transfer_${pi.id}_${sellerId}`;
         const transfer = await stripe.transfers.create(
           {
@@ -82,13 +113,19 @@ export async function POST(req: Request) {
 
         console.log(`✓ Transfer succeeded: ${transfer.id}`);
         transferLogs.push({
-          sellerId, stripeAccountId, amountSEK, transferId: transfer.id, created: Date.now(),
+          sellerId,
+          stripeAccountId,
+          amountSEK,
+          transferId: transfer.id,
+          created: Date.now(),
         });
       }
 
       // Plattformens serviceavgift (brutto) – från sessionen om den finns, annars total - transfers
       const sumTransfersSEK = transferLogs.reduce((a, t) => a + t.amountSEK, 0);
-      const serviceFeeSEK = Number(s.serviceFeeSEK ?? Math.max(0, totalSEK - sumTransfersSEK));
+      const serviceFeeSEK = Number(
+        s.serviceFeeSEK ?? Math.max(0, totalSEK - sumTransfersSEK)
+      );
 
       // Hämta Stripe processing fee från BT (i ören) och räkna fram netto för plattformen
       let stripeFeeSEK = 0;
@@ -98,7 +135,9 @@ export async function POST(req: Request) {
             ? pi.latest_charge
             : (pi.latest_charge as any)?.id;
         if (chargeId) {
-          const charge = await stripe.charges.retrieve(chargeId, { expand: ['balance_transaction'] });
+          const charge = await stripe.charges.retrieve(chargeId, {
+            expand: ['balance_transaction'],
+          });
           const bt: any = charge.balance_transaction;
           if (bt && typeof bt.fee === 'number') {
             stripeFeeSEK = Math.round(bt.fee) / 100; // öre → SEK
@@ -110,7 +149,8 @@ export async function POST(req: Request) {
       const netPlatformSEK = Math.max(0, serviceFeeSEK - stripeFeeSEK);
 
       // Lager-minskning (batch)
-      const items: Array<{ id?: string; dealId?: string; quantity?: number }> = Array.isArray(s.items) ? s.items : [];
+      const items: Array<{ id?: string; dealId?: string; quantity?: number }> =
+        Array.isArray(s.items) ? s.items : [];
       const batch = writeBatch(db);
 
       for (const item of items) {
@@ -135,7 +175,6 @@ export async function POST(req: Request) {
         }
       }
 
-
       // Uppdatera session med allt vi nu vet
       batch.update(sessionRef, {
         status: 'succeeded',
@@ -143,15 +182,17 @@ export async function POST(req: Request) {
         transfers: transferLogs,
         transferGroup,
         paymentIntentId: pi.id,
-        serviceFeeSEK,     // din bruttoavgift (enligt duration)
-        stripeFeeSEK,      // Stripe processing fee (sek)
-        netPlatformSEK,    // din faktiska intäkt = serviceFee - stripeFee
+        serviceFeeSEK, // din bruttoavgift (enligt duration)
+        stripeFeeSEK, // Stripe processing fee (sek)
+        netPlatformSEK, // din faktiska intäkt = serviceFee - stripeFee
         updatedAt: serverTimestamp(),
       });
 
       await batch.commit();
 
-      console.log(`=== All transfers done | Service fee (SEK): ${serviceFeeSEK} | Stripe fee (SEK): ${stripeFeeSEK} | Net platform (SEK): ${netPlatformSEK} ===\n`);
+      console.log(
+        `=== All transfers done | Service fee (SEK): ${serviceFeeSEK} | Stripe fee (SEK): ${stripeFeeSEK} | Net platform (SEK): ${netPlatformSEK} ===\n`
+      );
       return NextResponse.json({ received: true });
     } catch (err) {
       console.error('[webhook] Handler error:', err);
