@@ -81,13 +81,13 @@ export function InlineAd({ className = '', adSlot }: InlineAdProps) {
           const data = docSnapshot.data();
 
           // Fetch company name
-          let companyName = 'BudFynd.se';
+          let companyName = 'ClickFynd.se';
           if (data.companyId) {
             try {
               const companyDocRef = doc(db, 'companies', data.companyId);
               const companyDoc = await getDoc(companyDocRef);
               if (companyDoc.exists()) {
-                companyName = companyDoc.data().companyName || 'BudFynd.se';
+                companyName = companyDoc.data().companyName || 'ClickFynd.se';
               }
             } catch (error) {
               console.error('Error fetching company:', error);

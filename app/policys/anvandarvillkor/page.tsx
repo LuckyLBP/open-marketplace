@@ -16,9 +16,9 @@ export default function UserTermsPage() {
               Användarvillkor
             </h1>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Dessa användarvillkor reglerar din användning av BudFynd.se och de
-              tjänster vi erbjuder. Genom att använda vår plattform accepterar
-              du dessa villkor.
+              Dessa användarvillkor reglerar din användning av ClickFynd.se och
+              de tjänster vi erbjuder. Genom att använda vår plattform
+              accepterar du dessa villkor.
             </p>
           </div>
         </section>
@@ -130,14 +130,15 @@ export default function UserTermsPage() {
                   <section id="introduction" className="mb-10">
                     <h2 className="text-2xl font-bold mb-4">1. Introduktion</h2>
                     <p className="mb-4">
-                      Välkommen till BudFynd.se, en plattform för tidsbegränsade
-                      erbjudanden som drivs av BudFynd.se AB (org.nr.
-                      555555-5555). Genom att använda vår webbplats godkänner du
-                      dessa användarvillkor i sin helhet. Om du inte accepterar
-                      dessa villkor bör du inte använda vår tjänst.
+                      Välkommen till ClickFynd.se, en plattform för
+                      tidsbegränsade erbjudanden som drivs av ClickFynd.se AB
+                      (org.nr. 555555-5555). Genom att använda vår webbplats
+                      godkänner du dessa användarvillkor i sin helhet. Om du
+                      inte accepterar dessa villkor bör du inte använda vår
+                      tjänst.
                     </p>
                     <p>
-                      BudFynd.se är en marknadsplats där företag kan erbjuda
+                      ClickFynd.se är en marknadsplats där företag kan erbjuda
                       tidsbegränsade produkter och tjänster till konsumenter.
                       Vår plattform fungerar som en mellanhand för att
                       underlätta transaktioner mellan köpare och säljare, och vi
@@ -153,8 +154,8 @@ export default function UserTermsPage() {
                     <ul className="list-disc pl-5 space-y-2">
                       <li>
                         <strong>"Plattformen"</strong> avser webbplatsen
-                        BudFynd.se, tillgänglig via www.BudFynd.se.se och alla
-                        tillhörande appar.
+                        ClickFynd.se, tillgänglig via www.ClickFynd.se.se och
+                        alla tillhörande appar.
                       </li>
                       <li>
                         <strong>"Användare"</strong> avser varje person som
@@ -187,8 +188,8 @@ export default function UserTermsPage() {
                       3. Konto och registrering
                     </h2>
                     <p className="mb-4">
-                      För att kunna göra köp på BudFynd.se behöver du skapa ett
-                      konto. Du ansvarar för att tillhandahålla korrekt och
+                      För att kunna göra köp på ClickFynd.se behöver du skapa
+                      ett konto. Du ansvarar för att tillhandahålla korrekt och
                       aktuell information vid registrering och för att hålla
                       dina inloggningsuppgifter konfidentiella.
                     </p>
@@ -201,7 +202,7 @@ export default function UserTermsPage() {
                     <p>
                       Du ansvarar för all aktivitet som sker på ditt konto och
                       får inte överlåta ditt konto till någon annan. Du måste
-                      omedelbart meddela BudFynd.se om eventuell obehörig
+                      omedelbart meddela ClickFynd.se om eventuell obehörig
                       användning av ditt konto eller andra säkerhetsrelaterade
                       problem.
                     </p>
@@ -243,7 +244,7 @@ export default function UserTermsPage() {
                       </li>
                     </ul>
                     <p>
-                      BudFynd.se förbehåller sig rätten att begränsa eller
+                      ClickFynd.se förbehåller sig rätten att begränsa eller
                       avsluta din åtkomst till plattformen om du bryter mot
                       dessa villkor eller av någon annan anledning, efter eget
                       gottfinnande.
@@ -257,10 +258,10 @@ export default function UserTermsPage() {
                       5. Köp och betalningar
                     </h2>
                     <p className="mb-4">
-                      När du genomför ett köp på BudFynd.se ingår du ett avtal
+                      När du genomför ett köp på ClickFynd.se ingår du ett avtal
                       direkt med det företag som säljer produkten, inte med
-                      BudFynd.se. BudFynd.se fungerar endast som förmedlare och
-                      betalningshanterare.
+                      ClickFynd.se. ClickFynd.se fungerar endast som förmedlare
+                      och betalningshanterare.
                     </p>
                     <p className="mb-4">
                       Alla priser som visas på plattformen inkluderar moms och
@@ -289,7 +290,7 @@ export default function UserTermsPage() {
                       6. Tidsbegränsade erbjudanden
                     </h2>
                     <p className="mb-4">
-                      BudFynd.se specialiserar sig på tidsbegränsade
+                      ClickFynd.se specialiserar sig på tidsbegränsade
                       erbjudanden. När tiden för ett erbjudande löper ut är det
                       inte längre tillgängligt för köp, även om produkten inte
                       har sålt slut.
@@ -302,7 +303,7 @@ export default function UserTermsPage() {
                       internetanslutning eller webbläsarinställningar.
                     </p>
                     <p className="mb-4">
-                      BudFynd.se garanterar inte att ett erbjudande kommer att
+                      ClickFynd.se garanterar inte att ett erbjudande kommer att
                       finnas tillgängligt under hela den annonserade perioden,
                       då produkter kan sälja slut före tidens utgång. Vi kan
                       inte heller garantera att samma erbjudande kommer att
@@ -331,13 +332,13 @@ export default function UserTermsPage() {
                     <p className="mb-4">
                       Du får inte publicera innehåll som är olagligt, kränkande,
                       hotfullt, ärekränkande, obscent eller på annat sätt
-                      olämpligt. BudFynd.se förbehåller sig rätten att ta bort
+                      olämpligt. ClickFynd.se förbehåller sig rätten att ta bort
                       recensioner som bryter mot dessa riktlinjer utan
                       föregående meddelande.
                     </p>
                     <p>
                       Genom att publicera recensioner eller annat innehåll på
-                      plattformen ger du BudFynd.se en icke-exklusiv,
+                      plattformen ger du ClickFynd.se en icke-exklusiv,
                       kostnadsfri licens att använda, kopiera, modifiera,
                       distribuera och visa sådant innehåll i samband med våra
                       tjänster.
@@ -351,7 +352,7 @@ export default function UserTermsPage() {
                       8. Särskilda villkor för företag
                     </h2>
                     <p className="mb-4">
-                      Företag som vill sälja på BudFynd.se måste genomgå en
+                      Företag som vill sälja på ClickFynd.se måste genomgå en
                       verifieringsprocess och acceptera våra villkor för
                       säljare. Som företag ansvarar du för att:
                     </p>
@@ -370,13 +371,13 @@ export default function UserTermsPage() {
                         konsumentlagstiftning
                       </li>
                       <li>
-                        Betala överenskomna avgifter till BudFynd.se för
+                        Betala överenskomna avgifter till ClickFynd.se för
                         användning av plattformen
                       </li>
                     </ul>
                     <p>
-                      BudFynd.se tar ut en provision på försäljningen baserat på
-                      varaktigheten för det tidsbegränsade erbjudandet. För
+                      ClickFynd.se tar ut en provision på försäljningen baserat
+                      på varaktigheten för det tidsbegränsade erbjudandet. För
                       12-timmars erbjudanden är provisionen 3%, för 24-timmars
                       erbjudanden 4%, och för 48-timmars erbjudanden 5%.
                     </p>
@@ -389,21 +390,21 @@ export default function UserTermsPage() {
                       9. Ansvarsbegränsningar
                     </h2>
                     <p className="mb-4">
-                      BudFynd.se tillhandahåller plattformen "i befintligt
+                      ClickFynd.se tillhandahåller plattformen "i befintligt
                       skick" och "enligt tillgänglighet" utan några garantier av
                       något slag, vare sig uttryckliga eller underförstådda. Vi
                       garanterar inte att plattformen alltid kommer att vara
                       tillgänglig, felfri eller säker.
                     </p>
                     <p className="mb-4">
-                      BudFynd.se ansvarar inte för kvaliteten, säkerheten eller
-                      lämpligheten av produkter som säljs på plattformen.
+                      ClickFynd.se ansvarar inte för kvaliteten, säkerheten
+                      eller lämpligheten av produkter som säljs på plattformen.
                       Avtalsförhållandet för köp uppstår mellan köparen och
                       säljaren, och konsumentköplagen reglerar detta
                       förhållande.
                     </p>
                     <p className="mb-4">
-                      I den utsträckning som tillåts enligt lag, är BudFynd.se
+                      I den utsträckning som tillåts enligt lag, är ClickFynd.se
                       inte ansvarig för några direkta, indirekta, tillfälliga,
                       särskilda eller följdskador som uppstår från din
                       användning av plattformen eller produkter köpta genom
@@ -425,20 +426,20 @@ export default function UserTermsPage() {
                     <p className="mb-4">
                       All text, grafik, användargränssnitt, visuella gränssnitt,
                       fotografier, varumärken, logotyper, ljud, musik,
-                      illustrationer och datorkod som används på BudFynd.se är
-                      BudFynd.se:s egendom eller licensieras till oss.
+                      illustrationer och datorkod som används på ClickFynd.se är
+                      ClickFynd.se:s egendom eller licensieras till oss.
                     </p>
                     <p className="mb-4">
                       Du får inte kopiera, reproducera, modifiera, distribuera
                       eller på annat sätt använda något innehåll från
                       plattformen utan uttryckligt skriftligt tillstånd från
-                      BudFynd.se eller respektive rättighetsinnehavare.
+                      ClickFynd.se eller respektive rättighetsinnehavare.
                     </p>
                     <p>
                       Företag som lägger upp innehåll på plattformen behåller
-                      sina immateriella rättigheter men ger BudFynd.se rätt att
-                      använda detta innehåll i syfte att driva och marknadsföra
-                      plattformen.
+                      sina immateriella rättigheter men ger ClickFynd.se rätt
+                      att använda detta innehåll i syfte att driva och
+                      marknadsföra plattformen.
                     </p>
                   </section>
 
@@ -454,7 +455,7 @@ export default function UserTermsPage() {
                       kontoborttagning i dina kontoinställningar.
                     </p>
                     <p className="mb-4">
-                      BudFynd.se förbehåller sig rätten att stänga av eller
+                      ClickFynd.se förbehåller sig rätten att stänga av eller
                       avsluta ditt konto om du bryter mot dessa användarvillkor,
                       missbrukar plattformen eller av någon annan anledning
                       enligt vårt rimliga gottfinnande.
@@ -473,11 +474,11 @@ export default function UserTermsPage() {
                       12. Ändringar i villkoren
                     </h2>
                     <p className="mb-4">
-                      BudFynd.se förbehåller sig rätten att när som helst ändra
-                      dessa användarvillkor. Vid väsentliga förändringar kommer
-                      vi att meddela dig genom att publicera ett meddelande på
-                      plattformen eller skicka ett e-postmeddelande innan
-                      ändringarna träder i kraft.
+                      ClickFynd.se förbehåller sig rätten att när som helst
+                      ändra dessa användarvillkor. Vid väsentliga förändringar
+                      kommer vi att meddela dig genom att publicera ett
+                      meddelande på plattformen eller skicka ett
+                      e-postmeddelande innan ändringarna träder i kraft.
                     </p>
                     <p>
                       Din fortsatta användning av plattformen efter att
@@ -515,7 +516,7 @@ export default function UserTermsPage() {
                       användarvillkor, vänligen kontakta oss på:
                     </p>
                     <p className="mb-2">
-                      <strong>BudFynd.se AB</strong>
+                      <strong>ClickFynd.se AB</strong>
                     </p>
                     <p className="mb-2">
                       Sveavägen 123
@@ -525,10 +526,10 @@ export default function UserTermsPage() {
                     <p className="mb-2">
                       E-post:{' '}
                       <a
-                        href="mailto:info@BudFynd.se.se"
+                        href="mailto:info@ClickFynd.se.se"
                         className="text-purple-600 hover:underline"
                       >
-                        info@BudFynd.se.se
+                        info@ClickFynd.se.se
                       </a>
                     </p>
                     <p>Telefon: 010-123 45 67</p>
@@ -537,7 +538,8 @@ export default function UserTermsPage() {
                   <div className="mt-12 text-sm text-gray-500">
                     <p>
                       Dessa användarvillkor är upphovsrättsskyddade och tillhör
-                      BudFynd.se AB. All användning utan tillstånd är förbjuden.
+                      ClickFynd.se AB. All användning utan tillstånd är
+                      förbjuden.
                     </p>
                   </div>
                 </div>

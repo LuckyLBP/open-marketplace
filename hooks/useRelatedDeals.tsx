@@ -50,19 +50,24 @@ export const useRelatedDeals = (
         .filter((deal) => deal.id !== excludeId);
 
       if (subcategory) {
-        const subFiltered = fetched.filter((deal) => deal.subcategory === subcategory);
+        const subFiltered = fetched.filter(
+          (deal) => deal.subcategory === subcategory
+        );
         if (subFiltered.length >= limitCount) {
           fetched = subFiltered;
         }
       }
 
-      const companyIds = Array.from(new Set(fetched.map((deal) => deal.companyId)));
+      const companyIds = Array.from(
+        new Set(fetched.map((deal) => deal.companyId))
+      );
       const companyData: Record<string, string> = {};
       for (const companyId of companyIds) {
         const companyRef = doc(db, 'companies', companyId);
         const companySnap = await getDoc(companyRef);
         if (companySnap.exists()) {
-          companyData[companyId] = companySnap.data().companyName || 'Okänt företag';
+          companyData[companyId] =
+            companySnap.data().companyName || 'Okänt företag';
         }
       }
 
@@ -73,7 +78,7 @@ export const useRelatedDeals = (
 
       const enriched = filtered.map((deal) => ({
         ...deal,
-        companyName: companyData[deal.companyId] || 'BudFynd.se',
+        companyName: companyData[deal.companyId] || 'ClickFynd.se',
       }));
 
       setDeals(enriched.slice(0, limitCount));

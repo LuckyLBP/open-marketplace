@@ -84,7 +84,7 @@ export function HeroBanner() {
             const companyDoc = await getDoc(companyDocRef);
             if (companyDoc.exists()) {
               companyData[companyId] =
-                companyDoc.data().companyName || 'BudFynd.se';
+                companyDoc.data().companyName || 'ClickFynd.se';
             }
           } catch (error) {
             console.error('Error fetching company:', error);
@@ -112,7 +112,7 @@ export function HeroBanner() {
                 price: data.price,
                 originalPrice: data.originalPrice,
                 imageUrl: data.imageUrl,
-                companyName: companyData[data.companyId] || 'BudFynd.se',
+                companyName: companyData[data.companyId] || 'ClickFynd.se',
                 timeLeft: { hours, minutes, seconds },
               });
             }
@@ -154,7 +154,7 @@ export function HeroBanner() {
                 price: data.price,
                 originalPrice: data.originalPrice,
                 imageUrl: data.imageUrl,
-                companyName: companyData[data.companyId] || 'BudFynd.se',
+                companyName: companyData[data.companyId] || 'ClickFynd.se',
                 timeLeft: { hours, minutes, seconds },
               });
             }
@@ -338,10 +338,10 @@ export function HeroBanner() {
                   {featuredDeals.map((deal, index) => {
                     const discount = deal.originalPrice
                       ? Math.round(
-                        ((deal.originalPrice - deal.price) /
-                          deal.originalPrice) *
-                        100
-                      )
+                          ((deal.originalPrice - deal.price) /
+                            deal.originalPrice) *
+                            100
+                        )
                       : 0;
 
                     return (
@@ -392,12 +392,17 @@ export function HeroBanner() {
                                   }).format(deal.price)}
                                 </span>
                               </div>
-                              <TimeLeftLabel expiresAt={new Date(Date.now() + (
-                                deal.timeLeft.hours * 3600000 +
-                                deal.timeLeft.minutes * 60000 +
-                                deal.timeLeft.seconds * 1000
-                              ))} className="text-xs" />
-
+                              <TimeLeftLabel
+                                expiresAt={
+                                  new Date(
+                                    Date.now() +
+                                      (deal.timeLeft.hours * 3600000 +
+                                        deal.timeLeft.minutes * 60000 +
+                                        deal.timeLeft.seconds * 1000)
+                                  )
+                                }
+                                className="text-xs"
+                              />
                             </div>
                           </div>
 
@@ -412,15 +417,17 @@ export function HeroBanner() {
                   })}
 
                   <div
-                    className={`mt-6 p-4 rounded-xl border ${hasUrgentDeals
-                      ? 'bg-gradient-to-r from-red-50 to-orange-50 border-red-200'
-                      : 'bg-gradient-to-r from-purple-100 to-pink-100 border-purple-200'
-                      }`}
+                    className={`mt-6 p-4 rounded-xl border ${
+                      hasUrgentDeals
+                        ? 'bg-gradient-to-r from-red-50 to-orange-50 border-red-200'
+                        : 'bg-gradient-to-r from-purple-100 to-pink-100 border-purple-200'
+                    }`}
                   >
                     <div className="text-center">
                       <p
-                        className={`text-sm mb-3 ${hasUrgentDeals ? 'text-red-700' : 'text-purple-700'
-                          }`}
+                        className={`text-sm mb-3 ${
+                          hasUrgentDeals ? 'text-red-700' : 'text-purple-700'
+                        }`}
                       >
                         {hasUrgentDeals ? (
                           <>

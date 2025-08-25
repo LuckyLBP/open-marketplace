@@ -13,8 +13,12 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'firebasestorage.googleapis.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      },
     ],
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

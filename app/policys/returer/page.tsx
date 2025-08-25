@@ -18,7 +18,7 @@ export default function ReturnerPage() {
             </h1>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
               Här hittar du information om hur du returnerar varor och vilka
-              villkor som gäller för ångerrätt hos BudFynd.se.
+              villkor som gäller för ångerrätt hos ClickFynd.se.
             </p>
           </div>
         </section>
@@ -129,10 +129,10 @@ export default function ReturnerPage() {
                       dag då du tar emot den sista varan.
                     </p>
                     <p>
-                      För att utöva ångerrätten måste du meddela oss (BudFynd.se
-                      AB) ditt beslut att frånträda avtalet genom en tydlig
-                      förklaring, exempelvis via telefon, e-post eller via
-                      returformulär. Du kan använda standardblanketten för
+                      För att utöva ångerrätten måste du meddela oss
+                      (ClickFynd.se AB) ditt beslut att frånträda avtalet genom
+                      en tydlig förklaring, exempelvis via telefon, e-post eller
+                      via returformulär. Du kan använda standardblanketten för
                       utövande av ångerrätt, men det är inte ett krav.
                     </p>
                   </section>
@@ -151,7 +151,7 @@ export default function ReturnerPage() {
                         </strong>
                         <ul className="list-disc pl-5 mt-2">
                           <li>
-                            Logga in på ditt konto på BudFynd.se och gå till
+                            Logga in på ditt konto på ClickFynd.se och gå till
                             "Mina beställningar"
                           </li>
                           <li>
@@ -218,7 +218,7 @@ export default function ReturnerPage() {
                       vanligtvis mellan 49-99 kr.
                     </p>
                     <p className="mb-4">
-                      I följande fall står BudFynd.se för returfraktkostnaden:
+                      I följande fall står ClickFynd.se för returfraktkostnaden:
                     </p>
                     <ul className="list-disc pl-5 space-y-2">
                       <li>Om varan är defekt eller skadad vid leverans</li>
@@ -423,10 +423,10 @@ export default function ReturnerPage() {
                       <li>
                         Via e-post:{' '}
                         <a
-                          href="mailto:reklamation@BudFynd.se.se"
+                          href="mailto:reklamation@ClickFynd.se.se"
                           className="text-purple-600 hover:underline"
                         >
-                          reklamation@BudFynd.se.se
+                          reklamation@ClickFynd.se.se
                         </a>
                       </li>
                       <li>

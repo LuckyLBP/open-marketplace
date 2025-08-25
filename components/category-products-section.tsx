@@ -86,7 +86,7 @@ export function CategoryProductsSection({
             const companyDoc = await getDoc(doc(db, 'companies', companyId));
             if (companyDoc.exists()) {
               companyData[companyId] =
-                companyDoc.data().companyName || 'BudFynd.se';
+                companyDoc.data().companyName || 'ClickFynd.se';
             }
           } catch (error) {
             console.error('Error fetching company:', error);
@@ -110,7 +110,7 @@ export function CategoryProductsSection({
               duration: data.duration || Math.ceil(timeDiff / (1000 * 60 * 60)),
               imageUrl: data.imageUrl,
               category: data.category || categoryKey,
-              companyName: companyData[data.companyId] || 'BudFynd.se',
+              companyName: companyData[data.companyId] || 'ClickFynd.se',
               expiresAt,
               stockQuantity: data.stockQuantity,
               inStock: data.inStock,

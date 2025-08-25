@@ -82,7 +82,7 @@ export function SidebarAd({ position, className = '' }: SidebarAdProps) {
             const companyDoc = await getDoc(companyDocRef);
             if (companyDoc.exists()) {
               companyData[companyId] =
-                companyDoc.data().companyName || 'BudFynd.se';
+                companyDoc.data().companyName || 'ClickFynd.se';
             }
           } catch (error) {
             console.error('Error fetching company:', error);
@@ -110,7 +110,7 @@ export function SidebarAd({ position, className = '' }: SidebarAdProps) {
               originalPrice: data.originalPrice,
               imageUrl: data.imageUrl,
               category: data.category || 'other',
-              companyName: companyData[data.companyId] || 'BudFynd.se',
+              companyName: companyData[data.companyId] || 'ClickFynd.se',
               duration: data.duration,
               timeLeft: { hours, minutes, seconds },
               isSponsored: true,
