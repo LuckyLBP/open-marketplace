@@ -11,6 +11,7 @@ import { BannerAd } from '@/components/banner-ad';
 import { ProductSpotlight } from '@/components/product-spotlight';
 import { FloatingAd } from '@/components/floating-ad';
 import { InlineAd } from '@/components/inline-ad';
+import BannerAdPreview from '@/components/boost/adPreview/bannerAdPreview';
 
 export default function Home() {
   // Main Category Keys
@@ -33,7 +34,7 @@ export default function Home() {
 
         <CategoriesSection />
 
-        {/* Category sections split up */}
+        {/* Category sections */}
         <CategoryProductsSection categoryKey="elektronik" />
         <CategoryProductsSection categoryKey="mode" />
         <FloatingAd className="lg:fixed lg:bottom-4" />
