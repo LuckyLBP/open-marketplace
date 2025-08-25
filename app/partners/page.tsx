@@ -42,7 +42,7 @@ export default function PartnersPage() {
             website: data.website || 'https://example.com',
             description:
               data.description ||
-              'En partner i ClickFynd.se-nätverket som erbjuder exklusiva tidsbegränsade erbjudanden.',
+              'En partner i BudFynd.se-nätverket som erbjuder exklusiva tidsbegränsade erbjudanden.',
             category: data.category || getRandomCategory(),
             featured: Math.random() > 0.7, // Randomly mark some as featured
           };
@@ -102,8 +102,8 @@ export default function PartnersPage() {
               Våra Partners
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Upptäck de ledande företagen som samarbetar med ClickFynd.se för
-              att erbjuda exklusiva tidsbegränsade erbjudanden.
+              Upptäck de ledande företagen som samarbetar med BudFynd.se för att
+              erbjuda exklusiva tidsbegränsade erbjudanden.
             </p>
           </div>
         </section>
@@ -187,7 +187,7 @@ export default function PartnersPage() {
               <h2 className="text-3xl font-bold mb-4">Alla Partners</h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
                 Utforska vårt växande nätverk av partners som erbjuder exklusiva
-                deals genom ClickFynd.se.
+                deals genom BudFynd.se.
               </p>
             </div>
 
@@ -263,8 +263,8 @@ export default function PartnersPage() {
               <h2 className="text-3xl font-bold mb-4">Bli en Partner</h2>
               <p className="text-lg opacity-90 mb-8">
                 Vill du nå nya kunder och öka din försäljning? Anslut dig till
-                ClickFynd.se och erbjud tidsbegränsade erbjudanden till
-                tusentals engagerade kunder.
+                BudFynd.se och erbjud tidsbegränsade erbjudanden till tusentals
+                engagerade kunder.
               </p>
               <div className="grid sm:grid-cols-3 gap-6 mb-10">
                 <div className="bg-white/10 backdrop-blur-sm p-6 rounded-lg">

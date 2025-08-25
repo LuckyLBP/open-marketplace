@@ -16,8 +16,8 @@ export default function SekretesspolicyPage() {
               Sekretesspolicy
             </h1>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Din integritet är viktig för oss. Här beskriver vi hur
-              ClickFynd.se samlar in, använder och skyddar dina personuppgifter.
+              Din integritet är viktig för oss. Här beskriver vi hur BudFynd.se
+              samlar in, använder och skyddar dina personuppgifter.
             </p>
           </div>
         </section>
@@ -117,10 +117,10 @@ export default function SekretesspolicyPage() {
                   <section id="introduction" className="mb-10">
                     <h2 className="text-2xl font-bold mb-4">1. Introduktion</h2>
                     <p className="mb-4">
-                      Denna sekretesspolicy beskriver hur ClickFynd.se AB
-                      (org.nr. 555555-5555) ("vi", "oss" eller "ClickFynd.se")
-                      samlar in, använder, delar och skyddar personuppgifter när
-                      du använder vår webbplats på www.ClickFynd.se.se, våra
+                      Denna sekretesspolicy beskriver hur BudFynd.se AB (org.nr.
+                      555555-5555) ("vi", "oss" eller "BudFynd.se") samlar in,
+                      använder, delar och skyddar personuppgifter när du
+                      använder vår webbplats på www.BudFynd.se.se, våra
                       mobilapplikationer eller andra tjänster (gemensamt kallade
                       "Tjänsterna").
                     </p>
@@ -362,8 +362,8 @@ export default function SekretesspolicyPage() {
                         integritet, säkerhet eller egendom, eller allmänheten.
                       </li>
                       <li>
-                        <strong>Företagsöverlåtelser:</strong> Om ClickFynd.se
-                        är involverat i en fusion, förvärv eller försäljning av
+                        <strong>Företagsöverlåtelser:</strong> Om BudFynd.se är
+                        involverat i en fusion, förvärv eller försäljning av
                         alla eller en del av sina tillgångar, kan dina
                         personuppgifter överföras som en del av den
                         transaktionen. Vi kommer att meddela dig via e-post
@@ -529,7 +529,7 @@ export default function SekretesspolicyPage() {
                     </ul>
                     <p className="mt-4">
                       För att utöva någon av dessa rättigheter, vänligen
-                      kontakta oss via e-post på dataskydd@ClickFynd.se.se eller
+                      kontakta oss via e-post på dataskydd@BudFynd.se.se eller
                       genom vår kontaktsida. Vi kommer att svara på din begäran
                       inom 30 dagar. Om vi behöver mer tid, kommer vi att
                       informera dig om detta och ange orsaken till förseningen.
@@ -579,7 +579,7 @@ export default function SekretesspolicyPage() {
                       10. Internationella överföringar
                     </h2>
                     <p className="mb-4">
-                      ClickFynd.se är baserat i Sverige, och din information kan
+                      BudFynd.se är baserat i Sverige, och din information kan
                       komma att överföras till, lagras och behandlas i Sverige
                       eller andra länder inom EU där våra tjänsteleverantörer är
                       verksamma.
@@ -649,7 +649,7 @@ export default function SekretesspolicyPage() {
                       kontakta oss:
                     </p>
                     <div className="mb-4">
-                      <p className="font-medium">ClickFynd.se AB</p>
+                      <p className="font-medium">BudFynd.se AB</p>
                       <p>
                         Sveavägen 123
                         <br />
@@ -661,10 +661,10 @@ export default function SekretesspolicyPage() {
                       <p>
                         E-post:{' '}
                         <a
-                          href="mailto:dataskydd@ClickFynd.se.se"
+                          href="mailto:dataskydd@BudFynd.se.se"
                           className="text-purple-600 hover:underline"
                         >
-                          dataskydd@ClickFynd.se.se
+                          dataskydd@BudFynd.se.se
                         </a>
                         <br />
                         Telefon: 010-123 45 67
@@ -685,8 +685,7 @@ export default function SekretesspolicyPage() {
                   <div className="mt-12 text-sm text-gray-500">
                     <p>
                       Denna sekretesspolicy är upphovsrättsskyddad och tillhör
-                      ClickFynd.se AB. All användning utan tillstånd är
-                      förbjuden.
+                      BudFynd.se AB. All användning utan tillstånd är förbjuden.
                     </p>
                   </div>
                 </div>

@@ -35,14 +35,14 @@ export default function FAQPage() {
   // Data for platform questions
   const platformQuestions = [
     {
-      question: 'Vad är ClickFynd.se?',
+      question: 'Vad är BudFynd.se?',
       answer:
-        'ClickFynd.se är en marknadsplats för tidsbegränsade erbjudanden. Företag kan lägga upp sina produkter med en specifik tidsgräns (12, 24 eller 48 timmar), och när tiden är ute försvinner erbjudandet. Detta koncept gör att företag kan erbjuda bättre priser på sina produkter under en kort tidsperiod, vilket ger dig som kund möjlighet att göra riktiga fynd.',
+        'BudFynd.se är en marknadsplats för tidsbegränsade erbjudanden. Företag kan lägga upp sina produkter med en specifik tidsgräns (12, 24 eller 48 timmar), och när tiden är ute försvinner erbjudandet. Detta koncept gör att företag kan erbjuda bättre priser på sina produkter under en kort tidsperiod, vilket ger dig som kund möjlighet att göra riktiga fynd.',
     },
     {
       question: 'Hur fungerar tidsbegränsade erbjudanden?',
       answer:
-        'Tidsbegränsade erbjudanden finns endast tillgängliga under en viss period - 12, 24, eller 48 timmar. Ju kortare tidsperiod, desto bättre pris kan företag ofta erbjuda. När du ser ett erbjudande på vår plattform visas alltid en nedräkningstimer som visar exakt hur lång tid som är kvar innan erbjudandet försvinner. När tiden är ute tas produkten bort automatiskt från ClickFynd.se, även om den inte skulle vara slutsåld.',
+        'Tidsbegränsade erbjudanden finns endast tillgängliga under en viss period - 12, 24, eller 48 timmar. Ju kortare tidsperiod, desto bättre pris kan företag ofta erbjuda. När du ser ett erbjudande på vår plattform visas alltid en nedräkningstimer som visar exakt hur lång tid som är kvar innan erbjudandet försvinner. När tiden är ute tas produkten bort automatiskt från BudFynd.se, även om den inte skulle vara slutsåld.',
     },
     {
       question: 'Vad händer om jag missar ett erbjudande?',
@@ -50,14 +50,14 @@ export default function FAQPage() {
         'Om du missar ett tidsbegränsat erbjudande kan du tyvärr inte köpa produkten till det rabatterade priset. Företag kan välja att lägga upp samma produkt igen vid ett senare tillfälle, men vi kan inte garantera att detta kommer att ske eller att priset kommer att vara detsamma. Vi rekommenderar att du använder önskelistan för att markera produkter du är intresserad av och ställer in aviseringar för att få påminnelser innan erbjudanden löper ut.',
     },
     {
-      question: 'Hur skapas ett konto på ClickFynd.se?',
+      question: 'Hur skapas ett konto på BudFynd.se?',
       answer:
         'För att skapa ett konto, klicka på "Registrera" i övre högra hörnet av sidan. Du kan registrera dig med din e-postadress eller genom att använda ditt Google- eller Facebook-konto. Efter registrering behöver du verifiera din e-postadress genom att klicka på länken som skickas till dig. Som registrerad användare kan du följa och bevaka erbjudanden, få tillgång till din orderhistorik och hantera dina personuppgifter.',
     },
     {
-      question: 'Är det gratis att använda ClickFynd.se?',
+      question: 'Är det gratis att använda BudFynd.se?',
       answer:
-        'Ja, det är helt gratis att registrera sig och använda ClickFynd.se som kund. Vi tar inga avgifter för beställningar, och det finns inga dolda kostnader. ClickFynd.se finansieras genom provisioner från säljande företag, som betalar en liten procentandel av försäljningen baserat på längden på deras tidsbegränsade erbjudande.',
+        'Ja, det är helt gratis att registrera sig och använda BudFynd.se som kund. Vi tar inga avgifter för beställningar, och det finns inga dolda kostnader. BudFynd.se finansieras genom provisioner från säljande företag, som betalar en liten procentandel av försäljningen baserat på längden på deras tidsbegränsade erbjudande.',
     },
     {
       question: 'Hur får jag information om nya erbjudanden?',
@@ -101,7 +101,7 @@ export default function FAQPage() {
     {
       question: 'Hur gör jag en beställning?',
       answer:
-        'För att göra en beställning på ClickFynd.se, bläddra bland erbjudandena och klicka på den produkt du är intresserad av. På produktsidan kan du se detaljerad information och välja att klicka på "Köp nu" eller "Lägg i kundvagn". Om du väljer att lägga produkten i kundvagnen kan du fortsätta handla och lägga till fler produkter innan du går till kassan. I kassan anger du leveransadress, väljer leveranssätt och betalningsmetod, och slutför sedan köpet.',
+        'För att göra en beställning på BudFynd.se, bläddra bland erbjudandena och klicka på den produkt du är intresserad av. På produktsidan kan du se detaljerad information och välja att klicka på "Köp nu" eller "Lägg i kundvagn". Om du väljer att lägga produkten i kundvagnen kan du fortsätta handla och lägga till fler produkter innan du går till kassan. I kassan anger du leveransadress, väljer leveranssätt och betalningsmetod, och slutför sedan köpet.',
     },
     {
       question: 'Vilka betalningssätt accepterar ni?',
@@ -109,9 +109,9 @@ export default function FAQPage() {
         'Vi accepterar flera olika betalningssätt för att göra det så enkelt som möjligt för dig att handla: 1) Kreditkort/betalkort (Visa, Mastercard, American Express) 2) Swish 3) Direktbetalning via bank 4) Faktura via Klarna (14 dagars betalningsperiod) 5) Delbetalning via Klarna. Alla betalningar är säkra och krypterade för att skydda dina uppgifter.',
     },
     {
-      question: 'Är det säkert att handla på ClickFynd.se?',
+      question: 'Är det säkert att handla på BudFynd.se?',
       answer:
-        'Ja, det är helt säkert att handla på ClickFynd.se. Vi använder branschledande säkerhetsstandarder för att skydda dina person- och betaluppgifter. All kommunikation mellan din webbläsare och vår server är krypterad med SSL. Vi lagrar aldrig fullständiga kreditkortsuppgifter, och våra betalningslösningar hanteras av certifierade betalningsprocessorer som Stripe och Klarna, vilket innebär att dina kortuppgifter aldrig delas med oss eller säljarna.',
+        'Ja, det är helt säkert att handla på BudFynd.se. Vi använder branschledande säkerhetsstandarder för att skydda dina person- och betaluppgifter. All kommunikation mellan din webbläsare och vår server är krypterad med SSL. Vi lagrar aldrig fullständiga kreditkortsuppgifter, och våra betalningslösningar hanteras av certifierade betalningsprocessorer som Stripe och Klarna, vilket innebär att dina kortuppgifter aldrig delas med oss eller säljarna.',
     },
     {
       question: 'Hur kan jag se status på min beställning?',
@@ -224,9 +224,9 @@ export default function FAQPage() {
   // Data for company questions
   const companyQuestions = [
     {
-      question: 'Hur kan mitt företag sälja på ClickFynd.se?',
+      question: 'Hur kan mitt företag sälja på BudFynd.se?',
       answer:
-        'För att sälja på ClickFynd.se, börja med att registrera ett företagskonto på vår webbplats. Klicka på "Registrera" och välj alternativet "Registrera företag". Du behöver ange företagets organisationsnummer, kontaktuppgifter och ladda upp relevanta dokument som bekräftar att du har rätt att representera företaget. Efter granskning och godkännande (vanligtvis inom 1-2 arbetsdagar) får du tillgång till vårt säljargränssnitt där du kan börja skapa tidsbegränsade erbjudanden.',
+        'För att sälja på BudFynd.se, börja med att registrera ett företagskonto på vår webbplats. Klicka på "Registrera" och välj alternativet "Registrera företag". Du behöver ange företagets organisationsnummer, kontaktuppgifter och ladda upp relevanta dokument som bekräftar att du har rätt att representera företaget. Efter granskning och godkännande (vanligtvis inom 1-2 arbetsdagar) får du tillgång till vårt säljargränssnitt där du kan börja skapa tidsbegränsade erbjudanden.',
     },
     {
       question: 'Vilka avgifter tar ni för försäljning?',
@@ -234,9 +234,9 @@ export default function FAQPage() {
         'Våra avgifter baseras på längden på det tidsbegränsade erbjudandet. För 12-timmars erbjudanden tar vi 3% av försäljningspriset. För 24-timmars erbjudanden är avgiften 4%, och för 48-timmars erbjudanden 5%. Det finns inga fasta månadskostnader eller uppsättningsavgifter. Du betalar endast när du faktiskt säljer något. Utbetalningar sker varannan vecka, minus våra provisioner och eventuella returavgifter.',
     },
     {
-      question: 'Vilka produkter kan jag sälja på ClickFynd.se?',
+      question: 'Vilka produkter kan jag sälja på BudFynd.se?',
       answer:
-        'Du kan sälja de flesta typer av lagliga produkter på ClickFynd.se, inklusive elektronik, mode, heminredning, skönhetsprodukter, hobby- och fritidsartiklar m.m. Det finns dock vissa restriktioner. Vi tillåter inte försäljning av alkohol, tobak, receptbelagda läkemedel, vapen, olagliga produkter, piratkopierade varor, eller produkter som bryter mot upphovsrätt. Vi har också kvalitetskrav och förbehåller oss rätten att neka produkter som inte uppfyller våra standarder.',
+        'Du kan sälja de flesta typer av lagliga produkter på BudFynd.se, inklusive elektronik, mode, heminredning, skönhetsprodukter, hobby- och fritidsartiklar m.m. Det finns dock vissa restriktioner. Vi tillåter inte försäljning av alkohol, tobak, receptbelagda läkemedel, vapen, olagliga produkter, piratkopierade varor, eller produkter som bryter mot upphovsrätt. Vi har också kvalitetskrav och förbehåller oss rätten att neka produkter som inte uppfyller våra standarder.',
     },
     {
       question: 'Hur fungerar leverans och returer för säljare?',
@@ -252,26 +252,26 @@ export default function FAQPage() {
       question:
         'Vilka krav ställer ni på företag som vill sälja på plattformen?',
       answer:
-        'För att sälja på ClickFynd.se måste ditt företag: 1) Vara ett registrerat företag med giltigt organisationsnummer. 2) Ha F-skattebevis och momsregistreringsnummer. 3) Följa svensk lag och EU-förordningar gällande konsumenträtt, garanti och produktsäkerhet. 4) Kunna erbjuda verkliga rabatter på produkterna. 5) Ha kapacitet att hantera leveranser och kundservice. 6) Upprätthålla en kundnöjdhet på minst 4.0 (av 5) för att fortsätta sälja på plattformen. 7) Acceptera vår policy om returhantering och våra användarvillkor.',
+        'För att sälja på BudFynd.se måste ditt företag: 1) Vara ett registrerat företag med giltigt organisationsnummer. 2) Ha F-skattebevis och momsregistreringsnummer. 3) Följa svensk lag och EU-förordningar gällande konsumenträtt, garanti och produktsäkerhet. 4) Kunna erbjuda verkliga rabatter på produkterna. 5) Ha kapacitet att hantera leveranser och kundservice. 6) Upprätthålla en kundnöjdhet på minst 4.0 (av 5) för att fortsätta sälja på plattformen. 7) Acceptera vår policy om returhantering och våra användarvillkor.',
     },
   ];
 
   // Data for technical questions
   const technicalQuestions = [
     {
-      question: 'Vilka webbläsare stöder ClickFynd.se?',
+      question: 'Vilka webbläsare stöder BudFynd.se?',
       answer:
-        'ClickFynd.se är optimerad för och stöder fullt ut följande moderna webbläsare: Google Chrome (version 90 och senare), Mozilla Firefox (version 88 och senare), Apple Safari (version 14 och senare), Microsoft Edge (version 90 och senare) och Opera (version 76 och senare). Vi rekommenderar att du alltid använder den senaste versionen av din webbläsare för bästa upplevelse och säkerhet. Äldre webbläsare eller Internet Explorer stöds inte fullt ut och kan resultera i begränsad funktionalitet.',
+        'BudFynd.se är optimerad för och stöder fullt ut följande moderna webbläsare: Google Chrome (version 90 och senare), Mozilla Firefox (version 88 och senare), Apple Safari (version 14 och senare), Microsoft Edge (version 90 och senare) och Opera (version 76 och senare). Vi rekommenderar att du alltid använder den senaste versionen av din webbläsare för bästa upplevelse och säkerhet. Äldre webbläsare eller Internet Explorer stöds inte fullt ut och kan resultera i begränsad funktionalitet.',
     },
     {
-      question: 'Finns det en mobilapp för ClickFynd.se?',
+      question: 'Finns det en mobilapp för BudFynd.se?',
       answer:
         'Nej, vi har idag inga mobilappar. Detta är under utveckling och vi planerar att lansera en app för både iOS och Android inom kort. Under tiden kan du använda vår mobilanpassade webbplats som erbjuder samma funktioner och användarvänlighet som desktopversionen. Du kan också spara vår webbplats som en genväg på din hemskärm för snabb åtkomst.',
     },
     {
       question: 'Hur använder jag filter för att hitta produkter?',
       answer:
-        'För att använda filter, gå till ClickFynd.se och klicka på "Filter" i vänstra sidofältet (eller klicka på filterikonen högst upp på mobilversionen). Du kan filtrera produkter efter: Kategori, underkategori, prisintervall, varaktighet (12h, 24h, 48h), betyg, och mer. Du kan kombinera flera filter för att precisera dina sökresultat. Dina filterinställningar sparas under din session så att du inte behöver ställa in dem igen om du navigerar tillbaka till ClickFynd.se.',
+        'För att använda filter, gå till BudFynd.se och klicka på "Filter" i vänstra sidofältet (eller klicka på filterikonen högst upp på mobilversionen). Du kan filtrera produkter efter: Kategori, underkategori, prisintervall, varaktighet (12h, 24h, 48h), betyg, och mer. Du kan kombinera flera filter för att precisera dina sökresultat. Dina filterinställningar sparas under din session så att du inte behöver ställa in dem igen om du navigerar tillbaka till BudFynd.se.',
     },
     {
       question: 'Varför visas vissa bilder inte korrekt?',
@@ -281,7 +281,7 @@ export default function FAQPage() {
     {
       question: 'Hur ofta uppdateras erbjudanden på webbplatsen?',
       answer:
-        'Nya erbjudanden läggs upp kontinuerligt under dagen, när säljare skapar och aktiverar dem. Vår startsida uppdateras automatiskt varje timme för att visa de senaste och mest populära erbjudandena. För att se de allra senaste erbjudandena rekommenderar vi att du uppdaterar sidan manuellt eller använder sorteringsalternativet "Nyaste" i ClickFynd.se. Vi har vanligtvis flest nya erbjudanden som aktiveras på morgonen (mellan 08:00-10:00) och kvällen (mellan 18:00-20:00).',
+        'Nya erbjudanden läggs upp kontinuerligt under dagen, när säljare skapar och aktiverar dem. Vår startsida uppdateras automatiskt varje timme för att visa de senaste och mest populära erbjudandena. För att se de allra senaste erbjudandena rekommenderar vi att du uppdaterar sidan manuellt eller använder sorteringsalternativet "Nyaste" i BudFynd.se. Vi har vanligtvis flest nya erbjudanden som aktiveras på morgonen (mellan 08:00-10:00) och kvällen (mellan 18:00-20:00).',
     },
     {
       question:
@@ -311,7 +311,7 @@ export default function FAQPage() {
     {
       question: 'Hur kan jag begära ut eller radera min data?',
       answer:
-        'För att begära ut eller radera dina personuppgifter, logga in på ditt konto och gå till "Integritet och data" under "Inställningar". Där kan du begära en komplett kopia av all data vi har om dig, vilket vi tillhandahåller inom 30 dagar. Om du vill radera din data kan du antingen välja att radera specifika delar eller begära en fullständig radering av ditt konto. Du kan också kontakta vårt dataskyddsombud direkt via dataskydd@ClickFynd.se.se för alla frågor relaterade till dina personuppgifter.',
+        'För att begära ut eller radera dina personuppgifter, logga in på ditt konto och gå till "Integritet och data" under "Inställningar". Där kan du begära en komplett kopia av all data vi har om dig, vilket vi tillhandahåller inom 30 dagar. Om du vill radera din data kan du antingen välja att radera specifika delar eller begära en fullständig radering av ditt konto. Du kan också kontakta vårt dataskyddsombud direkt via dataskydd@BudFynd.se.se för alla frågor relaterade till dina personuppgifter.',
     },
     {
       question: 'Delar ni min information med säljarna?',
@@ -399,7 +399,7 @@ export default function FAQPage() {
               Vanliga frågor
             </h1>
             <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
-              Hitta svar på de vanligaste frågorna om ClickFynd.se. Kan du inte
+              Hitta svar på de vanligaste frågorna om BudFynd.se. Kan du inte
               hitta det du söker? Kontakta oss direkt.
             </p>
 

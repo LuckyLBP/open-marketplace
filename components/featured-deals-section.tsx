@@ -67,7 +67,7 @@ export function FeaturedDealsSection() {
             const companyDoc = await getDoc(doc(db, 'companies', companyId));
             if (companyDoc.exists()) {
               companyData[companyId] =
-                companyDoc.data().companyName || 'ClickFynd.se';
+                companyDoc.data().companyName || 'BudFynd.se';
             }
           } catch (error) {
             console.error('Error fetching company:', error);
@@ -91,7 +91,7 @@ export function FeaturedDealsSection() {
               duration: data.duration || Math.ceil(timeDiff / (1000 * 60 * 60)),
               imageUrl: data.imageUrl,
               category: data.category || 'other',
-              companyName: companyData[data.companyId] || 'ClickFynd.se',
+              companyName: companyData[data.companyId] || 'BudFynd.se',
               expiresAt,
               stockQuantity: data.stockQuantity,
               inStock: data.inStock,
