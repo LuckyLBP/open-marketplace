@@ -160,7 +160,7 @@ function DashboardContent() {
 
   if (loading || !user || dealsLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-60">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     );
@@ -168,58 +168,88 @@ function DashboardContent() {
 
   return (
     <DashboardLayout>
-      <div className="px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">{t('Min översikt')}</h1>
+      <div className="px-4 py-6 lg:py-8">
+        {/* Top action bar */}
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold">
+              {t('Min översikt')}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t('Översikt över dina erbjudanden och statistik')}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard/create-deal">
+              <Button>{t('Skapa nytt erbjudande')}</Button>
+            </Link>
+          </div>
+        </div>
 
         {(userType === 'admin' || userType === 'superadmin') &&
           pendingDeals.length > 0 && (
-            <div className="mb-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-md">
-              <p className="font-semibold">
+            <div className="mb-6 rounded-lg bg-yellow-50 border-l-4 border-yellow-400 p-4">
+              <p className="font-semibold text-yellow-800">
                 {pendingDeals.length} erbjudande
                 {pendingDeals.length > 1 ? 'n' : ''} väntar på godkännande.
               </p>
-              <p className="text-sm">
-                Gå till{' '}
-                <Link
-                  href="/dashboard/settings"
-                  className="underline text-yellow-700"
-                >
-                  Inställningar
+              <p className="text-sm text-yellow-700">
+                {t('Gå till')}{' '}
+                <Link href="/dashboard/settings" className="underline">
+                  {t('Inställningar')}
                 </Link>{' '}
-                för att granska och godkänna dem.
+                {t('för att granska och godkänna dem.')}
               </p>
             </div>
           )}
 
+        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <Card>
             <CardHeader>
-              <CardTitle>{t('Aktiva erbjudanden')}</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                {t('Aktiva erbjudanden')}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{activeDeals.length}</p>
+              <p className="text-3xl font-extrabold">{activeDeals.length}</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                {t('Erbjudanden som fortfarande är synliga')}
+              </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>{t('Utgångna erbjudanden')}</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                {t('Utgångna erbjudanden')}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{expiredDeals.length}</p>
+              <p className="text-3xl font-extrabold">{expiredDeals.length}</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                {t('Erbjudanden som har gått ut')}
+              </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>{t('Totalt antal')}</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                {t('Totalt antal')}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">{allDeals.length}</p>
+              <p className="text-3xl font-extrabold">{allDeals.length}</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                {t('Totalt antal erbjudanden')}
+              </p>
             </CardContent>
           </Card>
         </div>
 
+        {/* Tabs + Lists */}
         <Tabs
           value={showActive ? 'active' : 'expired'}
           onValueChange={(val) => setShowActive(val === 'active')}
@@ -230,19 +260,33 @@ function DashboardContent() {
           </TabsList>
 
           <TabsContent value="active">
-            <ul className="space-y-4 mt-4">
+            <div className="mt-4 grid grid-cols-1 gap-4">
               {activeDeals.map((deal) => (
-                <li key={deal.id} className="border p-4 rounded-md">
-                  <h2 className="text-xl font-semibold">{deal.title}</h2>
-                  <p className="text-muted-foreground">{deal.price} kr</p>
-                  <TimeLeftLabel expiresAt={new Date(deal.expiresAt)} />
+                <div
+                  key={deal.id}
+                  className="flex flex-col md:flex-row items-start md:items-center gap-4 bg-white rounded-lg border p-4 shadow-sm"
+                >
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold truncate">
+                      {deal.title}
+                    </h3>
+                    <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
+                      <span className="font-medium text-gray-800">
+                        {deal.price} kr
+                      </span>
+                      <TimeLeftLabel expiresAt={new Date(deal.expiresAt)} />
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+                      {deal.description}
+                    </p>
+                  </div>
 
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <div className="flex items-center gap-2">
                     <Link
                       href={`/product/${deal.id}`}
-                      className="text-purple-600 hover:underline"
+                      className="text-purple-600 hover:underline text-sm"
                     >
-                      {t('Visa erbjudande')}
+                      {t('Visa')}
                     </Link>
                     <Button
                       variant="outline"
@@ -255,9 +299,7 @@ function DashboardContent() {
                     {deal.boostStart &&
                     deal.boostEnd &&
                     new Date(deal.boostEnd) > new Date() ? (
-                      <Badge className="bg-green-500 text-white self-center">
-                        Boost aktiv
-                      </Badge>
+                      <Badge className="bg-green-500 text-white">Boost</Badge>
                     ) : (
                       <BoostDialog
                         dealId={deal.id}
@@ -266,32 +308,41 @@ function DashboardContent() {
                       />
                     )}
                   </div>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           </TabsContent>
 
           <TabsContent value="expired">
-            <ul className="space-y-4 mt-4">
+            <div className="mt-4 grid grid-cols-1 gap-4">
               {expiredDeals.map((deal) => (
-                <li key={deal.id} className="border p-4 rounded-md opacity-60">
-                  <h2 className="text-xl font-semibold">{deal.title}</h2>
-                  <p className="text-muted-foreground">{deal.price} kr</p>
-                  <Link
-                    href={`/product/${deal.id}`}
-                    className="text-purple-600 hover:underline"
-                  >
-                    {t('Visa erbjudande')}
-                  </Link>
-                </li>
+                <div
+                  key={deal.id}
+                  className="flex items-center justify-between gap-4 bg-white rounded-lg border p-4 opacity-80"
+                >
+                  <div>
+                    <h3 className="text-lg font-semibold">{deal.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {deal.price} kr
+                    </p>
+                  </div>
+                  <div>
+                    <Link
+                      href={`/product/${deal.id}`}
+                      className="text-purple-600 hover:underline text-sm"
+                    >
+                      {t('Visa')}
+                    </Link>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           </TabsContent>
         </Tabs>
 
         {editId && editData && (
-          <div className="mt-6 border p-6 rounded-lg bg-muted">
-            <div className="flex justify-between items-center mb-4">
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">
                 {t('Redigera erbjudande')}
               </h2>
@@ -302,15 +353,11 @@ function DashboardContent() {
                 {t('Stäng')}
               </Button>
             </div>
-            <CreateDealForm defaultValues={editData} isEditing />
+            <div className="rounded-lg bg-white border p-6 shadow-sm">
+              <CreateDealForm defaultValues={editData} isEditing />
+            </div>
           </div>
         )}
-
-        <div className="mt-8 text-center">
-          <Link href="/dashboard/create-deal">
-            <Button>{t('Skapa nytt erbjudande')}</Button>
-          </Link>
-        </div>
       </div>
     </DashboardLayout>
   );
