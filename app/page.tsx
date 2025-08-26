@@ -12,6 +12,7 @@ import { ProductSpotlight } from '@/components/product-spotlight';
 import { FloatingAd } from '@/components/floating-ad';
 import { InlineAd } from '@/components/inline-ad';
 import BannerAdPreview from '@/components/boost/adPreview/bannerAdPreview';
+import { RoundedBanner } from '@/components/rounded-banner';
 
 export default function Home() {
   // Main Category Keys
@@ -29,6 +30,7 @@ export default function Home() {
       <Navbar />
 
       <main className="flex-1 relative">
+        <RoundedBanner />
         {/* Single sidebar ad on right side only */}
         <FeaturedDealsSection />
 
