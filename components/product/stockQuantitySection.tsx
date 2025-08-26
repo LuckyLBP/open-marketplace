@@ -1,14 +1,22 @@
-const StockQuantitySection = ({ inStock, stockQuantity, t }: { inStock?: boolean; stockQuantity?: number; t: any }) => {
+const StockQuantitySection = ({
+  inStock,
+  stockQuantity,
+  t,
+}: {
+  inStock?: boolean;
+  stockQuantity?: number;
+  t: any;
+}) => {
   return (
-    <div className="flex items-center mb-4">
+    <div className="mb-4">
       {inStock ? (
-        <div className="flex items-center text-green-600">
-          <span className="font-medium">
-            {t('I Lager ')} ({stockQuantity ?? 0} {t('Kvar')})
-          </span>
+        <div className="inline-flex items-center rounded-full bg-green-50 text-green-800 px-3 py-1 text-sm font-medium">
+          {t('I lager')} • {stockQuantity ?? 0} {t('kvar')}
         </div>
       ) : (
-        <div className="text-red-600 font-medium">{t('Out of Stock')}</div>
+        <div className="inline-flex items-center rounded-full bg-red-50 text-red-800 px-3 py-1 text-sm font-medium">
+          {t('Slut i lager')}
+        </div>
       )}
     </div>
   );

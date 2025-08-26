@@ -6,7 +6,7 @@ import { Loader, Home } from 'lucide-react';
 import ProductPageLayout from '@/components/product/productPageLayout';
 import ImageGallerySection from '@/components/product/imageGallerySection';
 import ProductInfoSection from '@/components/product/productInfoSection';
-import StockQuantitySection from '@/components/product/stockQuantitySection';
+// StockQuantitySection moved inside ProductInfoSection; import removed
 import BuyActionButtons from '@/components/product/buyActionButtons';
 import ProductDetailsTabs from '@/components/product/productDetailsTab';
 import RelatedProductsSection from '@/components/product/relatedProductSection';
@@ -23,14 +23,18 @@ const ProductPage = () => {
 
   const deal = deals.find((d) => d.id === id);
 
-  const isOnSale = !!deal?.originalPrice && !!deal?.price && deal.originalPrice > deal.price;
+  const isOnSale =
+    !!deal?.originalPrice && !!deal?.price && deal.originalPrice > deal.price;
   const discountPercentage =
     isOnSale && deal?.originalPrice
-      ? Math.round(((deal.originalPrice - deal.price) / deal.originalPrice) * 100)
+      ? Math.round(
+          ((deal.originalPrice - deal.price) / deal.originalPrice) * 100
+        )
       : 0;
 
   // 🔽 Lager/utgångslogik
-  const soldOut = !!deal && ((deal.inStock === false) || ((deal.stockQuantity ?? 0) <= 0));
+  const soldOut =
+    !!deal && (deal.inStock === false || (deal.stockQuantity ?? 0) <= 0);
   const isExpired =
     !!deal?.expiresAt && new Date(deal.expiresAt as any).getTime() < Date.now();
 
@@ -53,93 +57,85 @@ const ProductPage = () => {
 
   return (
     <ProductPageLayout>
-      <div className="container mx-auto px-4 mt-4">
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/')}
-          className="flex items-center text-sm text-muted-foreground hover:text-purple-600"
-        >
-          <Home className="h-4 w-4 mr-2" />
-          {t('Tillbaka till startsidan')}
-        </Button>
-      </div>
-
-      <div className="grid gap-8 md:grid-cols-2 px-4">
-        <div className="relative">
-          {/* Slut i lager-badge ovanpå galleriet vid behov */}
-          {soldOut && (
-            <Badge className="absolute z-10 top-2 left-2 bg-red-600 hover:bg-red-700">
-              {t('Slut i lager')}
-            </Badge>
-          )}
-          <ImageGallerySection images={deal.images} title={deal.title} />
+      <div className="max-w-6xl mx-auto px-4 mt-6">
+        <div className="flex items-center mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => router.push('/')}
+            className="flex items-center text-sm text-muted-foreground hover:text-purple-600"
+          >
+            <Home className="h-4 w-4 mr-2" />
+            {t('Tillbaka till startsidan')}
+          </Button>
         </div>
 
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            {isExpired && (
-              <Badge className="bg-gray-500 hover:bg-gray-600">{t('Utgånget')}</Badge>
+        <div className="grid gap-8 md:grid-cols-2">
+          <div className="relative">
+            {/* Gallery */}
+            {soldOut && (
+              <div className="absolute z-10 top-3 left-3">
+                <Badge className="bg-red-600 text-white">
+                  {t('Slut i lager')}
+                </Badge>
+              </div>
             )}
-            {soldOut && !isExpired && (
-              <Badge className="bg-red-600 hover:bg-red-700">{t('Slut i lager')}</Badge>
-            )}
+            <ImageGallerySection images={deal.images} title={deal.title} />
           </div>
 
-          <ProductInfoSection
-            title={deal.title}
-            category={deal.category}
-            companyName={deal.companyName}
-            duration={deal.duration}
-            price={deal.price}
-            originalPrice={deal.originalPrice ?? undefined}
-            isOnSale={isOnSale}
-            discountPercentage={discountPercentage}
-            t={t}
-          />
+          <div className="md:sticky md:top-20">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                {deal.expiresAt && <TimeLeftLabel expiresAt={deal.expiresAt} />}
+                {isExpired && (
+                  <Badge className="bg-gray-500">{t('Utgånget')}</Badge>
+                )}
+                {!isExpired && soldOut && (
+                  <Badge className="bg-red-600 text-white">
+                    {t('Slut i lager')}
+                  </Badge>
+                )}
+              </div>
 
-          {deal.expiresAt && <TimeLeftLabel expiresAt={deal.expiresAt} />}
+              <ProductInfoSection
+                title={deal.title}
+                category={deal.category}
+                companyName={deal.companyName}
+                duration={deal.duration}
+                price={deal.price}
+                originalPrice={deal.originalPrice ?? undefined}
+                isOnSale={isOnSale}
+                discountPercentage={discountPercentage}
+                inStock={deal.inStock}
+                stockQuantity={deal.stockQuantity}
+                t={t}
+              />
 
-          <StockQuantitySection
-            inStock={deal.inStock}
-            stockQuantity={deal.stockQuantity}
-            t={t}
-          />
-
-          {/* 🔽 Köpsektion: disable om slut/utgånget */}
-          {soldOut || isExpired ? (
-            <div className="mt-4">
-              <Button
-                className="w-full h-11"
-                disabled
-                variant="secondary"
-                title={soldOut ? t('Slut i lager') : t('Erbjudandet har gått ut')}
-              >
-                {soldOut ? t('Slut i lager') : t('Erbjudandet har gått ut')}
-              </Button>
+              {soldOut || isExpired ? (
+                <div className="mt-2">
+                  <Button className="w-full h-11" disabled variant="secondary">
+                    {soldOut ? t('Slut i lager') : t('Erbjudandet har gått ut')}
+                  </Button>
+                </div>
+              ) : (
+                <BuyActionButtons t={t} handleShare={handleShare} deal={deal} />
+              )}
             </div>
-          ) : (
-            <BuyActionButtons
-              t={t}
-              handleAddToWishlist={handleAddToWishlist}
-              handleShare={handleShare}
-              deal={deal}
-            />
-          )}
+          </div>
         </div>
+
+        <ProductDetailsTabs
+          description={deal.description}
+          specifications={deal.specifications}
+          t={t}
+        />
+
+        <RelatedProductsSection
+          t={t}
+          category={deal.category}
+          subcategory={deal.subcategory}
+          excludeId={deal.id}
+        />
       </div>
-
-      <ProductDetailsTabs
-        description={deal.description}
-        specifications={deal.specifications}
-        t={t}
-      />
-
-      <RelatedProductsSection
-        t={t}
-        category={deal.category}
-        subcategory={deal.subcategory}
-        excludeId={deal.id}
-      />
     </ProductPageLayout>
   );
 };
