@@ -73,13 +73,13 @@ export function CategoryProductsSection({
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -320, behavior: 'smooth' });
+      scrollContainerRef.current.scrollBy({ left: -280, behavior: 'smooth' });
     }
   };
 
   const scrollRight = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+      scrollContainerRef.current.scrollBy({ left: 280, behavior: 'smooth' });
     }
   };
 
@@ -183,11 +183,11 @@ export function CategoryProductsSection({
         <div className="container mx-auto px-4">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-300 rounded w-48 mb-6"></div>
-            <div className="flex gap-4 overflow-hidden">
+            <div className="flex gap-3 overflow-hidden">
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="flex-shrink-0 w-64 h-96 bg-gray-300 rounded-lg"
+                  className="flex-shrink-0 w-56 h-96 bg-gray-300 rounded-lg"
                 ></div>
               ))}
             </div>
@@ -242,11 +242,11 @@ export function CategoryProductsSection({
 
             <div
               ref={scrollContainerRef}
-              className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide"
+              className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide"
               onScroll={checkScrollButtons}
             >
               {deals.map((deal) => (
-                <div key={deal.id} className="flex-shrink-0 w-64">
+                <div key={deal.id} className="flex-shrink-0 w-56">
                   <ProductCard
                     id={deal.id}
                     title={deal.title}

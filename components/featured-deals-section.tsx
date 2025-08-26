@@ -55,13 +55,13 @@ export function FeaturedDealsSection() {
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -320, behavior: 'smooth' });
+      scrollContainerRef.current.scrollBy({ left: -280, behavior: 'smooth' });
     }
   };
 
   const scrollRight = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+      scrollContainerRef.current.scrollBy({ left: 280, behavior: 'smooth' });
     }
   };
 
@@ -191,11 +191,11 @@ export function FeaturedDealsSection() {
 
           <div
             ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide"
+            className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide"
             onScroll={checkScrollButtons}
           >
             {deals.map((deal) => (
-              <div key={deal.id} className="flex-shrink-0 w-64">
+              <div key={deal.id} className="flex-shrink-0 w-56">
                 <ProductCard
                   id={deal.id}
                   title={deal.title}
