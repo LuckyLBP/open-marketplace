@@ -16,7 +16,7 @@ function getStripe() {
     throw new Error('STRIPE_SECRET_KEY is required');
   }
   return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-04-30.basil',
+    apiVersion: '2025-07-30.basil',
   });
 }
 
@@ -71,7 +71,10 @@ export async function POST(req: Request) {
     let subtotalSEK = 0;
     let serviceFeeSEK = 0;
 
-    const sellerMap: Record<string, { amountSEK: number; stripeAccountId: string }> = {};
+    const sellerMap: Record<
+      string,
+      { amountSEK: number; stripeAccountId: string }
+    > = {};
     const enrichedItems: Array<{
       dealId: string;
       sellerId: string;
@@ -98,7 +101,9 @@ export async function POST(req: Request) {
       );
       const sellerSnap = await getDoc(sellerRef);
       if (!sellerSnap.exists()) continue;
-      const { stripeAccountId } = sellerSnap.data() as { stripeAccountId?: string };
+      const { stripeAccountId } = sellerSnap.data() as {
+        stripeAccountId?: string;
+      };
       if (!stripeAccountId) continue;
 
       const qty = Math.max(1, Number(item.quantity || 1));
@@ -161,7 +166,10 @@ export async function POST(req: Request) {
     });
 
     // --- 8) Spara checkoutSession i Firestore ---
-    const sessionRef = doc(collection(db, 'checkoutSessions'), paymentIntent.id);
+    const sessionRef = doc(
+      collection(db, 'checkoutSessions'),
+      paymentIntent.id
+    );
     await setDoc(sessionRef, {
       createdAt: serverTimestamp(),
       sessionId: paymentIntent.id,
