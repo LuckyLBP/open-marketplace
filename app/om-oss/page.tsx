@@ -27,7 +27,7 @@ export default function AboutPage() {
         <section className="py-20 bg-gradient-to-b from-purple-50 to-white">
           <div className="container mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
-              Om BudFynd.se
+              Om ClickFynd.se
             </h1>
             <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
               Vi gör det enkelt att hitta fantastiska erbjudanden med begränsad
@@ -44,7 +44,7 @@ export default function AboutPage() {
                 Vårt uppdrag
               </h2>
               <p className="text-gray-600 mb-6 text-lg">
-                BudFynd.se grundades 2025 med en enkel vision: att skapa en
+                ClickFynd.se grundades 2025 med en enkel vision: att skapa en
                 plattform där företag kan möta kunder genom spännande
                 tidsbegränsade erbjudanden.
               </p>
@@ -128,7 +128,7 @@ export default function AboutPage() {
                   <p className="text-gray-600">
                     Vi tror på fullständig öppenhet i alla delar av vår
                     verksamhet. Från prissättning till hur våra erbjudanden
-                    fungerar - vi vill att du ska förstå exakt hur BudFynd.se
+                    fungerar - vi vill att du ska förstå exakt hur ClickFynd.se
                     fungerar.
                   </p>
                 </div>
@@ -199,7 +199,7 @@ export default function AboutPage() {
                   <AccordionContent className="text-gray-600">
                     Företag publicerar erbjudanden på vår plattform med en
                     specifik tidsbegränsning (12, 24 eller 48 timmar). När tiden
-                    går ut, försvinner erbjudandet från BudFynd.se. Kortare
+                    går ut, försvinner erbjudandet från ClickFynd.se. Kortare
                     tidsperioder har ofta bättre priser, eftersom företag kan
                     erbjuda större rabatter när de säljer en begränsad mängd
                     produkter snabbt.
@@ -211,7 +211,7 @@ export default function AboutPage() {
                   </AccordionTrigger>
                   <AccordionContent className="text-gray-600">
                     Vi gör en grundlig granskning av alla företag som ansluter
-                    sig till BudFynd.se. Vi kontrollerar deras
+                    sig till ClickFynd.se. Vi kontrollerar deras
                     företagsinformation, kundrecensioner och produktkvalitet
                     innan de får börja sälja på vår plattform. Dessutom kan du
                     se kundbetyg för varje företag direkt på deras produktsidor.
@@ -243,7 +243,7 @@ export default function AboutPage() {
                 </AccordionItem>
                 <AccordionItem value="item-5">
                   <AccordionTrigger className="text-lg font-medium">
-                    Hur kan mitt företag sälja på BudFynd.se?
+                    Hur kan mitt företag sälja på ClickFynd.se?
                   </AccordionTrigger>
                   <AccordionContent className="text-gray-600">
                     Om du vill sälja på vår plattform, börja med att registrera

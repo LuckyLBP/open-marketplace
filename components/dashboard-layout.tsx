@@ -68,7 +68,7 @@ export default function DashboardLayout({
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="text-lg font-semibold text-purple-600">BudFynd</div>
+          <div className="text-lg font-semibold text-purple-600">ClickFynd</div>
         </div>
         <div className="flex items-center gap-2">
           <img
@@ -88,7 +88,7 @@ export default function DashboardLayout({
           />
           <aside className="relative z-40 w-72 bg-white border-r p-4">
             <div className="flex items-center justify-between mb-6">
-              <div className="text-xl font-bold text-purple-600">BudFynd</div>
+              <div className="text-xl font-bold text-purple-600">ClickFynd</div>
               <Button
                 variant="ghost"
                 size="icon"
@@ -136,7 +136,7 @@ export default function DashboardLayout({
         {/* Desktop sidebar */}
         <aside className="hidden lg:flex lg:w-72 lg:flex-col lg:gap-6 lg:py-6 lg:px-4 border-r bg-white">
           <div className="flex items-center gap-2 px-2">
-            <div className="text-2xl font-bold text-purple-600">BudFynd</div>
+            <div className="text-2xl font-bold text-purple-600">ClickFynd</div>
           </div>
 
           <nav className="flex-1 px-1 space-y-1">

@@ -125,10 +125,10 @@ export default function KontaktPage() {
                 <h3 className="text-lg font-semibold mb-2">Maila oss</h3>
                 <p className="text-gray-500 mb-4">Vi svarar inom 24 timmar</p>
                 <a
-                  href="mailto:kundservice@BudFynd.se.se"
+                  href="mailto:kundservice@ClickFynd.se.se"
                   className="text-purple-600 font-medium hover:text-purple-800"
                 >
-                  kundservice@BudFynd.se.se
+                  kundservice@ClickFynd.se.se
                 </a>
               </div>
             </div>
@@ -294,7 +294,7 @@ export default function KontaktPage() {
                 <h2 className="text-2xl font-bold mb-6">Hitta till oss</h2>
                 <div className="rounded-lg overflow-hidden shadow-md mb-6">
                   <iframe
-                    title="BudFynd.se Kontor"
+                    title="ClickFynd.se Kontor"
                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2034.7891407539868!2d18.0669701!3d59.3349881!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x465f9d5ca0da5ed5%3A0x22e38f47046118d0!2sStockholm!5e0!3m2!1ssv!2sse!4v1649499900000!5m2!1ssv!2sse"
                     width="100%"
                     height="300"
@@ -309,7 +309,7 @@ export default function KontaktPage() {
                     <div>
                       <h3 className="font-semibold">Besöksadress</h3>
                       <p className="text-gray-600">
-                        BudFynd.se AB
+                        ClickFynd.se AB
                         <br />
                         Sveavägen 123
                         <br />

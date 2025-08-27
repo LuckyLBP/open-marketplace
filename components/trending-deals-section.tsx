@@ -21,7 +21,6 @@ import { ProductCard } from './product-card';
 
 // ⬇️ KORRIGERAD IMPORT (namngiven) från /app/product-card.tsx
 
-
 interface Deal {
   id: string;
   title: string;
@@ -72,7 +71,8 @@ export function TrendingDealsSection() {
           const companyDocRef = doc(db, 'companies', companyId);
           const companyDoc = await getDoc(companyDocRef);
           if (companyDoc.exists()) {
-            companyData[companyId] = companyDoc.data().companyName || 'BudFynd.se';
+            companyData[companyId] =
+              companyDoc.data().companyName || 'ClickFynd.se';
           }
         }
 
@@ -81,7 +81,8 @@ export function TrendingDealsSection() {
           const expiresAt = data.expiresAt.toDate();
           const now = new Date();
           const duration =
-            data.duration || Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60));
+            data.duration ||
+            Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60));
 
           fetchedDeals.push({
             id: doc.id,
@@ -92,7 +93,7 @@ export function TrendingDealsSection() {
             duration,
             imageUrl: data.imageUrl,
             companyId: data.companyId,
-            companyName: companyData[data.companyId] || 'BudFynd.se',
+            companyName: companyData[data.companyId] || 'ClickFynd.se',
             category: data.category || 'other',
             expiresAt,
             // 🔽 lagerfält (lämnas orörda):
@@ -104,7 +105,7 @@ export function TrendingDealsSection() {
 
         // 🔽 filtrera bort slut i lager (lämnas orört)
         const visible = fetchedDeals.filter(
-          (d: any) => d.inStock !== false && ((d.stockQuantity ?? 0) > 0)
+          (d: any) => d.inStock !== false && (d.stockQuantity ?? 0) > 0
         );
 
         setDeals(visible);
@@ -138,9 +139,9 @@ export function TrendingDealsSection() {
               companyName={deal.companyName}
               duration={deal.duration}
               expiresAt={deal.expiresAt}
-              stockQuantity={deal.stockQuantity}   // 🔽 lämnas orört
-              inStock={deal.inStock}               // 🔽 lämnas orört
-              onAddToWishlist={() => { }}
+              stockQuantity={deal.stockQuantity} // 🔽 lämnas orört
+              inStock={deal.inStock} // 🔽 lämnas orört
+              onAddToWishlist={() => {}}
               onBuyNow={handleBuyNow}
             />
           ))}

@@ -17,7 +17,7 @@ export default function FraktPage() {
             </h1>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
               Här hittar du information om våra leveranssätt, leveranstider och
-              fraktvillkor för beställningar gjorda via BudFynd.se.
+              fraktvillkor för beställningar gjorda via ClickFynd.se.
             </p>
           </div>
         </section>
@@ -101,7 +101,7 @@ export default function FraktPage() {
                       1. Leveransalternativ
                     </h2>
                     <p className="mb-4">
-                      För att möta dina behov erbjuder BudFynd.se flera olika
+                      För att möta dina behov erbjuder ClickFynd.se flera olika
                       leveransalternativ. Alla leveranser hanteras av våra
                       samarbetspartners för att garantera pålitliga och
                       effektiva leveranser.
@@ -324,7 +324,7 @@ export default function FraktPage() {
                       4. Utrikesleveranser
                     </h2>
                     <p className="mb-4">
-                      BudFynd.se levererar till de flesta länder i Europa. För
+                      ClickFynd.se levererar till de flesta länder i Europa. För
                       leveranser utanför Sverige gäller följande:
                     </p>
 
@@ -373,7 +373,7 @@ export default function FraktPage() {
                     </p>
 
                     <ol className="list-decimal pl-5 space-y-2 mb-4">
-                      <li>Logga in på ditt konto på BudFynd.se</li>
+                      <li>Logga in på ditt konto på ClickFynd.se</li>
                       <li>Gå till "Mina beställningar"</li>
                       <li>Välj den beställning du vill spåra</li>
                       <li>Klicka på knappen "Spåra leverans"</li>
@@ -443,7 +443,7 @@ export default function FraktPage() {
                   <section id="miljo" className="mb-10">
                     <h2 className="text-2xl font-bold mb-4">7. Miljöarbete</h2>
                     <p className="mb-4">
-                      På BudFynd.se arbetar vi aktivt för att minska
+                      På ClickFynd.se arbetar vi aktivt för att minska
                       miljöpåverkan av våra leveranser genom:
                     </p>
 
@@ -506,9 +506,9 @@ export default function FraktPage() {
                     </h3>
                     <p>
                       Vid retur på grund av defekt vara, felleverans eller
-                      transportskada står BudFynd.se för returfraktkostnaden. I
-                      dessa fall skickar vi en förbetald retursedel till dig via
-                      e-post.
+                      transportskada står ClickFynd.se för returfraktkostnaden.
+                      I dessa fall skickar vi en förbetald retursedel till dig
+                      via e-post.
                     </p>
                   </section>
 
@@ -526,10 +526,10 @@ export default function FraktPage() {
                       <li>
                         <strong>E-post:</strong>{' '}
                         <a
-                          href="mailto:frakt@BudFynd.se.se"
+                          href="mailto:frakt@ClickFynd.se.se"
                           className="text-purple-600 hover:underline"
                         >
-                          frakt@BudFynd.se.se
+                          frakt@ClickFynd.se.se
                         </a>
                       </li>
                       <li>
@@ -542,7 +542,7 @@ export default function FraktPage() {
                           href="/kontakt"
                           className="text-purple-600 hover:underline"
                         >
-                          www.BudFynd.se.se/kontakt
+                          www.ClickFynd.se.se/kontakt
                         </Link>
                       </li>
                     </ul>
@@ -557,7 +557,7 @@ export default function FraktPage() {
                   <div className="mt-12 text-sm text-gray-500">
                     <p>
                       Denna fraktpolicy är upphovsrättsskyddad och tillhör
-                      BudFynd.se AB.
+                      ClickFynd.se AB.
                     </p>
                   </div>
                 </div>
