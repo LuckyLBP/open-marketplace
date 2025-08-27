@@ -423,10 +423,10 @@ export default function ReturnerPage() {
                       <li>
                         Via e-post:{' '}
                         <a
-                          href="mailto:reklamation@ClickFynd.se.se"
+                          href="mailto:reklamation@ClickFynd.se"
                           className="text-purple-600 hover:underline"
                         >
-                          reklamation@ClickFynd.se.se
+                          reklamation@ClickFynd.se
                         </a>
                       </li>
                       <li>

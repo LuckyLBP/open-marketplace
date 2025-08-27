@@ -311,7 +311,7 @@ export default function FAQPage() {
     {
       question: 'Hur kan jag begära ut eller radera min data?',
       answer:
-        'För att begära ut eller radera dina personuppgifter, logga in på ditt konto och gå till "Integritet och data" under "Inställningar". Där kan du begära en komplett kopia av all data vi har om dig, vilket vi tillhandahåller inom 30 dagar. Om du vill radera din data kan du antingen välja att radera specifika delar eller begära en fullständig radering av ditt konto. Du kan också kontakta vårt dataskyddsombud direkt via dataskydd@ClickFynd.se.se för alla frågor relaterade till dina personuppgifter.',
+        'För att begära ut eller radera dina personuppgifter, logga in på ditt konto och gå till "Integritet och data" under "Inställningar". Där kan du begära en komplett kopia av all data vi har om dig, vilket vi tillhandahåller inom 30 dagar. Om du vill radera din data kan du antingen välja att radera specifika delar eller begära en fullständig radering av ditt konto. Du kan också kontakta vårt dataskyddsombud direkt via dataskydd@ClickFynd.se för alla frågor relaterade till dina personuppgifter.',
     },
     {
       question: 'Delar ni min information med säljarna?',

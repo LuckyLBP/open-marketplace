@@ -227,7 +227,7 @@ export function Footer() {
               className="flex items-center text-gray-400 hover:text-white transition-colors"
             >
               <Mail className="h-5 w-5 mr-2" />
-              <span>kundservice@ClickFynd.se.se</span>
+              <span>kundservice@ClickFynd.se</span>
             </Link>
           </div>
           <div className="flex space-x-4">

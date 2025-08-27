@@ -125,10 +125,10 @@ export default function KontaktPage() {
                 <h3 className="text-lg font-semibold mb-2">Maila oss</h3>
                 <p className="text-gray-500 mb-4">Vi svarar inom 24 timmar</p>
                 <a
-                  href="mailto:kundservice@ClickFynd.se.se"
+                  href="mailto:kundservice@ClickFynd.se"
                   className="text-purple-600 font-medium hover:text-purple-800"
                 >
-                  kundservice@ClickFynd.se.se
+                  kundservice@ClickFynd.se
                 </a>
               </div>
             </div>

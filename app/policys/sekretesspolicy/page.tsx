@@ -120,7 +120,7 @@ export default function SekretesspolicyPage() {
                       Denna sekretesspolicy beskriver hur ClickFynd.se AB
                       (org.nr. 555555-5555) ("vi", "oss" eller "ClickFynd.se")
                       samlar in, använder, delar och skyddar personuppgifter när
-                      du använder vår webbplats på www.ClickFynd.se.se, våra
+                      du använder vår webbplats på www.ClickFynd.se, våra
                       mobilapplikationer eller andra tjänster (gemensamt kallade
                       "Tjänsterna").
                     </p>
@@ -529,7 +529,7 @@ export default function SekretesspolicyPage() {
                     </ul>
                     <p className="mt-4">
                       För att utöva någon av dessa rättigheter, vänligen
-                      kontakta oss via e-post på dataskydd@ClickFynd.se.se eller
+                      kontakta oss via e-post på dataskydd@ClickFynd.se eller
                       genom vår kontaktsida. Vi kommer att svara på din begäran
                       inom 30 dagar. Om vi behöver mer tid, kommer vi att
                       informera dig om detta och ange orsaken till förseningen.
@@ -661,10 +661,10 @@ export default function SekretesspolicyPage() {
                       <p>
                         E-post:{' '}
                         <a
-                          href="mailto:dataskydd@ClickFynd.se.se"
+                          href="mailto:dataskydd@ClickFynd.se"
                           className="text-purple-600 hover:underline"
                         >
-                          dataskydd@ClickFynd.se.se
+                          dataskydd@ClickFynd.se
                         </a>
                         <br />
                         Telefon: 010-123 45 67

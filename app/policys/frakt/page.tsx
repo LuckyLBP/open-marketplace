@@ -526,10 +526,10 @@ export default function FraktPage() {
                       <li>
                         <strong>E-post:</strong>{' '}
                         <a
-                          href="mailto:frakt@ClickFynd.se.se"
+                          href="mailto:frakt@ClickFynd.se"
                           className="text-purple-600 hover:underline"
                         >
-                          frakt@ClickFynd.se.se
+                          frakt@ClickFynd.se
                         </a>
                       </li>
                       <li>
@@ -542,7 +542,7 @@ export default function FraktPage() {
                           href="/kontakt"
                           className="text-purple-600 hover:underline"
                         >
-                          www.ClickFynd.se.se/kontakt
+                          www.ClickFynd.se/kontakt
                         </Link>
                       </li>
                     </ul>

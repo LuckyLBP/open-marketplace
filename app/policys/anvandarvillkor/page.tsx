@@ -154,8 +154,8 @@ export default function UserTermsPage() {
                     <ul className="list-disc pl-5 space-y-2">
                       <li>
                         <strong>"Plattformen"</strong> avser webbplatsen
-                        ClickFynd.se, tillgänglig via www.ClickFynd.se.se och
-                        alla tillhörande appar.
+                        ClickFynd.se, tillgänglig via www.ClickFynd.se och alla
+                        tillhörande appar.
                       </li>
                       <li>
                         <strong>"Användare"</strong> avser varje person som
@@ -526,10 +526,10 @@ export default function UserTermsPage() {
                     <p className="mb-2">
                       E-post:{' '}
                       <a
-                        href="mailto:info@ClickFynd.se.se"
+                        href="mailto:info@ClickFynd.se"
                         className="text-purple-600 hover:underline"
                       >
-                        info@ClickFynd.se.se
+                        info@ClickFynd.se
                       </a>
                     </p>
                     <p>Telefon: 010-123 45 67</p>
