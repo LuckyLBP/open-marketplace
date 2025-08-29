@@ -1,4 +1,3 @@
-// /api/payments/create-intent/route.ts
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { initializeFirebase } from '@/lib/firebase';
@@ -10,17 +9,17 @@ import {
   collection,
 } from 'firebase/firestore';
 
-// Initialize Stripe only when needed
+// --- Stripe init ---
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error('STRIPE_SECRET_KEY is required');
   }
   return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-07-30.basil',
+    apiVersion: '2025-04-30.basil', // håll samma version som övriga routes
   });
 }
 
-// Duration → fee %-trappa
+// --- Duration → fee %-trappa (heltal %) ---
 function feePctFromDuration(hours?: number): number {
   const h = Number(hours ?? 0);
   if (h <= 12) return 3;
@@ -33,11 +32,29 @@ function feePctFromDuration(hours?: number): number {
   return 10; // 144h+
 }
 
+type IncomingItem = {
+  id: string; // dealId
+  quantity?: number;
+  accountType?: 'company' | 'customer';
+  price?: number;          // ev. fallback, men vi hämtar alltid live från deal
+  feePercentage?: number;  // fallback om duration saknas på deal
+};
+
+type EnrichedItem = {
+  dealId: string;
+  sellerId: string;
+  sellerStripeAccountId: string;
+  quantity: number;
+  unitAmountSEK: number;         // pris per styck (SEK, heltal)
+  grossPerItemSEK: number;       // unit * qty (SEK)
+  feePct: number;                // ex. 6, 10 (heltal %)
+  platformFeePerItemSEK: number; // avrundad per rad (SEK)
+};
+
 export async function POST(req: Request) {
   try {
-    // Initialize Firebase and get db instance
+    // --- Firebase init ---
     const { db } = initializeFirebase();
-
     if (!db) {
       return NextResponse.json(
         { error: 'Database connection failed' },
@@ -45,48 +62,33 @@ export async function POST(req: Request) {
       );
     }
 
-    // Initialize Stripe
+    // --- Stripe init ---
     const stripe = getStripe();
 
+    // --- Body parse ---
     const body = await req.json();
-    const { items } = body as {
-      items: Array<{
-        id: string; // dealId
-        quantity?: number;
-        accountType?: 'company' | 'customer';
-        price?: number;
-        feePercentage?: number;
-      }>;
-    };
+    const { items } = body as { items: IncomingItem[] };
 
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json(
-        { error: 'Varukorgen är tom.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Varukorgen är tom.' }, { status: 400 });
     }
 
     const currency = 'sek';
 
-    let subtotalSEK = 0;
-    let serviceFeeSEK = 0;
+    // --- Ackumulatorer ---
+    let subtotalSEK = 0;      // summa av alla deals (exkl. frakt)
+    let serviceFeeSEK = 0;    // din serviceavgift (summa per rad)
 
-    const sellerMap: Record<
-      string,
-      { amountSEK: number; stripeAccountId: string }
-    > = {};
-    const enrichedItems: Array<{
-      dealId: string;
-      sellerId: string;
-      quantity: number;
-      unitAmountSEK: number;
-      feePct: number;
-    }> = [];
+    const enrichedItems: EnrichedItem[] = [];
+    // Mappar endast säljare → konto (belopp delas i webhook)
+    const sellerMap: Record<string, { stripeAccountId: string }> = {};
 
+    // --- Bygg items från Firestore ---
     for (const item of items) {
       const dealRef = doc(db, 'deals', item.id);
       const dealSnap = await getDoc(dealRef);
       if (!dealSnap.exists()) continue;
+
       const deal = dealSnap.data() as any;
 
       const sellerId: string = deal.companyId;
@@ -94,6 +96,7 @@ export async function POST(req: Request) {
 
       const accountType: 'company' | 'customer' =
         item.accountType === 'customer' ? 'customer' : 'company';
+
       const sellerRef = doc(
         db,
         accountType === 'company' ? 'companies' : 'customers',
@@ -101,85 +104,81 @@ export async function POST(req: Request) {
       );
       const sellerSnap = await getDoc(sellerRef);
       if (!sellerSnap.exists()) continue;
-      const { stripeAccountId } = sellerSnap.data() as {
-        stripeAccountId?: string;
-      };
+
+      const { stripeAccountId } = sellerSnap.data() as { stripeAccountId?: string };
       if (!stripeAccountId) continue;
 
-      const qty = Math.max(1, Number(item.quantity || 1));
-      const unitAmountSEK = Math.round(Number(deal.price));
-      const lineTotalSEK = unitAmountSEK * qty;
+      const quantity = Math.max(1, Number(item.quantity || 1));
+      const unitAmountSEK = Math.round(Number(deal.price)); // pris på deal (SEK, heltal)
+      const grossPerItemSEK = unitAmountSEK * quantity;
 
-      const feePct = Number.isFinite(Number(deal.duration))
-        ? feePctFromDuration(Number(deal.duration))
-        : Math.max(0, Number(item.feePercentage ?? 0));
+      const feePct =
+        Number.isFinite(Number(deal.duration))
+          ? feePctFromDuration(Number(deal.duration))
+          : Math.max(0, Number(item.feePercentage ?? 0)); // fallback om duration saknas
 
-      const lineFeeSEK = Math.round((lineTotalSEK * feePct) / 100);
-      const sellerNetSEK = lineTotalSEK - lineFeeSEK;
+      const platformFeePerItemSEK = Math.round((grossPerItemSEK * feePct) / 100);
 
-      subtotalSEK += lineTotalSEK;
-      serviceFeeSEK += lineFeeSEK;
-
-      if (!sellerMap[sellerId]) {
-        sellerMap[sellerId] = { amountSEK: sellerNetSEK, stripeAccountId };
-      } else {
-        sellerMap[sellerId].amountSEK += sellerNetSEK;
-      }
+      subtotalSEK += grossPerItemSEK;
+      serviceFeeSEK += platformFeePerItemSEK;
 
       enrichedItems.push({
         dealId: item.id,
         sellerId,
-        quantity: qty,
+        sellerStripeAccountId: stripeAccountId,
+        quantity,
         unitAmountSEK,
+        grossPerItemSEK,
         feePct,
+        platformFeePerItemSEK,
       });
+
+      if (!sellerMap[sellerId]) {
+        sellerMap[sellerId] = { stripeAccountId };
+      }
     }
 
     if (subtotalSEK <= 0) {
-      return NextResponse.json(
-        { error: 'Ogiltigt totalbelopp.' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Ogiltigt totalbelopp.' }, { status: 400 });
     }
 
+    // --- Frakt (tillhör plattformen) ---
     const shippingFeeSEK = subtotalSEK < 500 ? 50 : 0;
-    const grandTotalSEK = subtotalSEK + shippingFeeSEK;
 
-    // --- 7) Skapa PaymentIntent ---
+    // --- Totalt kunddebiterat ---
+    const totalAmountSEK = subtotalSEK + shippingFeeSEK;
+
+    // --- Skapa PaymentIntent (belopp i öre) ---
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: grandTotalSEK * 100,
+      amount: totalAmountSEK * 100,
       currency,
       automatic_payment_methods: { enabled: true },
       metadata: {
+        subtotal_sek: String(subtotalSEK),
         platform_service_fee_sek: String(serviceFeeSEK),
         shipping_fee_sek: String(shippingFeeSEK),
-        subtotal_sek: String(subtotalSEK),
       },
     });
 
-    // --- 7b) Uppdatera metadata så vi alltid har sessionId i Stripe ---
+    // (valfritt) Lägg till sessionId i metadata (du använder PI-id som sessionId)
     await stripe.paymentIntents.update(paymentIntent.id, {
       metadata: {
         ...paymentIntent.metadata,
-        sessionId: paymentIntent.id, // <- knyter ihop Firestore & Stripe
+        sessionId: paymentIntent.id,
       },
     });
 
-    // --- 8) Spara checkoutSession i Firestore ---
-    const sessionRef = doc(
-      collection(db, 'checkoutSessions'),
-      paymentIntent.id
-    );
-    await setDoc(sessionRef, {
+    // --- Spara checkoutSession i Firestore (per-item breakdown) ---
+    await setDoc(doc(collection(db, 'checkoutSessions'), paymentIntent.id), {
       createdAt: serverTimestamp(),
       sessionId: paymentIntent.id,
       currency,
-      items: enrichedItems,
+      items: enrichedItems,        // innehåller gross + platformFee per item
       subtotalSEK,
       shippingFeeSEK,
-      totalAmountSEK: grandTotalSEK,
+      totalAmountSEK,
       serviceFeeSEK,
-      sellerMap,
+      sellerMap,                   // endast mapping: sellerId -> stripeAccountId
       status: 'requires_payment',
     });
 

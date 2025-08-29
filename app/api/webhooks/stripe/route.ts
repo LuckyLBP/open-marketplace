@@ -10,14 +10,13 @@ import {
   serverTimestamp,
   collection,
   addDoc,
-  updateDoc,
   setDoc,
 } from 'firebase/firestore';
 
-export const runtime = 'nodejs'; // Stripe SDK kräver Node runtime
-export const dynamic = 'force-dynamic'; // undvik cache i Vercel
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
-// Initialize Stripe only when needed
+// --- Stripe init ---
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error('STRIPE_SECRET_KEY is required');
@@ -33,6 +32,39 @@ function json(status: number, data: any) {
   return new NextResponse(JSON.stringify(data), {
     status,
     headers: { 'content-type': 'application/json' },
+  });
+}
+
+// Proportionell allokering i öre med rundningskorrigering
+function proportionalSplit(total: number, weights: number[]): number[] {
+  const sum = weights.reduce((a, b) => a + b, 0) || 1;
+  const raw = weights.map((w) => (total * w) / sum);
+  const floored = raw.map(Math.floor);
+  let remainder = total - floored.reduce((a, b) => a + b, 0);
+  const order = raw
+    .map((x, i) => ({ i, frac: x - Math.floor(x) }))
+    .sort((a, b) => b.frac - a.frac);
+  const out = [...floored];
+  for (let k = 0; k < order.length && remainder > 0; k++) {
+    out[order[k].i] += 1;
+    remainder--;
+  }
+  return out;
+}
+
+// GET: hälsokoll
+export async function GET(req: Request) {
+  const host = req.headers.get('host') || null;
+  const present = !!process.env.STRIPE_WEBHOOK_SECRET;
+  const len = process.env.STRIPE_WEBHOOK_SECRET?.length || 0;
+  return json(200, {
+    ok: true,
+    path: '/api/webhooks/stripe',
+    method: 'POST only',
+    host,
+    secretPresent: present,
+    secretLen: len,
+    runtime: 'nodejs',
   });
 }
 
@@ -55,52 +87,127 @@ export async function POST(req: Request) {
   }
 
   try {
-    // --- Idempotens: kör inte samma event två gånger ---
+    // Idempotens: processa inte samma event två gånger
     const processedRef = doc(collection(db, 'stripeWebhookEvents'), event.id);
     const processedSnap = await getDoc(processedRef);
     if (processedSnap.exists()) {
       return json(200, { received: true, duplicate: true });
     }
 
-    // === FAILED ===
+    // === Payment failed ===
     if (event.type === 'payment_intent.payment_failed') {
       const pi = event.data.object as Stripe.PaymentIntent;
       const sessionId = pi.id;
-
       try {
-        await updateDoc(doc(db, 'checkoutSessions', sessionId), {
-          status: 'failed',
-          updatedAt: serverTimestamp(),
-          failureCode: (pi.last_payment_error as any)?.code ?? null,
-          failureMessage: (pi.last_payment_error as any)?.message ?? null,
-        });
+        await setDoc(
+          doc(db, 'checkoutSessions', sessionId),
+          {
+            status: 'failed',
+            updatedAt: serverTimestamp(),
+            failureCode: (pi.last_payment_error as any)?.code ?? null,
+            failureMessage: (pi.last_payment_error as any)?.message ?? null,
+          },
+          { merge: true }
+        );
       } catch (e) {
         console.warn('Could not mark session as failed:', e);
       }
-
       await setDoc(processedRef, { processedAt: new Date(), type: event.type });
       return json(200, { received: true });
     }
 
-    // === SUCCEEDED ===
+    // === Payment succeeded ===
     if (event.type === 'payment_intent.succeeded') {
       const pi = event.data.object as Stripe.PaymentIntent;
-      const sessionId = pi.id; // du använder PI-id som session-id i Firestore
+      const sessionId = pi.id; // vi använder PI-id som session-id
 
       try {
         const sessionRef = doc(db, 'checkoutSessions', sessionId);
         const sessionSnap = await getDoc(sessionRef);
-        if (!sessionSnap.exists())
-          throw new Error('Session not found in Firestore');
+        if (!sessionSnap.exists()) throw new Error('Session not found in Firestore');
         const s = sessionSnap.data() as any;
 
-        const currency = (pi.currency || s.currency || 'sek').toLowerCase();
-        const totalSEK = Number(s.totalAmountSEK ?? s.totalAmount ?? 0);
+        const items = (s.items ?? []) as Array<{
+          dealId: string;
+          sellerId: string;
+          sellerStripeAccountId: string;
+          quantity: number;
+          unitAmountSEK: number;
+          grossPerItemSEK: number;
+          feePct: number;
+          platformFeePerItemSEK: number;
+        }>;
 
-        // Transfers per säljare
-        const rawSellerMap = s.sellerMap || {};
-        const sellerIds = Object.keys(rawSellerMap);
-        const transferGroup = `pi_${pi.id}`;
+        const currency = (pi.currency || s.currency || 'sek').toLowerCase();
+        const subtotalSEK = Number(s.subtotalSEK || 0);
+        const shippingFeeSEK = Number(s.shippingFeeSEK || 0);
+        const platformServiceFeeSEK = Number(s.serviceFeeSEK || 0);
+
+        // 1) Hämta Stripe fee (ÖRE) från charge.balance_transaction
+        const chargeId =
+          typeof pi.latest_charge === 'string'
+            ? pi.latest_charge
+            : (pi.latest_charge as any)?.id;
+        if (!chargeId) throw new Error('Missing charge on PI');
+
+        const stripe = getStripe();
+        const charge = await stripe.charges.retrieve(chargeId, {
+          expand: ['balance_transaction'],
+        });
+        const bt = charge.balance_transaction as Stripe.BalanceTransaction;
+        if (!bt || typeof bt.fee !== 'number') {
+          throw new Error('Missing balance transaction fee');
+        }
+        const stripeFeeOreTotal = bt.fee; // öre på hela betalningen (subtotal + shipping)
+
+        // 2) Dela upp Stripe-fee: säljare ska bära fee på SUBTOTAL, plattformen bara på SHIPPING
+        const subtotalOre = Math.max(0, Math.round(subtotalSEK * 100));
+        const shippingOre = Math.max(0, Math.round(shippingFeeSEK * 100));
+        const totalOre = subtotalOre + shippingOre || 1;
+
+        const stripeFeeOreOnSubtotal = Math.round(
+          (subtotalOre / totalOre) * stripeFeeOreTotal
+        );
+        const stripeFeeOreOnShipping = Math.max(
+          0,
+          stripeFeeOreTotal - stripeFeeOreOnSubtotal
+        );
+
+        // Fördelningsvikter = varje items gross i ÖRE
+        const grossWeightsOre = items.map((i) =>
+          Math.max(0, Math.round(Number(i.grossPerItemSEK || 0) * 100))
+        );
+
+        const stripeFeeAllocPerItemOre = proportionalSplit(
+          stripeFeeOreOnSubtotal,
+          grossWeightsOre
+        );
+
+        // 3) Räkna ut payout per item: gross − platformFee − stripeFeeAlloc
+        type SellerAgg = Record<string, { account: string; amountOre: number }>;
+        const bySeller: SellerAgg = {};
+
+        items.forEach((it, idx) => {
+          const grossOre = Math.max(0, Math.round(Number(it.grossPerItemSEK) * 100));
+          const platformFeeOre = Math.max(
+            0,
+            Math.round(Number(it.platformFeePerItemSEK) * 100)
+          );
+          const stripeFeeOre = Math.max(0, stripeFeeAllocPerItemOre[idx] || 0);
+
+          const payoutOre = Math.max(0, grossOre - platformFeeOre - stripeFeeOre);
+
+          if (!bySeller[it.sellerId]) {
+            bySeller[it.sellerId] = {
+              account: it.sellerStripeAccountId,
+              amountOre: 0,
+            };
+          }
+          bySeller[it.sellerId].amountOre += payoutOre;
+        });
+
+        // 4) Skapa transfers per säljare (i ÖRE)
+        const transferGroup = `pi_${pi.id}`; // fix: ingen dubbel-prefix
         const transferLogs: Array<{
           sellerId: string;
           stripeAccountId: string;
@@ -109,98 +216,46 @@ export async function POST(req: Request) {
           created: number;
         }> = [];
 
-        console.log(`\n=== Payment Intent Succeeded ===`);
-        console.log(`Session ID: ${sessionId}`);
-        console.log(
-          `Total Amount (SEK): ${Number.isFinite(totalSEK) ? totalSEK : 'N/A'}`
-        );
-        console.log(`Sellers in this order:`, sellerIds);
+        for (const [sellerId, agg] of Object.entries(bySeller)) {
+          const amount = Math.max(0, Math.round(agg.amountOre)); // öre
+          if (!agg.account || amount <= 0) continue;
 
-        for (const sellerId of sellerIds) {
-          const entry = rawSellerMap[sellerId] || {};
-          const stripeAccountId: string | undefined = entry.stripeAccountId;
-          const amountSEK = Number(entry.amountSEK ?? entry.amount ?? 0);
-          if (
-            !stripeAccountId ||
-            !Number.isFinite(amountSEK) ||
-            amountSEK <= 0
-          ) {
-            console.warn(`Skip transfer for seller ${sellerId}`, entry);
-            continue;
-          }
-
-          console.log(
-            `→ Sending ${amountSEK} SEK to seller ${sellerId} (${stripeAccountId})`
-          );
-          const idempotencyKey = `transfer_${pi.id}_${sellerId}`;
-          const stripe = getStripe();
-          const transfer = await stripe.transfers.create(
+          const tr = await stripe.transfers.create(
             {
-              amount: Math.round(amountSEK * 100), // SEK → öre
+              amount,
               currency,
-              destination: stripeAccountId,
+              destination: agg.account,
               transfer_group: transferGroup,
               metadata: { sessionId, sellerId, payment_intent_id: pi.id },
             },
-            { idempotencyKey }
+            { idempotencyKey: `transfer_${pi.id}_${sellerId}` }
           );
 
-          console.log(`✓ Transfer succeeded: ${transfer.id}`);
           transferLogs.push({
             sellerId,
-            stripeAccountId,
-            amountSEK,
-            transferId: transfer.id,
+            stripeAccountId: agg.account,
+            amountSEK: Math.round(amount / 100),
+            transferId: tr.id,
             created: Date.now(),
           });
         }
 
-        // Plattformens serviceavgift (brutto)
-        const sumTransfersSEK = transferLogs.reduce(
-          (a, t) => a + t.amountSEK,
-          0
-        );
-        const serviceFeeSEK = Number(
-          s.serviceFeeSEK ?? Math.max(0, totalSEK - sumTransfersSEK)
-        );
+        // 5) Plattformens rapportering (korrigerad)
+        const stripeFeeSubtotalSEK = Math.round(stripeFeeOreOnSubtotal / 100);
+        const stripeFeeShippingSEK = Math.round(stripeFeeOreOnShipping / 100);
+        const totalStripeFeeSEK = stripeFeeSubtotalSEK + stripeFeeShippingSEK;
 
-        // Stripe processing fee (SEK)
-        let stripeFeeSEK = 0;
-        try {
-          const chargeId =
-            typeof pi.latest_charge === 'string'
-              ? pi.latest_charge
-              : (pi.latest_charge as any)?.id;
-          if (chargeId) {
-            const stripe = getStripe();
-            const charge = await stripe.charges.retrieve(chargeId, {
-              expand: ['balance_transaction'],
-            });
-            const bt: any = charge.balance_transaction;
-            if (bt && typeof bt.fee === 'number') {
-              stripeFeeSEK = Math.round(bt.fee) / 100; // öre → SEK
-            }
-          }
-        } catch (e) {
-          console.warn(
-            'Could not fetch Stripe fee from balance_transaction:',
-            e
-          );
-        }
-        const netPlatformSEK = Math.max(0, serviceFeeSEK - stripeFeeSEK);
+        // ✅ Din intäkt ska INTE minska av Stripe-feen på subtotalen (den tog vi från säljare).
+        // Endast fraktens Stripe-fee (om någon) minskar din intäkt:
+        const netPlatformSEK = Math.max(0, platformServiceFeeSEK - stripeFeeShippingSEK);
 
-        // Lager-minskning (batch)
-        const items: Array<{
-          id?: string;
-          dealId?: string;
-          quantity?: number;
-        }> = Array.isArray(s.items) ? s.items : [];
+        // 6) Lager-minskning
         const batch = writeBatch(db);
+        for (const it of items) {
+          const dealId = it.dealId;
+          const qty = Math.max(1, Number(it.quantity || 1));
+          if (!dealId || qty <= 0) continue;
 
-        for (const item of items) {
-          const dealId = item.dealId || item.id;
-          if (!dealId) continue;
-          const qty = Math.max(1, Number(item.quantity || 1));
           const dealRef = doc(db, 'deals', dealId);
           const dealSnap = await getDoc(dealRef);
           if (!dealSnap.exists()) continue;
@@ -219,34 +274,27 @@ export async function POST(req: Request) {
           }
         }
 
-        // Uppdatera session
+        // 7) Uppdatera session + idempotensmarkering
         batch.update(sessionRef, {
           status: 'succeeded',
           currency,
           transfers: transferLogs,
           transferGroup,
           paymentIntentId: pi.id,
-          serviceFeeSEK, // bruttoavgift (enligt duration)
-          stripeFeeSEK, // Stripe processing fee (SEK)
-          netPlatformSEK, // faktisk intäkt = serviceFee - stripeFee
+          serviceFeeSEK: platformServiceFeeSEK,
+          stripeFeeSEK: totalStripeFeeSEK,
+          stripeFeeSubtotalSEK,
+          stripeFeeShippingSEK,
+          netPlatformSEK, // nu korrekt rapporterad
           updatedAt: serverTimestamp(),
         });
 
-        // Markera event som processat
-        await setDoc(processedRef, {
-          processedAt: new Date(),
-          type: event.type,
-        });
-
+        await setDoc(processedRef, { processedAt: new Date(), type: event.type });
         await batch.commit();
 
-        console.log(
-          `=== All transfers done | Service fee (SEK): ${serviceFeeSEK} | Stripe fee (SEK): ${stripeFeeSEK} | Net platform (SEK): ${netPlatformSEK} ===\n`
-        );
         return json(200, { received: true });
       } catch (err: any) {
         console.error('[webhook] Handler error:', err);
-        // svara 200 för att undvika ev. retry-loopar (transfers är idempotenta)
         await setDoc(processedRef, {
           processedAt: new Date(),
           type: event.type,
@@ -261,7 +309,6 @@ export async function POST(req: Request) {
       eventType: event.type,
       receivedAt: new Date().toISOString(),
     });
-
     await setDoc(doc(collection(db, 'stripeWebhookEvents'), event.id), {
       processedAt: new Date(),
       type: event.type,
