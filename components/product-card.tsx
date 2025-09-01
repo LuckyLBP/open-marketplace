@@ -63,13 +63,13 @@ export function ProductCard({
   return (
     <Card
       className={cn(
-        'overflow-hidden rounded-lg bg-white shadow-sm hover:shadow-md transition-all flex flex-col group relative',
-        compact ? 'text-sm max-w-[220px]' : 'text-base max-w-[300px]',
+        'overflow-hidden rounded-lg bg-white shadow-sm hover:shadow-md transition-all flex flex-col group relative w-full',
+        compact ? 'text-xs' : 'text-sm',
         soldOut ? 'opacity-80' : ''
       )}
     >
       {/* Image */}
-      <div className="relative w-full bg-gray-50 aspect-[3/2] overflow-hidden">
+      <div className="relative w-full bg-gray-50 aspect-[4/3] sm:aspect-[3/2] overflow-hidden">
         <Link href={`/product/${id}`} className="absolute inset-0">
           <img
             src={imageUrl}
@@ -81,13 +81,13 @@ export function ProductCard({
           />
         </Link>
 
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-2 left-2">
           <TimeLeftLabel expiresAt={expiresAt} />
         </div>
 
         {isOnSale && (
-          <div className="absolute top-3 right-3 flex items-center gap-2">
-            <Badge className="bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
+          <div className="absolute top-2 right-2 flex items-center gap-2">
+            <Badge className="bg-green-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">
               -{discountPercentage}%
             </Badge>
           </div>
@@ -95,7 +95,7 @@ export function ProductCard({
 
         {soldOut && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/60">
-            <Badge className="bg-red-600 text-white text-sm px-3 py-1 rounded-full">
+            <Badge className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">
               {t('Slut i lager')}
             </Badge>
           </div>
@@ -103,18 +103,18 @@ export function ProductCard({
       </div>
 
       {/* Details */}
-      <div className="px-3 py-2 flex-1 flex flex-col">
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <div className="flex items-center gap-2">
+      <div className="px-2 py-2 flex-1 flex flex-col">
+        <div className="flex items-center justify-between gap-1 mb-1">
+          <div className="flex items-center gap-1">
             <Badge
               variant="outline"
-              className="bg-purple-50 text-[10px] px-1 py-0.5"
+              className="bg-purple-50 text-[9px] px-1 py-0.5"
             >
               {duration}h
             </Badge>
             <Badge
               variant="outline"
-              className="bg-gray-50 text-[10px] px-1 py-0.5 capitalize"
+              className="bg-gray-50 text-[9px] px-1 py-0.5 capitalize"
             >
               {t(category.charAt(0).toUpperCase() + category.slice(1))}
             </Badge>
@@ -122,31 +122,31 @@ export function ProductCard({
         </div>
 
         <Link href={`/product/${id}`} className="hover:underline">
-          <h3 className="text-sm font-semibold text-gray-900 line-clamp-2">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 line-clamp-2">
             {title}
           </h3>
         </Link>
 
-        <p className="text-[12px] text-muted-foreground mt-1 flex items-center gap-2">
+        <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
           <Store className="h-3 w-3 text-muted-foreground" />
           <span className="truncate">{companyName}</span>
         </p>
 
-        <p className="text-sm text-muted-foreground mt-2 line-clamp-3">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">
           {description}
         </p>
 
-        <div className="mt-3 flex items-end justify-between">
+        <div className="mt-2 flex items-end justify-between">
           <div>
             {isOnSale && (
-              <div className="text-xs text-muted-foreground line-through">
+              <div className="text-[11px] text-muted-foreground line-through">
                 {new Intl.NumberFormat('sv-SE', {
                   style: 'currency',
                   currency: 'SEK',
                 }).format(originalPrice)}
               </div>
             )}
-            <div className="text-lg font-extrabold text-purple-600">
+            <div className="text-base sm:text-lg font-extrabold text-purple-600">
               {new Intl.NumberFormat('sv-SE', {
                 style: 'currency',
                 currency: 'SEK',
@@ -156,11 +156,11 @@ export function ProductCard({
 
           <div className="flex items-center">
             <Button
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-md px-3 py-1 text-sm flex items-center gap-2"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-md px-2 py-1 text-xs sm:text-sm flex items-center gap-1"
               onClick={() => onBuyNow(id)}
               disabled={soldOut}
             >
-              <ShoppingCart className="h-4 w-4" />
+              <ShoppingCart className="h-3 w-3" />
               <span className="hidden sm:inline">
                 {soldOut ? t('Slut i lager') : t('Köp')}
               </span>
