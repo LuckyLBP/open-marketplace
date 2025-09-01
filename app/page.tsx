@@ -13,6 +13,8 @@ import { FloatingAd } from '@/components/floating-ad';
 import { InlineAd } from '@/components/inline-ad';
 import BannerAdPreview from '@/components/boost/adPreview/bannerAdPreview';
 import { RoundedBanner } from '@/components/rounded-banner';
+import { CarouselBanner } from '@/components/carousel-banner';
+import { CategoryBanner } from '@/components/category-banner';
 
 export default function Home() {
   // Main Category Keys
@@ -30,19 +32,48 @@ export default function Home() {
       <Navbar />
 
       <main className="flex-1 relative">
-        <RoundedBanner />
+        <div className="container mx-auto px-4 py-6">
+          <CarouselBanner
+            autoRotateInterval={5000}
+            showArrows={true}
+            showDots={true}
+          />
+        </div>
+
         {/* Single sidebar ad on right side only */}
         <FeaturedDealsSection />
-
         <CategoriesSection />
+
+        <div className="container mx-auto px-4 py-6">
+          <CategoryBanner category="hemmet" />
+        </div>
 
         {/* Category sections */}
         <CategoryProductsSection categoryKey="elektronik" />
+
+        <div className="container mx-auto px-4 py-6">
+          <CategoryBanner category="elektronik" />
+        </div>
+
         <CategoryProductsSection categoryKey="mode" />
+
+        {/* Example Category Banner */}
+
         <FloatingAd className="lg:fixed lg:bottom-4" />
+
         <CategoryProductsSection categoryKey="hemmet" />
+
+        <div className="container mx-auto px-4 py-6">
+          <CategoryBanner category="hobby-fritid" />
+        </div>
+
         <CategoryProductsSection categoryKey="halsa-skonhet" />
+
         <CategoryProductsSection categoryKey="hobby-fritid" />
+
+        <div className="container mx-auto px-4 py-6">
+          <CategoryBanner category="halsa-skonhet" />
+        </div>
 
         <HowItWorksSection />
 
