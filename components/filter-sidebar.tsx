@@ -12,7 +12,18 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronUp,
+  Filter,
+  X,
+  Sparkles,
+  Grid3X3,
+  Clock,
+  DollarSign,
+  Layers,
+  RotateCcw,
+} from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -20,6 +31,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export interface FilterSidebarProps {
   categories: string[];
@@ -118,7 +130,10 @@ export function FilterSidebar({
   selectedSubcategory,
   onSubcategoryChange,
 }: FilterSidebarProps) {
-  const [compactView, setCompactView] = useState(true);
+  const [expandedSections, setExpandedSections] = useState([
+    'categories',
+    'price',
+  ]);
 
   // Format price for display
   const formatPrice = (price: number) => `${price.toLocaleString()} kr`;
@@ -159,288 +174,280 @@ export function FilterSidebar({
     selectedDurations.length +
     (priceRange[0] > 0 || priceRange[1] < maxPrice ? 1 : 0);
 
-  return (
-    <div
-      className={cn(
-        'bg-white rounded-lg shadow-md px-4 py-3 h-fit',
-        isMobile && 'mb-6'
-      )}
-    >
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4" />
-          <h3 className="font-medium text-sm">Filter</h3>
-          {activeFilterCount > 0 && (
-            <Badge variant="secondary" className="h-5 text-xs">
-              {activeFilterCount}
-            </Badge>
-          )}
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 w-7 p-0"
-          onClick={() => setCompactView(!compactView)}
-        >
-          {compactView ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronUp className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
+  // Get category icon
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'elektronik':
+        return '📱';
+      case 'mode':
+        return '👕';
+      case 'hemmet':
+        return '🏠';
+      case 'halsa-skonhet':
+        return '💄';
+      case 'hobby-fritid':
+        return '🎯';
+      default:
+        return '📦';
+    }
+  };
 
-      {compactView ? (
-        // Compact view: just show category chips and active filters
-        <div className="space-y-3">
-          <div className="flex flex-wrap gap-1">
+  return (
+    <div className={cn('space-y-4', isMobile && 'mb-6')}>
+      {/* Header Card */}
+      <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200/50 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-3 text-lg font-semibold">
+            <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg">
+              <Filter className="h-4 w-4 text-white" />
+            </div>
+            <span className="bg-gradient-to-r from-purple-700 to-indigo-700 bg-clip-text text-transparent">
+              Smarta Filter
+            </span>
+            {activeFilterCount > 0 && (
+              <Badge className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 shadow-sm">
+                {activeFilterCount}
+              </Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {/* Active Filters Display */}
+          {activeFilterCount > 0 && (
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                {selectedCategory !== 'all' && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-white/70 text-purple-700 border-purple-200 hover:bg-white/90 transition-colors cursor-pointer group"
+                    onClick={() => onCategoryChange('all')}
+                  >
+                    <span className="mr-1">
+                      {getCategoryIcon(selectedCategory)}
+                    </span>
+                    {getCategoryDisplayName(selectedCategory)}
+                    <X className="h-3 w-3 ml-1 group-hover:text-red-500 transition-colors" />
+                  </Badge>
+                )}
+
+                {selectedSubcategory && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-white/70 text-indigo-700 border-indigo-200 hover:bg-white/90 transition-colors cursor-pointer group"
+                    onClick={() => onSubcategoryChange(selectedSubcategory)}
+                  >
+                    {getSubcategoryDisplayName(selectedSubcategory)}
+                    <X className="h-3 w-3 ml-1 group-hover:text-red-500 transition-colors" />
+                  </Badge>
+                )}
+
+                {selectedDurations.map((duration) => (
+                  <Badge
+                    key={duration}
+                    variant="secondary"
+                    className="bg-white/70 text-emerald-700 border-emerald-200 hover:bg-white/90 transition-colors cursor-pointer group"
+                    onClick={() => onDurationChange(duration)}
+                  >
+                    <Clock className="h-3 w-3 mr-1" />
+                    {duration}h
+                    <X className="h-3 w-3 ml-1 group-hover:text-red-500 transition-colors" />
+                  </Badge>
+                ))}
+
+                {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-white/70 text-amber-700 border-amber-200 hover:bg-white/90 transition-colors cursor-pointer group"
+                    onClick={() => onPriceRangeChange([0, maxPrice])}
+                  >
+                    <DollarSign className="h-3 w-3 mr-1" />
+                    {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
+                    <X className="h-3 w-3 ml-1 group-hover:text-red-500 transition-colors" />
+                  </Badge>
+                )}
+              </div>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-purple-600 hover:text-purple-700 hover:bg-purple-50 w-full border border-purple-200 hover:border-purple-300 transition-all"
+                onClick={onClearFilters}
+              >
+                <RotateCcw className="h-3 w-3 mr-2" />
+                Återställ Alla Filter
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Categories Card */}
+      <Card className="shadow-sm border-slate-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-medium">
+            <Grid3X3 className="h-4 w-4 text-purple-600" />
+            Kategorier
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-1 gap-2">
             <Button
               variant={selectedCategory === 'all' ? 'default' : 'outline'}
               size="sm"
-              className="h-7 text-xs rounded-full"
+              className={cn(
+                'justify-start h-10 font-medium transition-all',
+                selectedCategory === 'all'
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md'
+                  : 'hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700'
+              )}
               onClick={() => onCategoryChange('all')}
             >
-              Alla
+              <Sparkles className="h-4 w-4 mr-2" />
+              Alla Kategorier
             </Button>
-            {categories.slice(0, 5).map((category) => (
+
+            {categories.map((category) => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? 'default' : 'outline'}
                 size="sm"
-                className="h-7 text-xs rounded-full"
+                className={cn(
+                  'justify-start h-10 font-medium transition-all',
+                  selectedCategory === category
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md'
+                    : 'hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700'
+                )}
                 onClick={() => onCategoryChange(category)}
               >
+                <span className="mr-2 text-lg">
+                  {getCategoryIcon(category)}
+                </span>
                 {getCategoryDisplayName(category)}
               </Button>
             ))}
-            {categories.length > 5 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs rounded-full"
-                onClick={() => setCompactView(false)}
-              >
-                +{categories.length - 5}
-              </Button>
-            )}
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Active filter badges */}
-          {activeFilterCount > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {selectedSubcategory && (
-                <Badge
-                  variant="secondary"
-                  className="flex items-center gap-1 pl-2 pr-1 py-1"
-                  onClick={() => onSubcategoryChange(selectedSubcategory)}
+      {/* Subcategories Card */}
+      {selectedCategory !== 'all' && relevantSubcategories.length > 0 && (
+        <Card className="shadow-sm border-slate-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-medium">
+              <Layers className="h-4 w-4 text-indigo-600" />
+              Underkategorier
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-2">
+              {relevantSubcategories.map((subcategory) => (
+                <div
+                  key={subcategory}
+                  className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 transition-colors"
                 >
-                  {getSubcategoryDisplayName(selectedSubcategory)}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSubcategoryChange(selectedSubcategory);
-                    }}
-                  >
-                    ×
-                  </Button>
-                </Badge>
-              )}
-
-              {selectedDurations.map((duration) => (
-                <Badge
-                  key={duration}
-                  variant="secondary"
-                  className="flex items-center gap-1 pl-2 pr-1 py-1"
-                >
-                  {duration}h
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0"
-                    onClick={() => onDurationChange(duration)}
-                  >
-                    ×
-                  </Button>
-                </Badge>
-              ))}
-
-              {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
-                <Badge
-                  variant="secondary"
-                  className="flex items-center gap-1 pl-2 pr-1 py-1"
-                >
-                  {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0"
-                    onClick={() => onPriceRangeChange([0, maxPrice])}
-                  >
-                    ×
-                  </Button>
-                </Badge>
-              )}
-            </div>
-          )}
-
-          {activeFilterCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs text-muted-foreground hover:text-foreground w-full"
-              onClick={onClearFilters}
-            >
-              Rensa filter
-            </Button>
-          )}
-        </div>
-      ) : (
-        // Expanded view: show all filter options in accordion
-        <Accordion type="multiple" defaultValue={['category']}>
-          <AccordionItem value="category" className="border-b-0">
-            <AccordionTrigger className="py-2 text-sm">
-              Kategorier
-            </AccordionTrigger>
-            <AccordionContent className="pt-0 pb-2">
-              <div className="space-y-1 text-xs max-h-48 overflow-y-auto pr-1">
-                <div className="flex items-center">
                   <Checkbox
-                    id="all"
-                    checked={selectedCategory === 'all'}
-                    onCheckedChange={() => onCategoryChange('all')}
-                    className="h-3.5 w-3.5"
+                    id={subcategory}
+                    checked={selectedSubcategory === subcategory}
+                    onCheckedChange={() => onSubcategoryChange(subcategory)}
+                    className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
                   />
-                  <Label htmlFor="all" className="ml-2 text-xs cursor-pointer">
-                    Alla kategorier
+                  <Label
+                    htmlFor={subcategory}
+                    className="text-sm font-medium cursor-pointer flex-1"
+                  >
+                    {getSubcategoryDisplayName(subcategory)}
                   </Label>
                 </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-                {categories.map((category) => (
-                  <div key={category} className="flex items-center">
-                    <Checkbox
-                      id={category}
-                      checked={selectedCategory === category}
-                      onCheckedChange={() => onCategoryChange(category)}
-                      className="h-3.5 w-3.5"
-                    />
-                    <Label
-                      htmlFor={category}
-                      className="ml-2 text-xs cursor-pointer"
-                    >
-                      {getCategoryDisplayName(category)}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          {selectedCategory !== 'all' && relevantSubcategories.length > 0 && (
-            <AccordionItem value="subcategory" className="border-b-0">
-              <AccordionTrigger className="py-2 text-sm">
-                Underkategorier
-              </AccordionTrigger>
-              <AccordionContent className="pt-0 pb-2">
-                <div className="space-y-1 text-xs max-h-32 overflow-y-auto pr-1">
-                  {relevantSubcategories.map((subcategory) => (
-                    <div key={subcategory} className="flex items-center">
-                      <Checkbox
-                        id={subcategory}
-                        checked={selectedSubcategory === subcategory}
-                        onCheckedChange={() => onSubcategoryChange(subcategory)}
-                        className="h-3.5 w-3.5"
-                      />
-                      <Label
-                        htmlFor={subcategory}
-                        className="ml-2 text-xs cursor-pointer"
-                      >
-                        {getSubcategoryDisplayName(subcategory)}
-                      </Label>
-                    </div>
-                  ))}
+      {/* Price Range Card */}
+      <Card className="shadow-sm border-slate-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-medium">
+            <DollarSign className="h-4 w-4 text-emerald-600" />
+            Prisintervall
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground">Min</div>
+                <div className="text-lg font-semibold text-emerald-600">
+                  {formatPrice(priceRange[0])}
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-          )}
-
-          <AccordionItem value="price" className="border-b-0">
-            <AccordionTrigger className="py-2 text-sm">
-              Prisintervall
-            </AccordionTrigger>
-            <AccordionContent className="pt-0 pb-2">
-              <div className="px-1">
-                <div className="flex justify-between mb-3">
-                  <span className="text-xs text-muted-foreground">
-                    {formatPrice(priceRange[0])}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatPrice(priceRange[1])}
-                  </span>
+              </div>
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground">Max</div>
+                <div className="text-lg font-semibold text-emerald-600">
+                  {formatPrice(priceRange[1])}
                 </div>
-
-                <Slider
-                  min={0}
-                  max={maxPrice}
-                  step={50}
-                  value={priceRange}
-                  onValueChange={(value) =>
-                    onPriceRangeChange(value as [number, number])
-                  }
-                  className="mb-1"
-                />
               </div>
-            </AccordionContent>
-          </AccordionItem>
+            </div>
 
-          <AccordionItem value="duration" className="border-b-0">
-            <AccordionTrigger className="py-2 text-sm">
-              Varaktighet
-            </AccordionTrigger>
-            <AccordionContent className="pt-0 pb-2">
-              <div className="flex flex-wrap gap-2 px-1">
-                {durations.map((duration) => (
-                  <Button
-                    key={duration}
-                    variant={
-                      selectedDurations.includes(duration)
-                        ? 'default'
-                        : 'outline'
-                    }
-                    size="sm"
-                    className="h-7 text-xs px-2"
-                    onClick={() => onDurationChange(duration)}
-                  >
-                    {duration} timmar
-                  </Button>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-
-          <div className="flex justify-between mt-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-7"
-              onClick={onClearFilters}
-            >
-              Rensa filter
-            </Button>
-
-            {isMobile && (
-              <Button
-                size="sm"
-                className="text-xs h-7 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                onClick={onApplyFilters}
-              >
-                Använd filter
-              </Button>
-            )}
+            <div className="px-2">
+              <Slider
+                min={0}
+                max={maxPrice}
+                step={50}
+                value={priceRange}
+                onValueChange={(value) =>
+                  onPriceRangeChange(value as [number, number])
+                }
+                className="w-full"
+              />
+            </div>
           </div>
-        </Accordion>
+        </CardContent>
+      </Card>
+
+      {/* Duration Card */}
+      <Card className="shadow-sm border-slate-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-medium">
+            <Clock className="h-4 w-4 text-amber-600" />
+            Varaktighet
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-1 gap-2">
+            {durations.map((duration) => (
+              <Button
+                key={duration}
+                variant={
+                  selectedDurations.includes(duration) ? 'default' : 'outline'
+                }
+                size="sm"
+                className={cn(
+                  'justify-start h-10 font-medium transition-all',
+                  selectedDurations.includes(duration)
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md'
+                    : 'hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700'
+                )}
+                onClick={() => onDurationChange(duration)}
+              >
+                <Clock className="h-4 w-4 mr-2" />
+                {duration} Timmar
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Apply Filters Button for Mobile */}
+      {isMobile && (
+        <Button
+          size="lg"
+          className="w-full h-12 text-base font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-lg"
+          onClick={onApplyFilters}
+        >
+          <Filter className="h-4 w-4 mr-2" />
+          Använd Filter
+        </Button>
       )}
     </div>
   );

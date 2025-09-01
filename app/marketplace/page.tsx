@@ -11,7 +11,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { FilterSidebar } from '@/components/filter-sidebar';
 import { ProductCard } from '@/components/product-card';
 import { useMobile } from '@/hooks/use-mobile';
-import { useDeals} from '@/hooks/useDeals';
+import { useDeals } from '@/hooks/useDeals';
 import { Deal } from '@/components/types/deal';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
@@ -35,7 +35,9 @@ export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(
+    null
+  );
   const [selectedDurations, setSelectedDurations] = useState<number[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [maxPrice, setMaxPrice] = useState(10000);
@@ -74,7 +76,10 @@ export default function Marketplace() {
     setSubcategories(Array.from(uniqueSubcategories));
     setMaxPrice(Math.ceil(highestPrice / 100) * 100 || 10000);
 
-    if (priceRange[1] !== Math.ceil(highestPrice / 100) * 100 && highestPrice > 0) {
+    if (
+      priceRange[1] !== Math.ceil(highestPrice / 100) * 100 &&
+      highestPrice > 0
+    ) {
       setPriceRange([0, Math.ceil(highestPrice / 100) * 100]);
     }
   }, [deals]);
@@ -96,12 +101,16 @@ export default function Marketplace() {
       filtered = filtered.filter((deal) => deal.category === selectedCategory);
 
       if (selectedSubcategory) {
-        filtered = filtered.filter((deal) => deal.subcategory === selectedSubcategory);
+        filtered = filtered.filter(
+          (deal) => deal.subcategory === selectedSubcategory
+        );
       }
     }
 
     if (selectedDurations.length > 0) {
-      filtered = filtered.filter((deal) => selectedDurations.includes(deal.duration));
+      filtered = filtered.filter((deal) =>
+        selectedDurations.includes(deal.duration)
+      );
     }
 
     filtered = filtered.filter(
@@ -179,21 +188,33 @@ export default function Marketplace() {
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
-            {selectedCategory !== 'all' ? getCategoryLabel() : t.t('Marknadsplats')}
+            {selectedCategory !== 'all'
+              ? getCategoryLabel()
+              : t.t('Marknadsplats')}
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
             {selectedCategory !== 'all' && selectedSubcategory
               ? `Bläddrar i ${selectedSubcategory} inom ${getCategoryLabel()}`
-              : t.t('Utforska vår marknadsplats för exklusiva erbjudanden med begränsad tid. Klockan tickar!')}
+              : t.t(
+                  'Utforska vår marknadsplats för exklusiva erbjudanden med begränsad tid. Klockan tickar!'
+                )}
           </p>
         </div>
 
         <div className="flex justify-between items-center mb-6">
-          <Tabs value={sortOption} onValueChange={setSortOption} className="w-auto">
+          <Tabs
+            value={sortOption}
+            onValueChange={setSortOption}
+            className="w-auto"
+          >
             <TabsList>
               <TabsTrigger value="newest">{t.t('Senaste')}</TabsTrigger>
-              <TabsTrigger value="price-asc">{t.t('Pris: Lågt till Högt')}</TabsTrigger>
-              <TabsTrigger value="price-desc">{t.t('Pris: Högt till Lågt')}</TabsTrigger>
+              <TabsTrigger value="price-asc">
+                {t.t('Pris: Lågt till Högt')}
+              </TabsTrigger>
+              <TabsTrigger value="price-desc">
+                {t.t('Pris: Högt till Lågt')}
+              </TabsTrigger>
               <TabsTrigger value="time-left">{t.t('Tid kvar')}</TabsTrigger>
             </TabsList>
           </Tabs>
@@ -206,7 +227,7 @@ export default function Marketplace() {
 
         <div className="flex flex-col md:flex-row gap-8">
           {!isMobile && (
-            <div className="w-64 shrink-0">
+            <div className="w-80 shrink-0">
               <FilterSidebar
                 categories={categories}
                 selectedCategory={selectedCategory}
@@ -218,15 +239,16 @@ export default function Marketplace() {
                 selectedDurations={selectedDurations}
                 onDurationChange={(d) =>
                   selectedDurations.includes(d)
-                    ? setSelectedDurations(selectedDurations.filter(x => x !== d))
+                    ? setSelectedDurations(
+                        selectedDurations.filter((x) => x !== d)
+                      )
                     : setSelectedDurations([...selectedDurations, d])
                 }
                 onClearFilters={handleClearFilters}
                 subcategories={subcategories}
                 selectedSubcategory={selectedSubcategory}
                 onSubcategoryChange={setSelectedSubcategory}
-                onApplyFilters={() => { }}
-
+                onApplyFilters={() => {}}
               />
             </div>
           )}
@@ -245,13 +267,15 @@ export default function Marketplace() {
                     title={deal.title}
                     description={deal.description}
                     price={deal.price}
-                    imageUrl={deal.imageUrl ?? "/placeholder.png"}
+                    imageUrl={deal.imageUrl ?? '/placeholder.png'}
                     category={deal.category}
                     companyName={deal.companyName || ''}
                     duration={deal.duration}
                     expiresAt={deal.expiresAt ?? new Date()}
                     onBuyNow={handleBuyNow}
-                    inStock={deal.inStock !== false && (deal.stockQuantity ?? 0) > 0}
+                    inStock={
+                      deal.inStock !== false && (deal.stockQuantity ?? 0) > 0
+                    }
                     stockQuantity={deal.stockQuantity ?? 0}
                   />
                 ))}
@@ -274,14 +298,28 @@ export default function Marketplace() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-medium mb-2">Inga produkter hittades</h3>
+                <h3 className="text-xl font-medium mb-2">
+                  Inga produkter hittades
+                </h3>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  {searchQuery || selectedCategory !== 'all' || selectedDurations.length > 0 || priceRange[0] > 0 || priceRange[1] < maxPrice
+                  {searchQuery ||
+                  selectedCategory !== 'all' ||
+                  selectedDurations.length > 0 ||
+                  priceRange[0] > 0 ||
+                  priceRange[1] < maxPrice
                     ? 'Inga produkter matchar dina filter. Försök att ändra dina sökkriterier.'
                     : 'Det finns inga aktiva erbjudanden just nu. Kom tillbaka senare.'}
                 </p>
-                {(searchQuery || selectedCategory !== 'all' || selectedDurations.length > 0 || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
-                  <Button variant="outline" className="mt-4" onClick={handleClearFilters}>
+                {(searchQuery ||
+                  selectedCategory !== 'all' ||
+                  selectedDurations.length > 0 ||
+                  priceRange[0] > 0 ||
+                  priceRange[1] < maxPrice) && (
+                  <Button
+                    variant="outline"
+                    className="mt-4"
+                    onClick={handleClearFilters}
+                  >
                     Rensa filter
                   </Button>
                 )}
