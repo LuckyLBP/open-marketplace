@@ -23,6 +23,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +41,7 @@ import {
   LogOut,
   LayoutDashboard,
   Settings,
+  Menu,
 } from 'lucide-react';
 
 import categoriesData from '@/lib/categories.json';
@@ -47,6 +56,7 @@ export function Navbar() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { cartItems } = useCartContext();
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -88,7 +98,7 @@ export function Navbar() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -121,7 +131,144 @@ export function Navbar() {
     >
       <div className="container mx-auto px-4">
         <div className="flex h-14 items-center justify-between">
-          <Link href="/" className="flex items-center">
+          {/* Mobile burger menu */}
+          <div className="md:hidden">
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[320px] p-0">
+                <div className="flex flex-col h-full">
+                  <SheetHeader className="p-6 pb-4 bg-gradient-to-r from-purple-50 to-pink-50">
+                    <SheetTitle className="text-left text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                      Clickfynd.se
+                    </SheetTitle>
+                    <SheetDescription className="text-left text-sm text-gray-600">
+                      Utforska våra kategorier
+                    </SheetDescription>
+                  </SheetHeader>
+
+                  <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                    {categories.map((category) => (
+                      <div key={category.title} className="space-y-3">
+                        <Link
+                          href={category.href}
+                          className="block text-base font-semibold text-gray-900 hover:text-purple-600 transition-colors"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          {category.title}
+                        </Link>
+                        <div className="space-y-2 ml-4 border-l border-gray-200 pl-4">
+                          {category.items.map((item) => (
+                            <Link
+                              key={item.name}
+                              href={item.href}
+                              className="block text-sm text-gray-600 hover:text-purple-600 transition-colors py-1"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              {item.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="border-t border-gray-200 p-6">
+                    {!loading && !user ? (
+                      <div className="space-y-3">
+                        <Link
+                          href="/auth/signin"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+                            Logga in
+                          </Button>
+                        </Link>
+                        <Link
+                          href="/auth/signup"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <Button
+                            variant="outline"
+                            className="w-full border-purple-200 text-purple-600 hover:bg-purple-50"
+                          >
+                            Skapa konto
+                          </Button>
+                        </Link>
+                      </div>
+                    ) : !loading && user ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={user.photoURL || ''} />
+                            <AvatarFallback className="bg-purple-100 text-purple-600 font-semibold">
+                              {user.email?.[0]?.toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {user.displayName || user.email}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {user.email}
+                            </p>
+                          </div>
+                        </div>
+
+                        {['company', 'superadmin', 'customer'].includes(
+                          userType || ''
+                        ) && (
+                          <Link
+                            href="/dashboard"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <Button
+                              variant="ghost"
+                              className="w-full justify-start"
+                            >
+                              <LayoutDashboard className="mr-2 h-4 w-4" />
+                              Dashboard
+                            </Button>
+                          </Link>
+                        )}
+
+                        <Link
+                          href="/dashboard/settings"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                          >
+                            <Settings className="mr-2 h-4 w-4" />
+                            Inställningar
+                          </Button>
+                        </Link>
+
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => {
+                            handleLogout();
+                            setMobileMenuOpen(false);
+                          }}
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Logga ut
+                        </Button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          {/* Logo - centered on mobile, left on desktop */}
+          <Link href="/" className="flex items-center md:mr-auto">
             <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               Clickfynd.se
             </span>
@@ -220,7 +367,7 @@ export function Navbar() {
             )}
 
             {!loading && !user && (
-              <Link href="/auth/signin">
+              <Link href="/auth/signin" className="hidden md:block">
                 <Button variant="ghost" className="ml-2">
                   Logga in
                 </Button>
