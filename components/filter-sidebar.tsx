@@ -193,13 +193,25 @@ export function FilterSidebar({
   };
 
   return (
-    <div className={cn('space-y-4', isMobile && 'mb-6')}>
+    <div className={cn('space-y-4', isMobile ? 'px-2' : '')}>
       {/* Header Card */}
       <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200/50 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-3 text-lg font-semibold">
-            <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg">
-              <Filter className="h-4 w-4 text-white" />
+        <CardHeader className={cn('pb-3', isMobile && 'pb-2')}>
+          <CardTitle
+            className={cn(
+              'flex items-center gap-3 font-semibold',
+              isMobile ? 'text-base' : 'text-lg'
+            )}
+          >
+            <div
+              className={cn(
+                'bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow-lg',
+                isMobile ? 'p-1.5' : 'p-2'
+              )}
+            >
+              <Filter
+                className={cn('text-white', isMobile ? 'h-3 w-3' : 'h-4 w-4')}
+              />
             </div>
             <span className="bg-gradient-to-r from-purple-700 to-indigo-700 bg-clip-text text-transparent">
               Smarta Filter
@@ -211,7 +223,7 @@ export function FilterSidebar({
             )}
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className={cn('pt-0', isMobile && 'px-4 pb-4')}>
           {/* Active Filters Display */}
           {activeFilterCount > 0 && (
             <div className="space-y-3">
@@ -219,25 +231,41 @@ export function FilterSidebar({
                 {selectedCategory !== 'all' && (
                   <Badge
                     variant="secondary"
-                    className="bg-white/70 text-purple-700 border-purple-200 hover:bg-white/90 transition-colors cursor-pointer group"
+                    className={cn(
+                      'bg-white/70 text-purple-700 border-purple-200 hover:bg-white/90 transition-colors cursor-pointer group',
+                      isMobile && 'text-xs py-1 px-2'
+                    )}
                     onClick={() => onCategoryChange('all')}
                   >
                     <span className="mr-1">
                       {getCategoryIcon(selectedCategory)}
                     </span>
                     {getCategoryDisplayName(selectedCategory)}
-                    <X className="h-3 w-3 ml-1 group-hover:text-red-500 transition-colors" />
+                    <X
+                      className={cn(
+                        'ml-1 group-hover:text-red-500 transition-colors',
+                        isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'
+                      )}
+                    />
                   </Badge>
                 )}
 
                 {selectedSubcategory && (
                   <Badge
                     variant="secondary"
-                    className="bg-white/70 text-indigo-700 border-indigo-200 hover:bg-white/90 transition-colors cursor-pointer group"
+                    className={cn(
+                      'bg-white/70 text-indigo-700 border-indigo-200 hover:bg-white/90 transition-colors cursor-pointer group',
+                      isMobile && 'text-xs py-1 px-2'
+                    )}
                     onClick={() => onSubcategoryChange(selectedSubcategory)}
                   >
                     {getSubcategoryDisplayName(selectedSubcategory)}
-                    <X className="h-3 w-3 ml-1 group-hover:text-red-500 transition-colors" />
+                    <X
+                      className={cn(
+                        'ml-1 group-hover:text-red-500 transition-colors',
+                        isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'
+                      )}
+                    />
                   </Badge>
                 )}
 
@@ -245,24 +273,50 @@ export function FilterSidebar({
                   <Badge
                     key={duration}
                     variant="secondary"
-                    className="bg-white/70 text-emerald-700 border-emerald-200 hover:bg-white/90 transition-colors cursor-pointer group"
+                    className={cn(
+                      'bg-white/70 text-emerald-700 border-emerald-200 hover:bg-white/90 transition-colors cursor-pointer group',
+                      isMobile && 'text-xs py-1 px-2'
+                    )}
                     onClick={() => onDurationChange(duration)}
                   >
-                    <Clock className="h-3 w-3 mr-1" />
+                    <Clock
+                      className={cn(
+                        'mr-1',
+                        isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'
+                      )}
+                    />
                     {duration}h
-                    <X className="h-3 w-3 ml-1 group-hover:text-red-500 transition-colors" />
+                    <X
+                      className={cn(
+                        'ml-1 group-hover:text-red-500 transition-colors',
+                        isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'
+                      )}
+                    />
                   </Badge>
                 ))}
 
                 {(priceRange[0] > 0 || priceRange[1] < maxPrice) && (
                   <Badge
                     variant="secondary"
-                    className="bg-white/70 text-amber-700 border-amber-200 hover:bg-white/90 transition-colors cursor-pointer group"
+                    className={cn(
+                      'bg-white/70 text-amber-700 border-amber-200 hover:bg-white/90 transition-colors cursor-pointer group',
+                      isMobile && 'text-xs py-1 px-2'
+                    )}
                     onClick={() => onPriceRangeChange([0, maxPrice])}
                   >
-                    <DollarSign className="h-3 w-3 mr-1" />
+                    <DollarSign
+                      className={cn(
+                        'mr-1',
+                        isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'
+                      )}
+                    />
                     {formatPrice(priceRange[0])} - {formatPrice(priceRange[1])}
-                    <X className="h-3 w-3 ml-1 group-hover:text-red-500 transition-colors" />
+                    <X
+                      className={cn(
+                        'ml-1 group-hover:text-red-500 transition-colors',
+                        isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'
+                      )}
+                    />
                   </Badge>
                 )}
               </div>
@@ -270,10 +324,15 @@ export function FilterSidebar({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-purple-600 hover:text-purple-700 hover:bg-purple-50 w-full border border-purple-200 hover:border-purple-300 transition-all"
+                className={cn(
+                  'text-purple-600 hover:text-purple-700 hover:bg-purple-50 w-full border border-purple-200 hover:border-purple-300 transition-all',
+                  isMobile ? 'h-10 text-sm' : 'h-8'
+                )}
                 onClick={onClearFilters}
               >
-                <RotateCcw className="h-3 w-3 mr-2" />
+                <RotateCcw
+                  className={cn('mr-2', isMobile ? 'h-4 w-4' : 'h-3 w-3')}
+                />
                 Återställ Alla Filter
               </Button>
             </div>
@@ -283,26 +342,41 @@ export function FilterSidebar({
 
       {/* Categories Card */}
       <Card className="shadow-sm border-slate-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base font-medium">
-            <Grid3X3 className="h-4 w-4 text-purple-600" />
+        <CardHeader className={cn('pb-3', isMobile && 'pb-2')}>
+          <CardTitle
+            className={cn(
+              'flex items-center gap-2 font-medium',
+              isMobile ? 'text-sm' : 'text-base'
+            )}
+          >
+            <Grid3X3
+              className={cn(
+                'text-purple-600',
+                isMobile ? 'h-3 w-3' : 'h-4 w-4'
+              )}
+            />
             Kategorier
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-1 gap-2">
+        <CardContent className={cn('pt-0', isMobile && 'px-4 pb-4')}>
+          <div
+            className={cn('grid grid-cols-1', isMobile ? 'gap-1.5' : 'gap-2')}
+          >
             <Button
               variant={selectedCategory === 'all' ? 'default' : 'outline'}
               size="sm"
               className={cn(
-                'justify-start h-10 font-medium transition-all',
+                'justify-start font-medium transition-all',
+                isMobile ? 'h-9 text-sm' : 'h-10',
                 selectedCategory === 'all'
                   ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md'
                   : 'hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700'
               )}
               onClick={() => onCategoryChange('all')}
             >
-              <Sparkles className="h-4 w-4 mr-2" />
+              <Sparkles
+                className={cn('mr-2', isMobile ? 'h-3 w-3' : 'h-4 w-4')}
+              />
               Alla Kategorier
             </Button>
 
@@ -312,14 +386,15 @@ export function FilterSidebar({
                 variant={selectedCategory === category ? 'default' : 'outline'}
                 size="sm"
                 className={cn(
-                  'justify-start h-10 font-medium transition-all',
+                  'justify-start font-medium transition-all',
+                  isMobile ? 'h-9 text-sm' : 'h-10',
                   selectedCategory === category
                     ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md'
                     : 'hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700'
                 )}
                 onClick={() => onCategoryChange(category)}
               >
-                <span className="mr-2 text-lg">
+                <span className={cn('mr-2', isMobile ? 'text-sm' : 'text-lg')}>
                   {getCategoryIcon(category)}
                 </span>
                 {getCategoryDisplayName(category)}
@@ -332,18 +407,31 @@ export function FilterSidebar({
       {/* Subcategories Card */}
       {selectedCategory !== 'all' && relevantSubcategories.length > 0 && (
         <Card className="shadow-sm border-slate-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base font-medium">
-              <Layers className="h-4 w-4 text-indigo-600" />
+          <CardHeader className={cn('pb-3', isMobile && 'pb-2')}>
+            <CardTitle
+              className={cn(
+                'flex items-center gap-2 font-medium',
+                isMobile ? 'text-sm' : 'text-base'
+              )}
+            >
+              <Layers
+                className={cn(
+                  'text-indigo-600',
+                  isMobile ? 'h-3 w-3' : 'h-4 w-4'
+                )}
+              />
               Underkategorier
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-2">
+          <CardContent className={cn('pt-0', isMobile && 'px-4 pb-4')}>
+            <div className={cn('space-y-2', isMobile && 'space-y-1.5')}>
               {relevantSubcategories.map((subcategory) => (
                 <div
                   key={subcategory}
-                  className="flex items-center space-x-3 p-2 rounded-lg hover:bg-slate-50 transition-colors"
+                  className={cn(
+                    'flex items-center space-x-3 rounded-lg hover:bg-slate-50 transition-colors',
+                    isMobile ? 'p-1.5' : 'p-2'
+                  )}
                 >
                   <Checkbox
                     id={subcategory}
@@ -353,7 +441,10 @@ export function FilterSidebar({
                   />
                   <Label
                     htmlFor={subcategory}
-                    className="text-sm font-medium cursor-pointer flex-1"
+                    className={cn(
+                      'font-medium cursor-pointer flex-1',
+                      isMobile ? 'text-xs' : 'text-sm'
+                    )}
                   >
                     {getSubcategoryDisplayName(subcategory)}
                   </Label>
@@ -366,30 +457,64 @@ export function FilterSidebar({
 
       {/* Price Range Card */}
       <Card className="shadow-sm border-slate-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base font-medium">
-            <DollarSign className="h-4 w-4 text-emerald-600" />
+        <CardHeader className={cn('pb-3', isMobile && 'pb-2')}>
+          <CardTitle
+            className={cn(
+              'flex items-center gap-2 font-medium',
+              isMobile ? 'text-sm' : 'text-base'
+            )}
+          >
+            <DollarSign
+              className={cn(
+                'text-emerald-600',
+                isMobile ? 'h-3 w-3' : 'h-4 w-4'
+              )}
+            />
             Prisintervall
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-4">
+        <CardContent className={cn('pt-0', isMobile && 'px-4 pb-4')}>
+          <div className={cn('space-y-4', isMobile && 'space-y-3')}>
             <div className="flex justify-between items-center">
               <div className="text-center">
-                <div className="text-sm text-muted-foreground">Min</div>
-                <div className="text-lg font-semibold text-emerald-600">
+                <div
+                  className={cn(
+                    'text-muted-foreground',
+                    isMobile ? 'text-xs' : 'text-sm'
+                  )}
+                >
+                  Min
+                </div>
+                <div
+                  className={cn(
+                    'font-semibold text-emerald-600',
+                    isMobile ? 'text-base' : 'text-lg'
+                  )}
+                >
                   {formatPrice(priceRange[0])}
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-sm text-muted-foreground">Max</div>
-                <div className="text-lg font-semibold text-emerald-600">
+                <div
+                  className={cn(
+                    'text-muted-foreground',
+                    isMobile ? 'text-xs' : 'text-sm'
+                  )}
+                >
+                  Max
+                </div>
+                <div
+                  className={cn(
+                    'font-semibold text-emerald-600',
+                    isMobile ? 'text-base' : 'text-lg'
+                  )}
+                >
                   {formatPrice(priceRange[1])}
                 </div>
               </div>
             </div>
 
-            <div className="px-2">
+            <div className={cn(isMobile ? 'px-1' : 'px-2')}>
               <Slider
                 min={0}
                 max={maxPrice}
@@ -407,14 +532,23 @@ export function FilterSidebar({
 
       {/* Duration Card */}
       <Card className="shadow-sm border-slate-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base font-medium">
-            <Clock className="h-4 w-4 text-amber-600" />
+        <CardHeader className={cn('pb-3', isMobile && 'pb-2')}>
+          <CardTitle
+            className={cn(
+              'flex items-center gap-2 font-medium',
+              isMobile ? 'text-sm' : 'text-base'
+            )}
+          >
+            <Clock
+              className={cn('text-amber-600', isMobile ? 'h-3 w-3' : 'h-4 w-4')}
+            />
             Varaktighet
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-1 gap-2">
+        <CardContent className={cn('pt-0', isMobile && 'px-4 pb-4')}>
+          <div
+            className={cn('grid grid-cols-1', isMobile ? 'gap-1.5' : 'gap-2')}
+          >
             {durations.map((duration) => (
               <Button
                 key={duration}
@@ -423,14 +557,17 @@ export function FilterSidebar({
                 }
                 size="sm"
                 className={cn(
-                  'justify-start h-10 font-medium transition-all',
+                  'justify-start font-medium transition-all',
+                  isMobile ? 'h-9 text-sm' : 'h-10',
                   selectedDurations.includes(duration)
                     ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md'
                     : 'hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700'
                 )}
                 onClick={() => onDurationChange(duration)}
               >
-                <Clock className="h-4 w-4 mr-2" />
+                <Clock
+                  className={cn('mr-2', isMobile ? 'h-3 w-3' : 'h-4 w-4')}
+                />
                 {duration} Timmar
               </Button>
             ))}
@@ -442,10 +579,13 @@ export function FilterSidebar({
       {isMobile && (
         <Button
           size="lg"
-          className="w-full h-12 text-base font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-lg"
+          className={cn(
+            'w-full font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-lg',
+            isMobile ? 'h-14 text-base' : 'h-12'
+          )}
           onClick={onApplyFilters}
         >
-          <Filter className="h-4 w-4 mr-2" />
+          <Filter className={cn('mr-2', isMobile ? 'h-5 w-5' : 'h-4 w-4')} />
           Använd Filter
         </Button>
       )}

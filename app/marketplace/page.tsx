@@ -15,6 +15,15 @@ import { useDeals } from '@/hooks/useDeals';
 import { Deal } from '@/components/types/deal';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
+import { cn } from '@/lib/utils';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 const categoryDisplayNames: Record<string, string> = {
   elektronik: 'Elektronik',
@@ -44,6 +53,7 @@ export default function Marketplace() {
   const [sortOption, setSortOption] = useState('newest');
   const [categories, setCategories] = useState<string[]>([]);
   const [subcategories, setSubcategories] = useState<string[]>([]);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
   const { deals, loading } = useDeals({
     category: selectedCategory !== 'all' ? selectedCategory : undefined,
@@ -170,6 +180,17 @@ export default function Marketplace() {
     router.push('/marketplace');
   };
 
+  const handleApplyFilters = () => {
+    setMobileFilterOpen(false);
+  };
+
+  // Count active filters
+  const activeFilterCount =
+    (selectedCategory !== 'all' ? 1 : 0) +
+    (selectedSubcategory ? 1 : 0) +
+    selectedDurations.length +
+    (priceRange[0] > 0 || priceRange[1] < maxPrice ? 1 : 0);
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-50 to-white">
       <Navbar />
@@ -201,27 +222,104 @@ export default function Marketplace() {
           </p>
         </div>
 
-        <div className="flex justify-between items-center mb-6">
+        <div
+          className={cn(
+            'flex items-center mb-6',
+            isMobile ? 'flex-col gap-4' : 'justify-between'
+          )}
+        >
           <Tabs
             value={sortOption}
             onValueChange={setSortOption}
-            className="w-auto"
+            className={cn('w-auto', isMobile && 'w-full')}
           >
-            <TabsList>
-              <TabsTrigger value="newest">{t.t('Senaste')}</TabsTrigger>
-              <TabsTrigger value="price-asc">
-                {t.t('Pris: Lågt till Högt')}
+            <TabsList className={isMobile ? 'w-full grid grid-cols-4' : ''}>
+              <TabsTrigger
+                value="newest"
+                className={isMobile ? 'text-xs px-2' : ''}
+              >
+                {isMobile ? 'Nyast' : t.t('Senaste')}
               </TabsTrigger>
-              <TabsTrigger value="price-desc">
-                {t.t('Pris: Högt till Lågt')}
+              <TabsTrigger
+                value="price-asc"
+                className={isMobile ? 'text-xs px-2' : ''}
+              >
+                {isMobile ? 'Pris ↑' : t.t('Pris: Lågt till Högt')}
               </TabsTrigger>
-              <TabsTrigger value="time-left">{t.t('Tid kvar')}</TabsTrigger>
+              <TabsTrigger
+                value="price-desc"
+                className={isMobile ? 'text-xs px-2' : ''}
+              >
+                {isMobile ? 'Pris ↓' : t.t('Pris: Högt till Lågt')}
+              </TabsTrigger>
+              <TabsTrigger
+                value="time-left"
+                className={isMobile ? 'text-xs px-2' : ''}
+              >
+                {isMobile ? 'Tid' : t.t('Tid kvar')}
+              </TabsTrigger>
             </TabsList>
           </Tabs>
+
           {isMobile && (
-            <Button variant="outline" size="icon">
-              <SlidersHorizontal className="h-4 w-4" />
-            </Button>
+            <div className="w-full">
+              <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="default"
+                    className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200 hover:from-purple-100 hover:to-indigo-100 hover:border-purple-300 shadow-sm px-8 py-2.5 rounded-full transition-all"
+                  >
+                    <SlidersHorizontal className="h-4 w-4 text-purple-600" />
+                    <span className="text-sm font-medium text-purple-700">
+                      Filter & Sortera
+                    </span>
+                    {activeFilterCount > 0 && (
+                      <span className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs rounded-full px-2.5 py-1 min-w-[22px] flex items-center justify-center font-medium shadow-sm">
+                        {activeFilterCount}
+                      </span>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent
+                  side="bottom"
+                  className="h-[90vh] overflow-y-auto"
+                >
+                  <SheetHeader>
+                    <SheetTitle>Filter</SheetTitle>
+                    <SheetDescription>
+                      Anpassa dina sökkriterier för att hitta perfekta
+                      erbjudanden
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="mt-6">
+                    <FilterSidebar
+                      categories={categories}
+                      selectedCategory={selectedCategory}
+                      onCategoryChange={setSelectedCategory}
+                      priceRange={priceRange}
+                      maxPrice={maxPrice}
+                      onPriceRangeChange={setPriceRange}
+                      durations={[12, 24, 48]}
+                      selectedDurations={selectedDurations}
+                      onDurationChange={(d) =>
+                        selectedDurations.includes(d)
+                          ? setSelectedDurations(
+                              selectedDurations.filter((x) => x !== d)
+                            )
+                          : setSelectedDurations([...selectedDurations, d])
+                      }
+                      onClearFilters={handleClearFilters}
+                      subcategories={subcategories}
+                      selectedSubcategory={selectedSubcategory}
+                      onSubcategoryChange={setSelectedSubcategory}
+                      onApplyFilters={handleApplyFilters}
+                      isMobile={true}
+                    />
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           )}
         </div>
 
@@ -248,7 +346,8 @@ export default function Marketplace() {
                 subcategories={subcategories}
                 selectedSubcategory={selectedSubcategory}
                 onSubcategoryChange={setSelectedSubcategory}
-                onApplyFilters={() => {}}
+                onApplyFilters={handleApplyFilters}
+                isMobile={false}
               />
             </div>
           )}
