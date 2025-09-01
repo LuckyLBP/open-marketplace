@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import type { ProductImage, Feature, Specification } from "@/components/types/deal";
 
-// 🔁 NYTT: global settings (service fees)
+// 🔁 Globala inställningar (service fees)
 import { useGlobalSettings, feeForDuration } from "@/hooks/useGlobalSettings";
 
 type CreateDealFormProps = {
@@ -36,14 +36,14 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
 
-  // 🔁 NYTT: hämta settings
+  // 🔁 Hämta settings
   const { settings, loading: settingsLoading } = useGlobalSettings();
 
   const isEditing = !!defaultValues?.id;
   const [activeTab, setActiveTab] = useState("basic");
   const [duration, setDuration] = useState(24);
 
-  // 🔁 NYTT: initiera fee utifrån settings (fallback hanteras i hooken)
+  // 🔁 Initiera fee utifrån settings (fallback i hooken)
   const initialFee = feeForDuration(settings.serviceFees, 24);
   const [feePercentage, setFeePercentage] = useState<number>(initialFee);
 
@@ -63,10 +63,19 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
   const [subcategory, setSubcategory] = useState("");
   const [companyName, setCompanyName] = useState("");
 
+  // ⬆️ Höj max till 30 dagar (720h) för företag
   const maxDuration =
-    userType === "company" ? 336 :
-      userType === "customer" ? 168 :
-        userType === "admin" || userType === "superadmin" ? 336 : 168;
+    userType === "company" ? 720 :
+    userType === "customer" ? 168 :
+    (userType === "admin" || userType === "superadmin") ? 720 : 168;
+
+  // Bygg options i samma mönster som tidigare, men upp till max
+  const buildDurationOptions = (max: number) => {
+    const opts: number[] = [12, 24, 36, 48, 72, 96, 120];
+    for (let h = 144; h <= max; h += 24) opts.push(h);
+    return opts.filter((h) => h <= max);
+  };
+  const durationOptions = buildDurationOptions(maxDuration);
 
   // Fyll i vid redigering
   useEffect(() => {
@@ -82,8 +91,6 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
       const d = defaultValues.duration || 24;
       setDuration(d);
 
-      // Om vi redan har sparad feePercentage i dokumentet, använd den;
-      // annars räkna ut från settings för vald duration.
       const fee = typeof defaultValues.feePercentage === "number"
         ? defaultValues.feePercentage
         : feeForDuration(settings.serviceFees, d);
@@ -98,7 +105,7 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValues]);
 
-  // När settings laddas/uppdateras – synka fee för aktuell duration om vi inte redigerar ett redan satt värde
+  // Sync fee vid settings/duration-ändringar (om vi inte redigerar ett redan satt värde)
   useEffect(() => {
     if (!isEditing && !settingsLoading) {
       setFeePercentage(feeForDuration(settings.serviceFees, duration));
@@ -198,7 +205,7 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
         images: imagesToSave,
         imageUrl: imagesToSave.find((img) => img.isPrimary)?.url || imagesToSave[0]?.url || '',
         duration,
-        feePercentage, // ✅ sparar vilken fee som gällde när dealen skapades
+        feePercentage, // ✅ spara fee som gällde vid skapandet
       };
 
       const stripUndefined = (obj: Record<string, any>) =>
@@ -212,9 +219,14 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
         await updateDoc(doc(db, "deals", defaultValues.id), updatePayload);
         toast({ title: t("Succé"), description: t("Ändringarna har sparats!") });
       } else {
+        // ✅ AUTO-APPROVE för företag; pending för customers
+        const isCompany = normalizedAccountType === 'company';
+        const now = new Date();
+        const computedExpiresAt = isCompany ? new Date(now.getTime() + duration * 60 * 60 * 1000) : null;
+
         const createPayload = {
           ...stripUndefined(editableFields),
-          expiresAt: null,
+          expiresAt: computedExpiresAt,          // företag: sätt direkt, kund: null
           createdAt: serverTimestamp(),
           companyId: user?.uid || null,
           companyName: companyName.trim(),
@@ -224,10 +236,16 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
           boostType: null,
           boostStart: null,
           boostEnd: null,
-          status: "pending",
+          status: isCompany ? "approved" : "pending", // 👈 auto-approve företag
         };
+
         await addDoc(collection(db, "deals"), createPayload);
-        toast({ title: t("Succé"), description: t("Erbjudandet har sparats!") });
+        toast({
+          title: t("Succé"),
+          description: isCompany
+            ? t("Erbjudandet är nu aktivt.")
+            : t("Erbjudandet skickades för godkännande."),
+        });
       }
 
       router.push("/dashboard");
@@ -266,16 +284,14 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
                 }}
                 className="block w-full mt-1 border-gray-300 rounded-md shadow-sm"
               >
-                {[12, 24, 36, 48, 72, 96, 120, 144, 168, 192, 216, 240, 264, 288, 312, 336]
-                  .filter((h) => h <= maxDuration)
-                  .map((h) => {
-                    const label = h <= 48 ? `${h} timmar` : `${h / 24} dagar`;
-                    return (
-                      <option key={h} value={h}>
-                        {label}
-                      </option>
-                    );
-                  })}
+                {durationOptions.map((h) => {
+                  const label = h <= 48 ? `${h} timmar` : `${h / 24} dagar`;
+                  return (
+                    <option key={h} value={h}>
+                      {label}
+                    </option>
+                  );
+                })}
               </select>
               <p className="mt-2 text-sm text-gray-600">
                 {t("Serviceavgift")}:{" "}

@@ -1,222 +1,242 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { db } from '@/lib/firebase';
 import {
   collection,
-  deleteDoc,
-  doc,
   getDocs,
+  query,
+  where,
+  doc,
   updateDoc,
+  deleteDoc,
+  getDoc,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { useAdminDeals } from '@/hooks/useAdminDeals';
 import { DealList } from '../dealList';
 import { CompanySelector } from '../companySelector';
-import CompanyList from '../companyList';
-import CustomerList from '../customerList';
 import { Deal } from '@/components/types/deal';
 
-export default function AdminPanel() {
+import GlobalPricingCard from './globalPricingCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+
+interface EntityData {
+  id: string;
+  email: string;
+  name?: string;
+  orgNumber?: string;
+}
+
+export default function SuperAdminPanel() {
   const { activeDeals, expiredDeals, fetching } = useAdminDeals();
-  const [companies, setCompanies] = useState<any[]>([]);
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(''); // '' = alla
-  const [selectedCompany, setSelectedCompany] = useState<any | null>(null);
+
+  // ---- Konton-fliken
+  const [selectedType, setSelectedType] = useState<'company' | 'customer'>('company');
+  const [entities, setEntities] = useState<EntityData[]>([]);
+  const [selectedId, setSelectedId] = useState<string>('');
+
+  // ---- Erbjudanden-fliken
   const [pendingDeals, setPendingDeals] = useState<Deal[]>([]);
-  const [tab, setTab] = useState<'active' | 'expired' | 'pending'>('active');
+  const [tabDeals, setTabDeals] = useState<'active' | 'expired' | 'pending'>('active');
+  const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
 
+  // Ladda konton
   useEffect(() => {
-    const fetchCompanies = async () => {
-      const snapshot = await getDocs(collection(db, 'companies'));
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setCompanies(data);
+    const fetchEntities = async () => {
+      const collectionName = selectedType === 'company' ? 'companies' : 'customers';
+      const snapshot = await getDocs(collection(db, collectionName));
+      const data = snapshot.docs.map((docSnap) => {
+        const d = docSnap.data();
+        return {
+          id: docSnap.id,
+          email: d.email ?? 'okänd',
+          name: d.name ?? '',
+          orgNumber: d.orgNumber ?? '',
+          role: selectedType,
+        } as EntityData;
+      });
+      setEntities(data);
     };
-    fetchCompanies();
-  }, []);
+    fetchEntities();
+  }, [selectedType]);
 
+  // Ladda väntande deals
   useEffect(() => {
-    if (!selectedCompanyId) {
-      setSelectedCompany(null);
-      return;
-    }
-    const company = companies.find((c) => c.id === selectedCompanyId);
-    setSelectedCompany(company || null);
-  }, [selectedCompanyId, companies]);
-
-  useEffect(() => {
-    const fetchPendingDeals = async () => {
-      const snapshot = await getDocs(collection(db, 'deals'));
+    const fetchPending = async () => {
+      const snapshot = await getDocs(query(collection(db, 'deals'), where('status', '==', 'pending')));
       const mapped: any[] = snapshot.docs
         .map((doc) => {
           const data = doc.data();
-          if (
-            !data.title ||
-            !data.companyId ||
-            !data.companyName ||
-            !data.expiresAt
-          )
-            return null;
-
+          if (!data.title || !data.companyId || !data.companyName) return null;
           return {
             id: doc.id,
             title: data.title,
             companyId: data.companyId,
             companyName: data.companyName,
-            expiresAt: data.expiresAt.toDate
-              ? data.expiresAt.toDate()
-              : new Date(data.expiresAt),
+            expiresAt: data.expiresAt?.toDate?.() || null,
             status: data.status,
             description: data.description,
           };
         })
-        .filter((deal) => !!deal && deal.status === 'pending');
-
+        .filter(Boolean);
       setPendingDeals(mapped as Deal[]);
     };
-    fetchPendingDeals();
+    fetchPending();
   }, []);
 
+  // Filtrera deals per flik
+  useEffect(() => {
+    const baseDeals =
+      tabDeals === 'active' ? activeDeals :
+        tabDeals === 'expired' ? expiredDeals :
+          pendingDeals;
+
+    setFilteredDeals(baseDeals);
+  }, [tabDeals, activeDeals, expiredDeals, pendingDeals]);
+
+  const handleDelete = async (id: string) => {
+    const collectionName = selectedType === 'company' ? 'companies' : 'customers';
+    await deleteDoc(doc(db, collectionName, id));
+    setEntities(prev => prev.filter(u => u.id !== id));
+    setSelectedId('');
+  };
+
   const handleApprove = async (dealId: string) => {
-    await updateDoc(doc(db, 'deals', dealId), { status: 'approved' });
-    setPendingDeals((prev) => prev.filter((d) => d.id !== dealId));
+    try {
+      const dealRef = doc(db, 'deals', dealId);
+      const dealSnap = await getDoc(dealRef);
+      if (!dealSnap.exists()) return;
+
+      const dealData = dealSnap.data();
+      const now = new Date();
+      const duration = dealData.duration || 24;
+      const newExpiresAt = new Date(now.getTime() + duration * 60 * 60 * 1000);
+
+      await updateDoc(dealRef, { status: 'approved', expiresAt: newExpiresAt });
+      setPendingDeals(prev => prev.filter(d => d.id !== dealId));
+    } catch (e) {
+      console.error('Fel vid godkännande:', e);
+    }
   };
 
   const handleReject = async (dealId: string) => {
     await updateDoc(doc(db, 'deals', dealId), { status: 'rejected' });
-    setPendingDeals((prev) => prev.filter((d) => d.id !== dealId));
+    setPendingDeals(prev => prev.filter(d => d.id !== dealId));
   };
 
-  const filteredActive = selectedCompanyId
-    ? activeDeals.filter((d) => d.companyId === selectedCompanyId)
-    : activeDeals;
-  const filteredExpired = selectedCompanyId
-    ? expiredDeals.filter((d) => d.companyId === selectedCompanyId)
-    : expiredDeals;
-  const filteredPending = selectedCompanyId
-    ? pendingDeals.filter((d) => d.companyId === selectedCompanyId)
-    : pendingDeals;
+  const selectedEntity = entities.find(e => e.id === selectedId);
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Admin</h2>
-        <CompanySelector
-          companies={[
-            { id: '', email: 'Visa alla' },
-            ...companies.map((c) => ({ id: c.id, email: c.email })),
-          ]}
-          selectedCompanyId={selectedCompanyId}
-          onChange={setSelectedCompanyId}
-        />
-      </div>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold">Superadmin</h2>
 
-      {selectedCompany && (
-        <div className="p-4 rounded-lg bg-white border shadow-sm">
-          <p>
-            <strong>E-post:</strong> {selectedCompany.email}
-          </p>
-        </div>
-      )}
+      <Tabs defaultValue="settings" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="settings">Inställningar</TabsTrigger>
+          <TabsTrigger value="deals">Erbjudanden</TabsTrigger>
+          <TabsTrigger value="accounts">Konton</TabsTrigger>
+        </TabsList>
 
-      <div>
-        <div className="flex gap-4 border-b">
-          <button
-            onClick={() => setTab('active')}
-            className={
-              tab === 'active' ? 'border-b-2 font-semibold pb-2' : 'pb-2'
-            }
-          >
-            Aktiva
-          </button>
-          <button
-            onClick={() => setTab('expired')}
-            className={
-              tab === 'expired' ? 'border-b-2 font-semibold pb-2' : 'pb-2'
-            }
-          >
-            Utgångna
-          </button>
-          <button
-            onClick={() => setTab('pending')}
-            className={
-              tab === 'pending' ? 'border-b-2 font-semibold pb-2' : 'pb-2'
-            }
-          >
-            Väntande
-          </button>
-        </div>
+        {/* INSTÄLLNINGAR */}
+        <TabsContent value="settings" className="space-y-6">
+          <GlobalPricingCard />
+        </TabsContent>
 
-        <div className="mt-4">
-          {tab === 'active' && (
-            <DealList
-              title="Aktiva erbjudanden"
-              deals={filteredActive}
-              loading={fetching}
-            />
-          )}
-          {tab === 'expired' && (
-            <DealList
-              title="Utgångna erbjudanden"
-              deals={filteredExpired}
-              loading={fetching}
-            />
-          )}
-          {tab === 'pending' &&
-            (filteredPending.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Inga väntande erbjudanden.
-              </p>
+        {/* ERBJUDANDEN */}
+        <TabsContent value="deals" className="space-y-4">
+          <div className="flex gap-3 border-b">
+            <Button
+              variant={tabDeals === 'active' ? 'default' : 'ghost'}
+              onClick={() => setTabDeals('active')}
+            >
+              Aktiva
+            </Button>
+            <Button
+              variant={tabDeals === 'expired' ? 'default' : 'ghost'}
+              onClick={() => setTabDeals('expired')}
+            >
+              Utgångna
+            </Button>
+            <Button
+              variant={tabDeals === 'pending' ? 'default' : 'ghost'}
+              onClick={() => setTabDeals('pending')}
+            >
+              Väntande
+            </Button>
+          </div>
+
+          {tabDeals === 'pending' ? (
+            filteredDeals.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Inga väntande erbjudanden.</p>
             ) : (
               <ul className="space-y-3">
-                {filteredPending.map((deal) => (
+                {filteredDeals.map((deal) => (
                   <li
                     key={deal.id}
-                    className="p-4 rounded-lg bg-white border shadow-sm flex items-center justify-between"
+                    className="p-4 rounded-lg bg-white border shadow-sm flex flex-col md:flex-row md:items-center md:justify-between"
                   >
                     <div>
                       <h3 className="font-semibold">{deal.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {deal.description}
-                      </p>
-                      <p className="text-sm mt-1">
-                        <strong>Skapad av:</strong> {deal.companyName}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{deal.description}</p>
+                      <p className="text-sm mt-1"><strong>Skapad av:</strong> {deal.companyName}</p>
                     </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleApprove(deal.id)}
-                        className="bg-green-600 text-white px-3 py-1 rounded-md"
-                      >
+
+                    <div className="mt-3 md:mt-0 flex gap-2">
+                      <Button onClick={() => handleApprove(deal.id)} className="bg-green-600 hover:bg-green-700">
                         Godkänn
-                      </button>
-                      <button
-                        onClick={() => handleReject(deal.id)}
-                        className="bg-red-600 text-white px-3 py-1 rounded-md"
-                      >
+                      </Button>
+                      <Button onClick={() => handleReject(deal.id)} variant="destructive">
                         Avslå
-                      </button>
+                      </Button>
                     </div>
                   </li>
                 ))}
               </ul>
-            ))}
-        </div>
-      </div>
+            )
+          ) : (
+            <DealList title="Erbjudanden" deals={filteredDeals} loading={fetching} />
+          )}
+        </TabsContent>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <h3 className="text-lg font-semibold">Företagskonton</h3>
-          <div className="mt-3">
-            <CompanyList />
-          </div>
-        </div>
+        {/* KONTON */}
+        <TabsContent value="accounts" className="space-y-4">
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value as 'company' | 'customer')}
+              className="rounded-md border px-2 py-1 text-sm"
+            >
+              <option value="company">Företag</option>
+              <option value="customer">Privatperson</option>
+            </select>
 
-        <div>
-          <h3 className="text-lg font-semibold">Privatpersoner</h3>
-          <div className="mt-3">
-            <CustomerList />
+            <CompanySelector
+              companies={[{ id: '', email: 'Visa alla' }, ...entities.map(u => ({ id: u.id, email: u.email }))]}
+              selectedCompanyId={selectedId}
+              onChange={setSelectedId}
+            />
           </div>
-        </div>
-      </div>
+
+          {selectedId && selectedEntity && (
+            <div className="p-4 rounded-lg bg-white border shadow-sm">
+              <div className="grid sm:grid-cols-2 gap-2">
+                <p><strong>E-post:</strong> {selectedEntity.email}</p>
+                <p><strong>Namn:</strong> {selectedEntity.name || 'Saknas'}</p>
+                {selectedType === 'company' && (
+                  <p><strong>Organisationsnummer:</strong> {selectedEntity.orgNumber || 'Saknas'}</p>
+                )}
+              </div>
+
+              <div className="mt-3">
+                <Button onClick={() => handleDelete(selectedId)} variant="destructive">
+                  Ta bort konto
+                </Button>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

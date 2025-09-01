@@ -5,194 +5,184 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Label } from '@/components/ui/label';
 
 type ServiceFees = Record<string, number>;
-type BoostPrices = {
-    floatingPerHour?: number;
-    bannerPerHour?: number;
-};
+type BoostPrices = { floatingPerHour?: number; bannerPerHour?: number };
+type GlobalSettingsDoc = { serviceFees?: ServiceFees; boostPrices?: BoostPrices };
 
-type GlobalSettingsDoc = {
-    serviceFees?: ServiceFees;
-    boostPrices?: BoostPrices;
-};
-
-const DEFAULT_SERVICE_FEES: ServiceFees = {
-    '12': 3, '24': 4, '36': 5, '48': 6, '72': 7, '96': 8, '120': 9,
-    '144': 10, '168': 10, '192': 10, '216': 10, '240': 10, '264': 10,
-    '288': 10, '312': 10, '336': 10,
-};
+// ✅ Upp till 30 dagar: 12,24,36,48h och därefter varje 24:e timme till 720h
+const PRESET_DURATIONS: number[] = (() => {
+  const arr = [12, 24, 36, 48];
+  for (let h = 72; h <= 720; h += 24) arr.push(h);
+  return arr;
+})();
 
 export default function GlobalPricingCard() {
-    const [loading, setLoading] = useState(true);
-    const [serviceFees, setServiceFees] = useState<ServiceFees>({});
-    const [floatingPerHour, setFloatingPerHour] = useState<number>(20);
-    const [bannerPerHour, setBannerPerHour] = useState<number>(10);
-    const [newDuration, setNewDuration] = useState<string>('');
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        (async () => {
-            const ref = doc(db, 'settings', 'global');
-            const snap = await getDoc(ref);
-            if (snap.exists()) {
-                const data = snap.data() as GlobalSettingsDoc;
-                setServiceFees({ ...DEFAULT_SERVICE_FEES, ...(data.serviceFees || {}) });
-                setFloatingPerHour(
-                    typeof data.boostPrices?.floatingPerHour === 'number'
-                        ? data.boostPrices!.floatingPerHour!
-                        : 20
-                );
-                setBannerPerHour(
-                    typeof data.boostPrices?.bannerPerHour === 'number'
-                        ? data.boostPrices!.bannerPerHour!
-                        : 10
-                );
-            } else {
-                // Inget dokument ännu → visa defaults
-                setServiceFees({ ...DEFAULT_SERVICE_FEES });
-                setFloatingPerHour(20);
-                setBannerPerHour(10);
-            }
-            setLoading(false);
-        })();
-    }, []);
+  // fees & boost
+  const [serviceFees, setServiceFees] = useState<ServiceFees>({});
+  const [floatingPerHour, setFloatingPerHour] = useState<string>('20');
+  const [bannerPerHour, setBannerPerHour] = useState<string>('10');
 
-    const durationKeys = useMemo(
-        () => Object.keys(serviceFees).map(Number).sort((a, b) => a - b),
-        [serviceFees]
-    );
+  // UI state (endast dropdown + input)
+  const [selectedDuration, setSelectedDuration] = useState<string>('24');
+  const [selectedFee, setSelectedFee] = useState<string>('');
 
-    const addDurationRow = () => {
-        const n = Number(newDuration);
-        if (!Number.isFinite(n) || n <= 0) {
-            alert('Ange en giltig varaktighet i timmar (heltal > 0).');
-            return;
-        }
-        setServiceFees(prev => ({ ...prev, [String(n)]: prev[String(n)] ?? 0 }));
-        setNewDuration('');
-    };
+  useEffect(() => {
+    (async () => {
+      const ref = doc(db, 'settings', 'global');
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const data = snap.data() as GlobalSettingsDoc;
+        setServiceFees({ ...(data.serviceFees || {}) });
+        setFloatingPerHour(String(data.boostPrices?.floatingPerHour ?? 20));
+        setBannerPerHour(String(data.boostPrices?.bannerPerHour ?? 10));
+      } else {
+        // Defaults – basnivåer + 10% från 6 dagar och uppåt
+        const base: ServiceFees = { '12': 3, '24': 4, '36': 5, '48': 6, '72': 7, '96': 8, '120': 9 };
+        for (let h = 144; h <= 720; h += 24) base[String(h)] = 10;
+        setServiceFees(base);
+      }
+      setLoading(false);
+    })();
+  }, []);
 
-    const removeDurationRow = (h: number) => {
-        // Skydda några vanliga nycklar om du vill – men här tillåter vi ta bort alla
-        const copy = { ...serviceFees };
-        delete copy[String(h)];
-        setServiceFees(copy);
-    };
+  // När man byter varaktighet, förifyll input med befintlig eller default (≥144h => 10%)
+  useEffect(() => {
+    const dur = parseInt(selectedDuration, 10);
+    const current = serviceFees[String(dur)];
+    if (typeof current === 'number') {
+      setSelectedFee(String(current));
+    } else {
+      setSelectedFee(dur >= 144 ? '10' : '');
+    }
+  }, [selectedDuration, serviceFees]);
 
-    const save = async () => {
-        const ref = doc(db, 'settings', 'global');
-        // Rensa icke-numeriska keys/values
-        const cleaned: ServiceFees = {};
-        for (const [k, v] of Object.entries(serviceFees)) {
-            const hk = String(parseInt(k, 10)); // normalisera
-            const hv = Number(v);
-            if (Number.isFinite(Number(hk)) && Number.isFinite(hv)) {
-                cleaned[hk] = hv;
-            }
-        }
+  const addOrUpdateFee = () => {
+    const dur = parseInt(selectedDuration, 10);
+    const fee = Number(selectedFee);
+    if (!Number.isFinite(dur) || dur <= 0) return;
+    if (!Number.isFinite(fee) || fee < 0) return;
+    setServiceFees(prev => ({ ...prev, [String(dur)]: fee }));
+  };
 
-        await setDoc(
-            ref,
-            {
-                serviceFees: cleaned,
-                boostPrices: {
-                    floatingPerHour: Number(floatingPerHour) || 0,
-                    bannerPerHour: Number(bannerPerHour) || 0,
-                },
-            },
-            { merge: true }
-        );
-        alert('Inställningar sparade!');
-    };
+  const removeSelectedLevel = () => {
+    const dur = parseInt(selectedDuration, 10);
+    const copy = { ...serviceFees };
+    delete copy[String(dur)];
+    setServiceFees(copy);
+    // Återställ input till default för visuell feedback
+    setSelectedFee(dur >= 144 ? '10' : '');
+  };
 
-    if (loading) {
-        return (
-            <div className="border rounded p-4">
-                <h3 className="font-semibold text-lg">Globala priser & avgifter</h3>
-                <p className="text-sm text-muted-foreground mt-2">Laddar…</p>
-            </div>
-        );
+  const saveAll = async () => {
+    const ref = doc(db, 'settings', 'global');
+
+    // Städa numeriska värden
+    const cleaned: ServiceFees = {};
+    for (const [k, v] of Object.entries(serviceFees)) {
+      const dk = String(parseInt(k, 10));
+      const dv = Number(v);
+      if (Number.isFinite(Number(dk)) && Number.isFinite(dv)) cleaned[dk] = dv;
     }
 
-    return (
-        <div className="border rounded p-4 space-y-5 bg-white shadow-sm">
-            <h3 className="font-semibold text-lg">Globala priser & avgifter</h3>
+    // ✅ Backfill enligt din regel: ≥144h = 10% om inget annat är satt
+    for (let h = 144; h <= 720; h += 24) {
+      if (cleaned[String(h)] == null) cleaned[String(h)] = 10;
+    }
 
-            {/* Service Fees */}
-            <div className="space-y-3">
-                <div className="font-medium">Serviceavgifter (%) per varaktighet</div>
-
-                <div className="flex items-center gap-2">
-                    <Input
-                        placeholder="Lägg till varaktighet (timmar)"
-                        value={newDuration}
-                        onChange={(e) => setNewDuration(e.target.value)}
-                        className="max-w-[220px]"
-                        type="number"
-                        min={1}
-                        step={1}
-                    />
-                    <Button variant="outline" onClick={addDurationRow}>
-                        Lägg till rad
-                    </Button>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-2 max-w-xl">
-                    {durationKeys.map((h) => (
-                        <div key={h} className="flex items-center gap-2">
-                            <span className="w-24">{h <= 48 ? `${h}h` : `${h / 24}d`}</span>
-                            <Input
-                                type="number"
-                                value={serviceFees[String(h)] ?? 0}
-                                onChange={(e) =>
-                                    setServiceFees((prev) => ({
-                                        ...prev,
-                                        [String(h)]: Number(e.target.value),
-                                    }))
-                                }
-                            />
-                            <Button
-                                variant="ghost"
-                                className="ml-1"
-                                onClick={() => removeDurationRow(h)}
-                            >
-                                Ta bort
-                            </Button>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Boost per-hour pricing */}
-            <div className="grid md:grid-cols-2 gap-4 max-w-xl">
-                <div>
-                    <div className="font-medium mb-2">Boostpris – Floating (SEK/timme)</div>
-                    <Input
-                        type="number"
-                        value={floatingPerHour}
-                        onChange={(e) => setFloatingPerHour(Number(e.target.value))}
-                        min={0}
-                    />
-                </div>
-                <div>
-                    <div className="font-medium mb-2">Boostpris – Banner (SEK/timme)</div>
-                    <Input
-                        type="number"
-                        value={bannerPerHour}
-                        onChange={(e) => setBannerPerHour(Number(e.target.value))}
-                        min={0}
-                    />
-                </div>
-            </div>
-
-            <div>
-                <Button onClick={save}>Spara ändringar</Button>
-            </div>
-
-            <p className="text-xs text-muted-foreground">
-                Ändringarna slår igenom direkt i CreateDealForm, Boost-dialogen och checkout, eftersom dessa läser från <code>settings/global</code>.
-            </p>
-        </div>
+    await setDoc(
+      ref,
+      {
+        serviceFees: cleaned,
+        boostPrices: {
+          floatingPerHour: Number(floatingPerHour) || 0,
+          bannerPerHour: Number(bannerPerHour) || 0,
+        },
+      },
+      { merge: true }
     );
-}
+    alert('Inställningar sparade!');
+  };
 
+  const sortedDurations = useMemo(() => PRESET_DURATIONS, []);
+
+  return (
+    <div className="border rounded-xl p-5 bg-white shadow-sm">
+      <div className="mb-4">
+        <h3 className="text-xl font-semibold">Globala priser & avgifter</h3>
+        <p className="text-sm text-muted-foreground">
+          Ändringar uppdaterar direkt CreateDealForm, Boost-dialogen och checkoutflödet.
+        </p>
+      </div>
+
+      {loading ? (
+        <p className="text-sm text-muted-foreground">Laddar…</p>
+      ) : (
+        <Accordion type="multiple" className="space-y-3">
+          {/* Serviceavgifter – endast dropdown + input */}
+          <AccordionItem value="fees" className="border rounded-lg px-3">
+            <AccordionTrigger className="py-3">Serviceavgifter (%) per varaktighet</AccordionTrigger>
+            <AccordionContent>
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Varaktighet (dropdown)</Label>
+                  <Select value={selectedDuration} onValueChange={setSelectedDuration}>
+                    <SelectTrigger><SelectValue placeholder="Välj varaktighet" /></SelectTrigger>
+                    {/* Scrollbar på lång lista */}
+                    <SelectContent className="max-h-80 overflow-y-auto">
+                      {sortedDurations.map((h) => (
+                        <SelectItem key={h} value={String(h)}>
+                          {h <= 48 ? `${h} timmar` : `${h / 24} dagar`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Avgift (%)</Label>
+                  <Input
+                    type="number"
+                    placeholder="t.ex. 10"
+                    value={selectedFee}
+                    onChange={(e) => setSelectedFee(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-3 flex gap-2">
+                <Button variant="secondary" onClick={addOrUpdateFee}>Lägg till / uppdatera nivå</Button>
+                <Button variant="ghost" onClick={removeSelectedLevel}>Ta bort vald nivå</Button>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          {/* Boostpriser (lämnas kvar) */}
+          <AccordionItem value="boost" className="border rounded-lg px-3">
+            <AccordionTrigger className="py-3">Boostpriser (SEK / timme)</AccordionTrigger>
+            <AccordionContent>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Floating – SEK/timme</Label>
+                  <Input type="number" min={0} value={floatingPerHour} onChange={(e) => setFloatingPerHour(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Banner – SEK/timme</Label>
+                  <Input type="number" min={0} value={bannerPerHour} onChange={(e) => setBannerPerHour(e.target.value)} />
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
+
+      <div className="mt-5">
+        <Button onClick={saveAll}>Spara ändringar</Button>
+      </div>
+    </div>
+  );
+}
