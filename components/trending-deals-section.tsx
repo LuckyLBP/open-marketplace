@@ -122,7 +122,7 @@ export function TrendingDealsSection() {
   if (loading || deals.length === 0) return null;
 
   return (
-    <section className="py-16 bg-gradient-to-b from-white to-gray-50">
+    <section className="py-8 bg-gradient-to-b from-white to-gray-50">
       <div className="container mx-auto px-4">
         {/* ...header */}
         <div className="grid grid-cols-1 sm:grid-cols-5 lg:grid-cols-5 gap-3">

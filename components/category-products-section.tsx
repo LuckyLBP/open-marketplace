@@ -179,7 +179,7 @@ export function CategoryProductsSection({
 
   if (loading) {
     return (
-      <div className="py-8 bg-white">
+      <div className="py-4 bg-white">
         <div className="container mx-auto px-4">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-300 rounded w-48 mb-6"></div>
@@ -200,7 +200,7 @@ export function CategoryProductsSection({
   if (deals.length === 0) return null;
 
   return (
-    <div className="py-8 bg-white">
+    <div className="py-4 bg-white">
       <div className="container mx-auto px-4">
         <div className="space-y-6">
           <div className="flex items-center justify-between">

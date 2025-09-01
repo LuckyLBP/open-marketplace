@@ -161,7 +161,7 @@ export function FeaturedDealsSection() {
   if (loading || deals.length === 0) return null;
 
   return (
-    <section className="py-8 bg-white">
+    <section className="py-4 bg-white">
       <div className="container mx-auto px-4">
         <h2 className="text-2xl font-semibold mb-6 text-gray-900">
           Senaste produkter

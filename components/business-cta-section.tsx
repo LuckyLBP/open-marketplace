@@ -27,7 +27,7 @@ export function BusinessCTASection() {
   ];
 
   return (
-    <section className="py-20 relative overflow-hidden">
+    <section className="py-12 relative overflow-hidden">
       {/* Gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-purple-700 to-pink-600" />
 

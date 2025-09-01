@@ -34,7 +34,7 @@ export function HowItWorksSection() {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-br from-purple-50 via-white to-pink-50 relative overflow-hidden">
+    <section className="py-12 bg-gradient-to-br from-purple-50 via-white to-pink-50 relative overflow-hidden">
       {/* Background pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5" />
 

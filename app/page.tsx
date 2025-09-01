@@ -32,7 +32,7 @@ export default function Home() {
       <Navbar />
 
       <main className="flex-1 relative">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-3">
           <CarouselBanner
             autoRotateInterval={5000}
             showArrows={true}
@@ -44,14 +44,14 @@ export default function Home() {
         <FeaturedDealsSection />
         <CategoriesSection />
 
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-3">
           <CategoryBanner category="hemmet" />
         </div>
 
         {/* Category sections */}
         <CategoryProductsSection categoryKey="elektronik" />
 
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-3">
           <CategoryBanner category="elektronik" />
         </div>
 
@@ -63,7 +63,7 @@ export default function Home() {
 
         <CategoryProductsSection categoryKey="hemmet" />
 
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-3">
           <CategoryBanner category="hobby-fritid" />
         </div>
 
@@ -71,7 +71,7 @@ export default function Home() {
 
         <CategoryProductsSection categoryKey="hobby-fritid" />
 
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-4 py-3">
           <CategoryBanner category="halsa-skonhet" />
         </div>
 
