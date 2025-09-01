@@ -10,6 +10,7 @@ import {
 } from 'firebase/firestore';
 
 // --- Stripe init ---
+
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error('STRIPE_SECRET_KEY is required');
@@ -40,6 +41,13 @@ type IncomingItem = {
   feePercentage?: number;  // fallback om duration saknas på deal
 };
 
+type IncomingBuyer = {
+  id?: string;
+  email?: string;
+};
+
+
+
 type EnrichedItem = {
   dealId: string;
   sellerId: string;
@@ -67,7 +75,7 @@ export async function POST(req: Request) {
 
     // --- Body parse ---
     const body = await req.json();
-    const { items } = body as { items: IncomingItem[] };
+    const { items, buyer } = body as { items: IncomingItem[]; buyer?: IncomingBuyer };
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Varukorgen är tom.' }, { status: 400 });
@@ -153,10 +161,13 @@ export async function POST(req: Request) {
       amount: totalAmountSEK * 100,
       currency,
       automatic_payment_methods: { enabled: true },
+      receipt_email: buyer?.email || undefined,
       metadata: {
         subtotal_sek: String(subtotalSEK),
         platform_service_fee_sek: String(serviceFeeSEK),
         shipping_fee_sek: String(shippingFeeSEK),
+        buyer_id: buyer?.id || '',
+        buyer_email: buyer?.email || '',
       },
     });
 
@@ -180,9 +191,15 @@ export async function POST(req: Request) {
       serviceFeeSEK,
       sellerMap,                   // endast mapping: sellerId -> stripeAccountId
       status: 'requires_payment',
+      buyerId: buyer?.id || null,
+      buyerEmail: buyer?.email || null,
     });
 
-    return NextResponse.json({ clientSecret: paymentIntent.client_secret });
+    return NextResponse.json({
+      clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id,
+      receiptEmailOnPI: (paymentIntent as any).receipt_email ?? null,
+      metadataBuyerEmail: paymentIntent.metadata?.buyer_email ?? null,
+    });
   } catch (error) {
     console.error('[create-intent] Error:', error);
     return NextResponse.json({ error: 'Något gick fel.' }, { status: 500 });

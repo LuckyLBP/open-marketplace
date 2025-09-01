@@ -15,12 +15,12 @@ export default function CheckoutForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!stripe || !elements) return;
+        if (!stripe || !elements || loading) return;
 
         setLoading(true);
 
-        // För kort → undvik redirect ("if_required").
-        // För metoder som kräver redirect (t.ex. Klarna) kommer Stripe göra redirect till return_url.
+        // För kort → undvik full redirect ("if_required").
+        // För metoder som kräver redirect (t.ex. Klarna) gör Stripe redirect till return_url.
         const { error, paymentIntent } = await stripe.confirmPayment({
             elements,
             redirect: 'if_required',
@@ -54,7 +54,7 @@ export default function CheckoutForm() {
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <PaymentElement />
-            <Button type="submit" disabled={!stripe || loading} className="w-full">
+            <Button type="submit" disabled={!stripe || !elements || loading} className="w-full">
                 {loading ? 'Bearbetar...' : 'Betala nu'}
             </Button>
         </form>

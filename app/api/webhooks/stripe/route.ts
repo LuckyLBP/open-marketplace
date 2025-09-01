@@ -1,4 +1,3 @@
-// app/api/webhooks/stripe/route.ts
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { db } from '@/lib/firebase';
@@ -143,7 +142,7 @@ export async function POST(req: Request) {
         const shippingFeeSEK = Number(s.shippingFeeSEK || 0);
         const platformServiceFeeSEK = Number(s.serviceFeeSEK || 0);
 
-        // 1) Hämta Stripe fee (ÖRE) från charge.balance_transaction
+        // 1) Hämta charge + balance transaction + “autofix” för kvitto
         const chargeId =
           typeof pi.latest_charge === 'string'
             ? pi.latest_charge
@@ -151,16 +150,57 @@ export async function POST(req: Request) {
         if (!chargeId) throw new Error('Missing charge on PI');
 
         const stripe = getStripe();
-        const charge = await stripe.charges.retrieve(chargeId, {
+
+        // Hämta med expand först
+        let charge = await stripe.charges.retrieve(chargeId, {
           expand: ['balance_transaction'],
         });
-        const bt = charge.balance_transaction as Stripe.BalanceTransaction;
-        if (!bt || typeof bt.fee !== 'number') {
-          throw new Error('Missing balance transaction fee');
-        }
-        const stripeFeeOreTotal = bt.fee; // öre på hela betalningen (subtotal + shipping)
 
-        // 2) Dela upp Stripe-fee: säljare ska bära fee på SUBTOTAL, plattformen bara på SHIPPING
+        // Sätt receipt_email om saknas (från Firestore buyerEmail / PI.metadata)
+        const sBuyerEmail: string =
+          (s.buyerEmail as string) ||
+          ((pi as any).receipt_email as string) ||
+          ((pi.metadata && (pi.metadata as any).buyer_email) as string) ||
+          '';
+
+        if (!charge.receipt_email && sBuyerEmail) {
+          try {
+            charge = await stripe.charges.update(chargeId, { receipt_email: sBuyerEmail });
+          } catch (e) {
+            console.warn('Could not set receipt_email on charge:', e);
+          }
+        }
+
+        // Kvitto-länk (om tillgänglig)
+        let receiptUrl: string | null = (charge as any)?.receipt_url || null;
+
+        // Stripe fee i öre – robust (från expand eller separat fetch)
+        let stripeFeeOreTotal = 0;
+        const btExpanded = (charge as any).balance_transaction;
+        if (btExpanded && typeof btExpanded === 'object' && typeof btExpanded.fee === 'number') {
+          stripeFeeOreTotal = btExpanded.fee;
+        } else {
+          try {
+            const btId =
+              typeof btExpanded === 'string'
+                ? btExpanded
+                : (btExpanded?.id as string | undefined);
+            if (btId) {
+              const bt = await stripe.balanceTransactions.retrieve(btId);
+              if (bt && typeof (bt as any).fee === 'number') {
+                stripeFeeOreTotal = (bt as any).fee;
+              } else {
+                console.warn('Balance transaction retrieved but fee missing, assuming 0.');
+              }
+            } else {
+              console.warn('No balance_transaction id on charge, assuming fee 0.');
+            }
+          } catch (e) {
+            console.warn('Could not retrieve balance_transaction, assuming fee 0.', e);
+          }
+        }
+
+        // 2) Dela upp Stripe-fee: säljare bär fee på SUBTOTAL, plattformen bara på SHIPPING
         const subtotalOre = Math.max(0, Math.round(subtotalSEK * 100));
         const shippingOre = Math.max(0, Math.round(shippingFeeSEK * 100));
         const totalOre = subtotalOre + shippingOre || 1;
@@ -207,7 +247,7 @@ export async function POST(req: Request) {
         });
 
         // 4) Skapa transfers per säljare (i ÖRE)
-        const transferGroup = `pi_${pi.id}`; // fix: ingen dubbel-prefix
+        const transferGroup = `pi_${pi.id}`;
         const transferLogs: Array<{
           sellerId: string;
           stripeAccountId: string;
@@ -240,13 +280,12 @@ export async function POST(req: Request) {
           });
         }
 
-        // 5) Plattformens rapportering (korrigerad)
+        // 5) Plattformens rapportering
         const stripeFeeSubtotalSEK = Math.round(stripeFeeOreOnSubtotal / 100);
         const stripeFeeShippingSEK = Math.round(stripeFeeOreOnShipping / 100);
         const totalStripeFeeSEK = stripeFeeSubtotalSEK + stripeFeeShippingSEK;
 
-        // ✅ Din intäkt ska INTE minska av Stripe-feen på subtotalen (den tog vi från säljare).
-        // Endast fraktens Stripe-fee (om någon) minskar din intäkt:
+        // Din intäkt minskas bara av shipping-delen av Stripe-fee
         const netPlatformSEK = Math.max(0, platformServiceFeeSEK - stripeFeeShippingSEK);
 
         // 6) Lager-minskning
@@ -285,7 +324,8 @@ export async function POST(req: Request) {
           stripeFeeSEK: totalStripeFeeSEK,
           stripeFeeSubtotalSEK,
           stripeFeeShippingSEK,
-          netPlatformSEK, // nu korrekt rapporterad
+          netPlatformSEK,
+          receiptUrl,
           updatedAt: serverTimestamp(),
         });
 

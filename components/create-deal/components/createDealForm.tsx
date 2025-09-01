@@ -22,16 +22,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import type { ProductImage, Feature, Specification } from "@/components/types/deal";
 
-const calculateFeePercentage = (duration: number): number => {
-  if (duration <= 12) return 3;
-  if (duration <= 24) return 4;
-  if (duration <= 36) return 5;
-  if (duration <= 48) return 6;
-  if (duration <= 72) return 7;
-  if (duration <= 96) return 8;
-  if (duration <= 120) return 9;
-  return 10;
-};
+// 🔁 NYTT: global settings (service fees)
+import { useGlobalSettings, feeForDuration } from "@/hooks/useGlobalSettings";
 
 type CreateDealFormProps = {
   defaultValues?: any;
@@ -44,10 +36,17 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
 
+  // 🔁 NYTT: hämta settings
+  const { settings, loading: settingsLoading } = useGlobalSettings();
+
   const isEditing = !!defaultValues?.id;
   const [activeTab, setActiveTab] = useState("basic");
   const [duration, setDuration] = useState(24);
-  const [feePercentage, setFeePercentage] = useState<number>(calculateFeePercentage(24));
+
+  // 🔁 NYTT: initiera fee utifrån settings (fallback hanteras i hooken)
+  const initialFee = feeForDuration(settings.serviceFees, 24);
+  const [feePercentage, setFeePercentage] = useState<number>(initialFee);
+
   const [images, setImages] = useState<ProductImage[]>([]);
   const [inStock, setInStock] = useState(true);
   const [stockQuantity, setStockQuantity] = useState("10");
@@ -69,6 +68,7 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
       userType === "customer" ? 168 :
         userType === "admin" || userType === "superadmin" ? 336 : 168;
 
+  // Fyll i vid redigering
   useEffect(() => {
     if (defaultValues) {
       setTitle(defaultValues.title || "");
@@ -79,15 +79,31 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
       setSubcategory(defaultValues.subcategory || "");
       setCompanyName(defaultValues.companyName || "");
       setImages(defaultValues.images || []);
-      setDuration(defaultValues.duration || 24);
-      setFeePercentage(defaultValues.feePercentage ?? calculateFeePercentage(defaultValues.duration || 24));
+      const d = defaultValues.duration || 24;
+      setDuration(d);
+
+      // Om vi redan har sparad feePercentage i dokumentet, använd den;
+      // annars räkna ut från settings för vald duration.
+      const fee = typeof defaultValues.feePercentage === "number"
+        ? defaultValues.feePercentage
+        : feeForDuration(settings.serviceFees, d);
+      setFeePercentage(fee);
+
       setInStock(defaultValues.inStock ?? true);
       setStockQuantity(defaultValues.stockQuantity?.toString() || "10");
       setSku(defaultValues.sku || "");
       setFeatures(defaultValues.features || []);
       setSpecifications(defaultValues.specifications || []);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValues]);
+
+  // När settings laddas/uppdateras – synka fee för aktuell duration om vi inte redigerar ett redan satt värde
+  useEffect(() => {
+    if (!isEditing && !settingsLoading) {
+      setFeePercentage(feeForDuration(settings.serviceFees, duration));
+    }
+  }, [settings, settingsLoading, duration, isEditing]);
 
   const validateForm = () => {
     if (
@@ -182,7 +198,7 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
         images: imagesToSave,
         imageUrl: imagesToSave.find((img) => img.isPrimary)?.url || imagesToSave[0]?.url || '',
         duration,
-        feePercentage,
+        feePercentage, // ✅ sparar vilken fee som gällde när dealen skapades
       };
 
       const stripUndefined = (obj: Record<string, any>) =>
@@ -245,7 +261,8 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
                 onChange={(e) => {
                   const value = parseInt(e.target.value);
                   setDuration(value);
-                  setFeePercentage(calculateFeePercentage(value));
+                  // 🔁 uppdatera fee när duration ändras
+                  setFeePercentage(feeForDuration(settings.serviceFees, value));
                 }}
                 className="block w-full mt-1 border-gray-300 rounded-md shadow-sm"
               >
@@ -261,7 +278,10 @@ export default function CreateDealForm({ defaultValues }: CreateDealFormProps) {
                   })}
               </select>
               <p className="mt-2 text-sm text-gray-600">
-                {t("Serviceavgift")}: <span className="font-medium">{feePercentage}%</span>
+                {t("Serviceavgift")}:{" "}
+                <span className="font-medium">
+                  {settingsLoading ? "…" : `${feePercentage}%`}
+                </span>
               </p>
             </div>
           </TabsContent>

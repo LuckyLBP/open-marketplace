@@ -1,11 +1,10 @@
 'use client';
 
 import type React from 'react';
-
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useLanguage } from '@/components/language-provider';
@@ -33,7 +32,6 @@ import {
   Search,
   ShoppingCart,
   LogOut,
-  Heart,
   LayoutDashboard,
   Settings,
 } from 'lucide-react';
@@ -45,6 +43,7 @@ const categories = categoriesData.categories;
 
 export function Navbar() {
   const { t } = useLanguage();
+  const router = useRouter();
   const { user, userType, loading } = useFirebase();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -53,6 +52,15 @@ export function Navbar() {
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const [localCartCount, setLocalCartCount] = useState(cartCount);
+
+  // 👉 vår guard-funktion för varukorgen
+  const openCart = () => {
+    if (!user) {
+      router.push('/auth/signin?next=/varukorg&msg=need-account');
+    } else {
+      router.push('/varukorg');
+    }
+  };
 
   useEffect(() => {
     setLocalCartCount(cartCount);
@@ -136,23 +144,24 @@ export function Navbar() {
               <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-muted-foreground" />
             </form>
 
-            <Link href="/varukorg">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="relative h-8 w-8 p-0"
-              >
-                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-                {localCartCount > 0 && (
-                  <Badge
-                    className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 bg-purple-600 text-xs"
-                    variant="default"
-                  >
-                    {localCartCount}
-                  </Badge>
-                )}
-              </Button>
-            </Link>
+            {/* 👉 här använder vi openCart istället för Link */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="relative h-8 w-8 p-0"
+              onClick={openCart}
+              aria-label="Öppna varukorg"
+            >
+              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+              {localCartCount > 0 && (
+                <Badge
+                  className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 bg-purple-600 text-xs"
+                  variant="default"
+                >
+                  {localCartCount}
+                </Badge>
+              )}
+            </Button>
 
             {!loading && user && (
               <DropdownMenu>
@@ -174,22 +183,22 @@ export function Navbar() {
                   {['company', 'superadmin', 'customer'].includes(
                     userType || ''
                   ) && (
-                    <>
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href="/dashboard"
-                          className={cn(
-                            'flex items-center text-muted-foreground hover:text-foreground',
-                            pathname === '/dashboard' && 'text-purple-600'
-                          )}
-                        >
-                          <LayoutDashboard className="mr-2 h-4 w-4" />
-                          Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/dashboard"
+                            className={cn(
+                              'flex items-center text-muted-foreground hover:text-foreground',
+                              pathname === '/dashboard' && 'text-purple-600'
+                            )}
+                          >
+                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                            Dashboard
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
 
                   <DropdownMenuItem asChild>
                     <Link

@@ -1,4 +1,4 @@
-'use client';
+/*'use client';
 
 import Link from 'next/link';
 import { Badge } from '../ui/badge';
@@ -162,4 +162,4 @@ export function ProductCard({
       </CardFooter>
     </Card>
   );
-}
+}*/

@@ -13,13 +13,42 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 
+// --- helpers för pris ---
+function boostPriceFromSettings(
+  boost: any,
+  placement: 'floating' | 'banner',
+  duration: number
+): number {
+  // 1. Om tabell per duration (t.ex. boostPrices.floating = { "12":199, "24":299 })
+  if (boost?.[placement] && typeof boost[placement] === 'object') {
+    const table = boost[placement] as Record<string, number>;
+    if (typeof table[String(duration)] === 'number') return table[String(duration)];
+
+    // fallback: närmsta lägre duration
+    const keys = Object.keys(table).map(Number).sort((a, b) => a - b);
+    let best = table[String(keys[0])];
+    for (const k of keys) {
+      if (duration >= k) best = table[String(k)];
+      else break;
+    }
+    return best ?? 0;
+  }
+
+  // 2. Annars per timme (floatingPerHour / bannerPerHour)
+  const perHour =
+    placement === 'floating'
+      ? boost?.floatingPerHour ?? 20
+      : boost?.bannerPerHour ?? 10;
+  return duration * perHour;
+}
+
 // Initialize Stripe only when needed
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error('STRIPE_SECRET_KEY is required');
   }
   return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-07-30.basil',
+    apiVersion: '2025-04-30.basil',
   });
 }
 
@@ -27,9 +56,7 @@ export async function POST(req: Request) {
   const body = await req.json();
 
   try {
-    // Initialize Firebase and get db instance
     const { db } = initializeFirebase();
-
     if (!db) {
       return NextResponse.json(
         { error: 'Database connection failed' },
@@ -37,14 +64,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // Initialize Stripe
     const stripe = getStripe();
 
-    const { dealId, type, duration, price } = body;
-
-    if (!dealId || !type || !duration || !price) {
+    const { dealId, type, duration } = body;
+    if (!dealId || !type || !duration) {
       return NextResponse.json(
-        { error: 'Ogiltig begäran  saknar fält' },
+        { error: 'Ogiltig begäran – saknar fält' },
         { status: 400 }
       );
     }
@@ -54,6 +79,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Ogiltig boost-typ' }, { status: 400 });
     }
 
+    // Hämta deal
     const dealSnap = await getDoc(doc(db, 'deals', dealId));
     if (!dealSnap.exists()) {
       return NextResponse.json(
@@ -61,9 +87,23 @@ export async function POST(req: Request) {
         { status: 404 }
       );
     }
-
     const deal = dealSnap.data();
 
+    // Hämta global settings
+    const settingsSnap = await getDoc(doc(db, 'settings', 'global'));
+    const settings = settingsSnap.exists() ? settingsSnap.data() : {};
+    const boostSettings = settings?.boostPrices || {};
+
+    // 🔑 Räkna fram korrekt pris från settings
+    const trustedPrice = boostPriceFromSettings(boostSettings, type, duration);
+    if (!trustedPrice || trustedPrice <= 0) {
+      return NextResponse.json(
+        { error: 'Kunde inte räkna ut pris för boost' },
+        { status: 400 }
+      );
+    }
+
+    // Floating cap: max 3 åt gången
     if (type === 'floating') {
       const now = Timestamp.now();
       const activeBoostsQuery = query(
@@ -75,19 +115,15 @@ export async function POST(req: Request) {
       );
 
       const snapshot = await getDocs(activeBoostsQuery);
-      const activeFloatingCount = snapshot.size;
-
-      if (activeFloatingCount >= 3) {
+      if (snapshot.size >= 3) {
         return NextResponse.json(
-          {
-            error:
-              'Max antal floating-annonser är redan aktiva. Försök senare.',
-          },
+          { error: 'Max antal floating-annonser är redan aktiva. Försök senare.' },
           { status: 400 }
         );
       }
     }
 
+    // Skapa Stripe session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card', 'klarna'],
       line_items: [
@@ -95,12 +131,10 @@ export async function POST(req: Request) {
           price_data: {
             currency: 'sek',
             product_data: {
-              name: `${type === 'floating' ? 'floatingAd' : 'BannerAd'} för: ${
-                deal.title
-              }`,
+              name: `${type === 'floating' ? 'FloatingAd' : 'BannerAd'} för: ${deal.title}`,
               description: `Visning i ${type} under ${duration}h`,
             },
-            unit_amount: price * 100,
+            unit_amount: trustedPrice * 100, // 💰 alltid settings-priset
           },
           quantity: 1,
         },
@@ -112,6 +146,7 @@ export async function POST(req: Request) {
         dealId,
         boostType: type,
         duration: duration.toString(),
+        trustedPrice: trustedPrice.toString(),
       },
     });
 
@@ -119,7 +154,7 @@ export async function POST(req: Request) {
       dealId,
       boostType: type,
       duration,
-      total: price,
+      total: trustedPrice,
       sessionId: session.id,
       createdAt: serverTimestamp(),
     });

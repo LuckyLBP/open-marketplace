@@ -18,6 +18,8 @@ import { CompanySelector } from '../companySelector';
 import { Deal } from '@/components/types/deal';
 import CustomerList from '../customerList';
 
+import GlobalPricingCard from './globalPricingCard';
+
 interface EntityData {
   id: string;
   email: string;
@@ -27,9 +29,7 @@ interface EntityData {
 
 export default function SuperAdminPanel() {
   const { activeDeals, expiredDeals, fetching } = useAdminDeals();
-  const [selectedType, setSelectedType] = useState<'company' | 'customer'>(
-    'company'
-  );
+  const [selectedType, setSelectedType] = useState<'company' | 'customer'>('company');
   const [entities, setEntities] = useState<EntityData[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
   const [pendingDeals, setPendingDeals] = useState<Deal[]>([]);
@@ -38,8 +38,7 @@ export default function SuperAdminPanel() {
 
   useEffect(() => {
     const fetchEntities = async () => {
-      const collectionName =
-        selectedType === 'company' ? 'companies' : 'customers';
+      const collectionName = selectedType === 'company' ? 'companies' : 'customers';
       const snapshot = await getDocs(collection(db, collectionName));
       const data = snapshot.docs.map((docSnap) => {
         const data = docSnap.data();
@@ -86,8 +85,8 @@ export default function SuperAdminPanel() {
       tab === 'active'
         ? activeDeals
         : tab === 'expired'
-        ? expiredDeals
-        : pendingDeals;
+          ? expiredDeals
+          : pendingDeals;
 
     const relevantDeals = selectedId
       ? baseDeals.filter((deal) => deal.companyId === selectedId)
@@ -97,8 +96,7 @@ export default function SuperAdminPanel() {
   }, [selectedId, tab, activeDeals, expiredDeals, pendingDeals]);
 
   const handleDelete = async (id: string) => {
-    const collectionName =
-      selectedType === 'company' ? 'companies' : 'customers';
+    const collectionName = selectedType === 'company' ? 'companies' : 'customers';
     await deleteDoc(doc(db, collectionName, id));
     setEntities((prev) => prev.filter((u) => u.id !== id));
     setSelectedId('');
@@ -145,9 +143,7 @@ export default function SuperAdminPanel() {
         <div className="flex items-center gap-2">
           <select
             value={selectedType}
-            onChange={(e) =>
-              setSelectedType(e.target.value as 'company' | 'customer')
-            }
+            onChange={(e) => setSelectedType(e.target.value as 'company' | 'customer')}
             className="rounded-md border px-2 py-1 text-sm"
           >
             <option value="company">Företag</option>
@@ -165,6 +161,9 @@ export default function SuperAdminPanel() {
         </div>
       </div>
 
+      {/* 👉 NYTT: Globala priser & avgifter */}
+      <GlobalPricingCard />
+
       {selectedId && selectedEntity && (
         <div className="p-4 rounded-lg bg-white border shadow-sm">
           <p>
@@ -175,8 +174,7 @@ export default function SuperAdminPanel() {
           </p>
           {selectedType === 'company' && (
             <p>
-              <strong>Organisationsnummer:</strong>{' '}
-              {selectedEntity.orgNumber || 'Saknas'}
+              <strong>Organisationsnummer:</strong> {selectedEntity.orgNumber || 'Saknas'}
             </p>
           )}
 
@@ -195,25 +193,19 @@ export default function SuperAdminPanel() {
         <div className="flex gap-4 border-b">
           <button
             onClick={() => setTab('active')}
-            className={
-              tab === 'active' ? 'border-b-2 font-semibold pb-2' : 'pb-2'
-            }
+            className={tab === 'active' ? 'border-b-2 font-semibold pb-2' : 'pb-2'}
           >
             Aktiva
           </button>
           <button
             onClick={() => setTab('expired')}
-            className={
-              tab === 'expired' ? 'border-b-2 font-semibold pb-2' : 'pb-2'
-            }
+            className={tab === 'expired' ? 'border-b-2 font-semibold pb-2' : 'pb-2'}
           >
             Utgångna
           </button>
           <button
             onClick={() => setTab('pending')}
-            className={
-              tab === 'pending' ? 'border-b-2 font-semibold pb-2' : 'pb-2'
-            }
+            className={tab === 'pending' ? 'border-b-2 font-semibold pb-2' : 'pb-2'}
           >
             Väntande
           </button>
@@ -222,9 +214,7 @@ export default function SuperAdminPanel() {
         <div className="mt-4">
           {tab === 'pending' ? (
             filteredDeals.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Inga väntande erbjudanden.
-              </p>
+              <p className="text-sm text-muted-foreground">Inga väntande erbjudanden.</p>
             ) : (
               <ul className="space-y-3">
                 {filteredDeals.map((deal) => (
@@ -234,9 +224,7 @@ export default function SuperAdminPanel() {
                   >
                     <div>
                       <h3 className="font-semibold">{deal.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {deal.description}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{deal.description}</p>
                       <p className="text-sm mt-1">
                         <strong>Skapad av:</strong> {deal.companyName}
                       </p>
@@ -261,11 +249,7 @@ export default function SuperAdminPanel() {
               </ul>
             )
           ) : (
-            <DealList
-              title="Erbjudanden"
-              deals={filteredDeals}
-              loading={fetching}
-            />
+            <DealList title="Erbjudanden" deals={filteredDeals} loading={fetching} />
           )}
         </div>
       </div>
