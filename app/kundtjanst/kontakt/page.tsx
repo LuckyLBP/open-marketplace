@@ -106,20 +106,6 @@ export default function KontaktPage() {
             <div className="grid md:grid-cols-2 gap-6">
               <div className="bg-white p-6 rounded-lg shadow-md text-center">
                 <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Phone className="h-5 w-5 text-purple-600" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Ring oss</h3>
-                <p className="text-gray-500 mb-4">Mån-Fre 09:00-17:00</p>
-                <a
-                  href="tel:+46101234567"
-                  className="text-purple-600 font-medium hover:text-purple-800"
-                >
-                  010-123 45 67
-                </a>
-              </div>
-
-              <div className="bg-white p-6 rounded-lg shadow-md text-center">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Mail className="h-5 w-5 text-purple-600" />
                 </div>
                 <h3 className="text-lg font-semibold mb-2">Maila oss</h3>

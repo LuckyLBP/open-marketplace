@@ -34,47 +34,6 @@ export function Footer() {
     <footer className="bg-gradient-to-br from-gray-900 to-gray-950 text-gray-200">
       {/* Newsletter Section */}
       <div className="container mx-auto px-4 pt-16 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          <div>
-            <h3 className="text-2xl font-bold mb-2">Håll dig uppdaterad</h3>
-            <p className="text-gray-400 mb-4">
-              Prenumerera på vårt nyhetsbrev för exklusiva erbjudanden och
-              uppdateringar
-            </p>
-            <form onSubmit={handleSubscribe} className="flex gap-2">
-              <Input
-                type="email"
-                placeholder="Din e-postadress"
-                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus-visible:ring-purple-500"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <Button
-                type="submit"
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-              >
-                Prenumerera
-              </Button>
-            </form>
-          </div>
-          <div className="flex flex-col md:items-end justify-center">
-            <div className="flex items-center mb-4">
-              <div className="relative h-10 w-10 mr-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-xl">
-                D
-              </div>
-              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
-                ClickFynd.se
-              </span>
-            </div>
-            <p className="text-gray-400 md:text-right">
-              Den bästa ClickFynd.se för tidsbegränsade erbjudanden
-            </p>
-          </div>
-        </div>
-
-        <Separator className="bg-gray-800 my-8" />
-
         {/* Main Footer Links - Keep the original hrefs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div>
@@ -227,7 +186,7 @@ export function Footer() {
               className="flex items-center text-gray-400 hover:text-white transition-colors"
             >
               <Mail className="h-5 w-5 mr-2" />
-              <span>kundservice@ClickFynd.se</span>
+              <span>kundservice@clickfynd.se</span>
             </Link>
           </div>
           <div className="flex space-x-4">

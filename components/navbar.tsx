@@ -3,7 +3,6 @@
 import type React from 'react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -123,13 +122,9 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex h-14 items-center justify-between">
           <Link href="/" className="flex items-center">
-            <Image
-              src="/logo/Clickfynd-blank.svg"
-              alt="Clickfynd"
-              width={120}
-              height={32}
-              className="h-8 w-auto"
-            />
+            <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Clickfynd.se
+            </span>
           </Link>
 
           <div className="flex items-center gap-1 sm:gap-2">
@@ -183,22 +178,22 @@ export function Navbar() {
                   {['company', 'superadmin', 'customer'].includes(
                     userType || ''
                   ) && (
-                      <>
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href="/dashboard"
-                            className={cn(
-                              'flex items-center text-muted-foreground hover:text-foreground',
-                              pathname === '/dashboard' && 'text-purple-600'
-                            )}
-                          >
-                            <LayoutDashboard className="mr-2 h-4 w-4" />
-                            Dashboard
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/dashboard"
+                          className={cn(
+                            'flex items-center text-muted-foreground hover:text-foreground',
+                            pathname === '/dashboard' && 'text-purple-600'
+                          )}
+                        >
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
 
                   <DropdownMenuItem asChild>
                     <Link
