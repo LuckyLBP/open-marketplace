@@ -39,7 +39,7 @@ export const CategoryBanner: React.FC<CategoryBannerProps> = ({
           src={bannerImageUrl}
           alt={`${category} category banner`}
           fill
-          className="object-cover transition-transform duration-300 hover:scale-105"
+          className="object-cover transition-transform duration-300"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1200px"
           onError={(e) => {
             // Fallback to placeholder if image fails to load
