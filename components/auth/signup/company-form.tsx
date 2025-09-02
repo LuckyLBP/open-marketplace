@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'; // CHANGED: serverTimestamp
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -44,9 +44,19 @@ export default function CompanyForm() {
         setLoading(true);
         setErrorMsg('');
         try {
+            // 1) Skapa auth-användare
             const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
             const uid = userCredential.user.uid;
 
+            // 2) Skapa users/{uid} – roll + pending-flagga
+            await setDoc(doc(db, 'users', uid), {
+                email: data.email,
+                accountType: 'company',       // CHANGED: markera som company
+                companyApproved: false,       // CHANGED: pending tills superadmin godkänner
+                createdAt: serverTimestamp(), // CHANGED: serverside timestamp
+            });
+
+            // 3) Skapa companies/{uid} – status: pending
             await setDoc(doc(db, 'companies', uid), {
                 companyName: data.companyName,
                 orgNumber: data.orgNumber,
@@ -56,11 +66,19 @@ export default function CompanyForm() {
                 city: data.city,
                 email: data.email,
                 accountType: 'company',
-                createdAt: new Date(),
+                status: 'pending',            // CHANGED: viktig del – kräver godkännande
+                approvedAt: null,             // CHANGED: fylls när superadmin godkänner
+                approvedBy: null,             // CHANGED
+                createdAt: serverTimestamp(), // CHANGED
             });
 
-            toast({ title: 'Företagskonto skapat!', description: 'Du är nu inloggad.' });
-            router.push('/');
+            // 4) Info till användaren
+            toast({
+                title: 'Företagskonto skapat',
+                description: 'Ditt konto väntar på godkännande av superadmin. Du får ett mail när det är klart.',
+            });
+
+            router.push('/'); // eller t.ex. '/dashboard' – ditt val
         } catch (err: any) {
             setErrorMsg(err.message || 'Något gick fel');
         } finally {

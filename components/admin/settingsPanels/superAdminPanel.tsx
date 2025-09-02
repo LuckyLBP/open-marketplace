@@ -12,13 +12,13 @@ import {
   deleteDoc,
   getDoc,
 } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 import { useAdminDeals } from '@/hooks/useAdminDeals';
 import { DealList } from '../dealList';
 import { CompanySelector } from '../companySelector';
 import { Deal } from '@/components/types/deal';
-import CustomerList from '../customerList';
-
 import GlobalPricingCard from './globalPricingCard';
+import { useToast } from '@/components/ui/use-toast';
 
 interface EntityData {
   id: string;
@@ -27,8 +27,12 @@ interface EntityData {
   orgNumber?: string;
 }
 
+type PendingCompany = { id: string; companyName: string; email?: string };
+
 export default function SuperAdminPanel() {
+  const { toast } = useToast();
   const { activeDeals, expiredDeals, fetching } = useAdminDeals();
+
   const [selectedType, setSelectedType] = useState<'company' | 'customer'>('company');
   const [entities, setEntities] = useState<EntityData[]>([]);
   const [selectedId, setSelectedId] = useState<string>('');
@@ -36,12 +40,18 @@ export default function SuperAdminPanel() {
   const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
   const [tab, setTab] = useState<'active' | 'expired' | 'pending'>('active');
 
+  // 👉 NYTT: väntande företag
+  const [pendingCompanies, setPendingCompanies] = useState<PendingCompany[]>([]);
+  const [loadingPendingCompanies, setLoadingPendingCompanies] = useState<boolean>(true);
+  const [pendingCompaniesErr, setPendingCompaniesErr] = useState<string | null>(null);
+
+  // Ladda lista (companies/customers) för selector
   useEffect(() => {
     const fetchEntities = async () => {
       const collectionName = selectedType === 'company' ? 'companies' : 'customers';
       const snapshot = await getDocs(collection(db, collectionName));
       const data = snapshot.docs.map((docSnap) => {
-        const data = docSnap.data();
+        const data = docSnap.data() as any;
         return {
           id: docSnap.id,
           email: data.email ?? 'okänd',
@@ -55,6 +65,7 @@ export default function SuperAdminPanel() {
     fetchEntities();
   }, [selectedType]);
 
+  // Ladda väntande deals
   useEffect(() => {
     const fetchPending = async () => {
       const snapshot = await getDocs(
@@ -62,7 +73,7 @@ export default function SuperAdminPanel() {
       );
       const mapped: any[] = snapshot.docs
         .map((doc) => {
-          const data = doc.data();
+          const data = doc.data() as any;
           if (!data.title || !data.companyId || !data.companyName) return null;
           return {
             id: doc.id,
@@ -74,19 +85,41 @@ export default function SuperAdminPanel() {
             description: data.description,
           };
         })
-        .filter((deal) => !!deal);
+        .filter(Boolean);
       setPendingDeals(mapped as Deal[]);
     };
     fetchPending();
   }, []);
 
+  // Ladda väntande företag
+  const loadPendingCompanies = async () => {
+    setLoadingPendingCompanies(true);
+    setPendingCompaniesErr(null);
+    try {
+      const snap = await getDocs(
+        query(collection(db, 'companies'), where('status', '==', 'pending'))
+      );
+      setPendingCompanies(
+        snap.docs.map((d) => ({
+          id: d.id,
+          companyName: (d.data() as any).companyName || 'Företag',
+          email: (d.data() as any).email,
+        }))
+      );
+    } catch (e: any) {
+      setPendingCompaniesErr(e?.message || 'Kunde inte hämta väntande företag');
+    } finally {
+      setLoadingPendingCompanies(false);
+    }
+  };
+  useEffect(() => {
+    loadPendingCompanies();
+  }, []);
+
+  // Filtrera deals
   useEffect(() => {
     const baseDeals =
-      tab === 'active'
-        ? activeDeals
-        : tab === 'expired'
-          ? expiredDeals
-          : pendingDeals;
+      tab === 'active' ? activeDeals : tab === 'expired' ? expiredDeals : pendingDeals;
 
     const relevantDeals = selectedId
       ? baseDeals.filter((deal) => deal.companyId === selectedId)
@@ -100,38 +133,54 @@ export default function SuperAdminPanel() {
     await deleteDoc(doc(db, collectionName, id));
     setEntities((prev) => prev.filter((u) => u.id !== id));
     setSelectedId('');
+    toast({ title: 'Kontot raderat' });
   };
 
-  const handleApprove = async (dealId: string) => {
+  const handleApproveDeal = async (dealId: string) => {
     try {
       const dealRef = doc(db, 'deals', dealId);
       const dealSnap = await getDoc(dealRef);
+      if (!dealSnap.exists()) return;
 
-      if (!dealSnap.exists()) {
-        console.warn('Deal not found');
-        return;
-      }
-
-      const dealData = dealSnap.data();
+      const dealData = dealSnap.data() as any;
       const now = new Date();
-
-      const duration = dealData.duration || 24;
+      const duration = dealData.duration || 24; // behåller din nuvarande logik
       const newExpiresAt = new Date(now.getTime() + duration * 60 * 60 * 1000);
 
-      await updateDoc(dealRef, {
-        status: 'approved',
-        expiresAt: newExpiresAt,
-      });
-
+      await updateDoc(dealRef, { status: 'approved', expiresAt: newExpiresAt });
       setPendingDeals((prev) => prev.filter((d) => d.id !== dealId));
-    } catch (error) {
+      toast({ title: 'Erbjudande godkänt' });
+    } catch (error: any) {
       console.error('Fel vid godkännande av erbjudande:', error);
+      toast({ title: 'Kunde inte godkänna', description: error?.message, variant: 'destructive' });
     }
   };
 
-  const handleReject = async (dealId: string) => {
+  const handleRejectDeal = async (dealId: string) => {
     await updateDoc(doc(db, 'deals', dealId), { status: 'rejected' });
     setPendingDeals((prev) => prev.filter((d) => d.id !== dealId));
+    toast({ title: 'Erbjudande avslaget' });
+  };
+
+  // 👉 NYTT: Godkänn företag via API-routen (sätter claims + skickar mail)
+  const approveCompany = async (companyUid: string) => {
+    try {
+      const token = await getAuth().currentUser?.getIdToken();
+      if (!token) throw new Error('Inte inloggad');
+
+      const res = await fetch('/api/admin/approve-company', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ companyUid, sendEmail: true }),
+      });
+
+      if (!res.ok) throw new Error(await res.text());
+
+      setPendingCompanies((prev) => prev.filter((c) => c.id !== companyUid));
+      toast({ title: 'Företag godkänt' });
+    } catch (e: any) {
+      toast({ title: 'Kunde inte godkänna företag', description: e?.message, variant: 'destructive' });
+    }
   };
 
   const selectedEntity = entities.find((e) => e.id === selectedId);
@@ -151,17 +200,48 @@ export default function SuperAdminPanel() {
           </select>
 
           <CompanySelector
-            companies={[
-              { id: '', email: 'Visa alla' },
-              ...entities.map((u) => ({ id: u.id, email: u.email })),
-            ]}
+            companies={[{ id: '', email: 'Visa alla' }, ...entities.map((u) => ({ id: u.id, email: u.email }))]}
             selectedCompanyId={selectedId}
             onChange={setSelectedId}
           />
         </div>
       </div>
 
-      {/* 👉 NYTT: Globala priser & avgifter */}
+      {/* Väntande företag – NY SEKTiON */}
+      <div className="rounded-lg border bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold">Väntande företag</h3>
+          <button onClick={loadPendingCompanies} className="text-sm underline">Uppdatera</button>
+        </div>
+        {loadingPendingCompanies ? (
+          <div className="text-sm text-muted-foreground">Laddar väntande företag…</div>
+        ) : pendingCompaniesErr ? (
+          <div className="text-sm text-red-600">{pendingCompaniesErr}</div>
+        ) : pendingCompanies.length === 0 ? (
+          <div className="text-sm text-muted-foreground">Inga väntande företag.</div>
+        ) : (
+          <ul className="space-y-2">
+            {pendingCompanies.map((c) => (
+              <li key={c.id} className="flex items-center justify-between rounded-md border px-3 py-2">
+                <div>
+                  <div className="font-medium">{c.companyName}</div>
+                  {c.email && <div className="text-sm text-gray-600">{c.email}</div>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => approveCompany(c.id)}
+                    className="bg-green-600 text-white px-3 py-1 rounded-md"
+                  >
+                    Godkänn
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Globala priser & avgifter */}
       <GlobalPricingCard />
 
       {selectedId && selectedEntity && (
@@ -232,13 +312,13 @@ export default function SuperAdminPanel() {
 
                     <div className="mt-3 md:mt-0 flex gap-2">
                       <button
-                        onClick={() => handleApprove(deal.id)}
+                        onClick={() => handleApproveDeal(deal.id)}
                         className="bg-green-600 text-white px-3 py-1 rounded-md"
                       >
                         Godkänn
                       </button>
                       <button
-                        onClick={() => handleReject(deal.id)}
+                        onClick={() => handleRejectDeal(deal.id)}
                         className="bg-red-600 text-white px-3 py-1 rounded-md"
                       >
                         Avslå
