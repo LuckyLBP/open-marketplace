@@ -12,7 +12,6 @@ import {
   CardContent,
   CardFooter,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Home } from 'lucide-react';
 import Link from 'next/link';
 
@@ -23,24 +22,25 @@ export default function SignUpPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Skapa konto</CardTitle>
           <CardDescription>
-            Välj kontotyp och fyll i uppgifterna för att registrera dig
+            Välj kontotyp och fyll i uppgifterna för att registrera dig.
+            <br />
+            <span className="text-xs text-muted-foreground">
+              Företagskonton granskas av superadmin innan de kan logga in.
+            </span>
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Val mellan Privatperson och Företag */}
           <Tabs defaultValue="customer" className="w-full">
             <TabsList className="grid grid-cols-2 w-full mb-4">
               <TabsTrigger value="customer">Privatperson</TabsTrigger>
               <TabsTrigger value="company">Företag</TabsTrigger>
             </TabsList>
 
-            {/* Formulär för Privatperson */}
             <TabsContent value="customer">
               <CustomerForm />
             </TabsContent>
 
-            {/* Formulär för Företag */}
             <TabsContent value="company">
               <CompanyForm />
             </TabsContent>
@@ -48,7 +48,6 @@ export default function SignUpPage() {
         </CardContent>
 
         <CardFooter className="flex flex-col space-y-4">
-          {/* Länk till inloggning */}
           <div className="text-center text-sm">
             Har du redan ett konto?{' '}
             <Link href="/auth/signin" className="text-purple-600 hover:underline">
@@ -56,7 +55,6 @@ export default function SignUpPage() {
             </Link>
           </div>
 
-          {/* Länk till startsidan */}
           <div className="text-center text-sm">
             <Link href="/" className="text-gray-500 hover:underline inline-flex items-center gap-1">
               <Home className="w-4 h-4" />
