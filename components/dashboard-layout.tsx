@@ -48,7 +48,6 @@ export default function DashboardLayout({
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Create Deal', href: '/dashboard/create-deal', icon: Package },
     { name: 'Marketplace', href: '/marketplace', icon: ShoppingBag },
-    { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   ];
 
