@@ -4,12 +4,12 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFirebase } from '@/components/firebase-provider';
 import DashboardLayout from '@/components/dashboard-layout';
-import { CompanySelector } from '@/components/admin/companySelector';
 
 import SuperAdminPanel from '@/components/admin/settingsPanels/superAdminPanel';
 import AdminPanel from '@/components/admin/settingsPanels/adminPanel';
 import CompanyPanel from '@/components/admin/settingsPanels/companyPanel';
 import CustomerPanel from '@/components/admin/settingsPanels/customerPanel';
+import RequireApprovedCompany from '@/components/auth/requireApprovedCompany';
 
 export default function SettingsPage() {
   const { user, userType, loading } = useFirebase();
@@ -19,7 +19,7 @@ export default function SettingsPage() {
     if (!loading && !user) {
       router.push('/');
     }
-  }, [user, loading]);
+  }, [user, loading, router]);
 
   if (loading) {
     return (
@@ -31,22 +31,25 @@ export default function SettingsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Inställningar</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Inloggad som: <strong>{user?.email}</strong>
-            </p>
+      {/* ⬇️ Skydda hela settings med samma guard som dashboard */}
+      <RequireApprovedCompany>
+        <div className="p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">Inställningar</h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                Inloggad som: <strong>{user?.email}</strong>
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Panels */}
-        {userType === 'superadmin' && <SuperAdminPanel />}
-        {userType === 'admin' && <AdminPanel />}
-        {userType === 'company' && <CompanyPanel />}
-        {userType === 'customer' && <CustomerPanel />}
-      </div>
+          {/* Panels */}
+          {userType === 'superadmin' && <SuperAdminPanel />}
+          {userType === 'admin' && <AdminPanel />}
+          {userType === 'company' && <CompanyPanel />}
+          {userType === 'customer' && <CustomerPanel />}
+        </div>
+      </RequireApprovedCompany>
     </DashboardLayout>
   );
 }

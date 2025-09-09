@@ -1,36 +1,37 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useToast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore'; // CHANGED: serverTimestamp
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 const companySchema = z.object({
-    companyName: z.string().min(2, 'Företagsnamn krävs'),
-    orgNumber: z.string().min(6, 'Orgnummer krävs'),
-    address: z.string().min(2, 'Adress krävs'),
-    phone: z.string().min(6, 'Telefonnummer krävs'),
-    postalCode: z.string().min(3, 'Postnummer krävs'),
-    city: z.string().min(2, 'Postort krävs'),
+    companyName: z.string().min(2, 'Ange företagsnamn'),
+    orgNumber: z.string().min(4, 'Ange organisationsnummer'),
+    address: z.string().min(3, 'Ange adress'),
+    phone: z.string().min(6, 'Ange telefonnummer'),
+    postalCode: z.string().min(3, 'Ange postnummer'),
+    city: z.string().min(2, 'Ange ort'),
     email: z.string().email('Ogiltig e-postadress'),
-    password: z.string().min(6, 'Minst 6 tecken krävs'),
+    password: z.string().min(6, 'Lösenordet måste vara minst 6 tecken'),
 });
 
 type CompanyFormData = z.infer<typeof companySchema>;
+const t = (s?: string) => (typeof s === 'string' ? s.trim() : s);
 
 export default function CompanyForm() {
     const router = useRouter();
     const { toast } = useToast();
-    const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const [err, setErr] = useState<string | null>(null);
 
     const {
         register,
@@ -41,109 +42,145 @@ export default function CompanyForm() {
     });
 
     const onSubmit = async (data: CompanyFormData) => {
-        setLoading(true);
-        setErrorMsg('');
+        setSubmitting(true);
+        setErr(null);
         try {
-            // 1) Skapa auth-användare
-            const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-            const uid = userCredential.user.uid;
+            // 1) skapa auth-user
+            const cred = await createUserWithEmailAndPassword(
+                auth,
+                t(data.email)!,
+                data.password
+            );
+            const uid = cred.user.uid;
 
-            // 2) Skapa users/{uid} – roll + pending-flagga
-            await setDoc(doc(db, 'users', uid), {
-                email: data.email,
-                accountType: 'company',       // CHANGED: markera som company
-                companyApproved: false,       // CHANGED: pending tills superadmin godkänner
-                createdAt: serverTimestamp(), // CHANGED: serverside timestamp
-            });
+            // 2) users/{uid} – canonicaliserat
+            await setDoc(
+                doc(db, 'users', uid),
+                {
+                    email: t(data.email),
+                    accountType: 'company',
+                    companyApproved: false,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                },
+                { merge: true }
+            );
 
-            // 3) Skapa companies/{uid} – status: pending
-            await setDoc(doc(db, 'companies', uid), {
-                companyName: data.companyName,
-                orgNumber: data.orgNumber,
-                address: data.address,
-                phone: data.phone,
-                postalCode: data.postalCode,
-                city: data.city,
-                email: data.email,
-                accountType: 'company',
-                status: 'pending',            // CHANGED: viktig del – kräver godkännande
-                approvedAt: null,             // CHANGED: fylls när superadmin godkänner
-                approvedBy: null,             // CHANGED
-                createdAt: serverTimestamp(), // CHANGED
-            });
+            // 3) companies/{uid} – alltid pending vid signup
+            await setDoc(
+                doc(db, 'companies', uid),
+                {
+                    accountType: 'company',
+                    companyName: t(data.companyName),
+                    orgNumber: t(data.orgNumber),
+                    address: t(data.address),
+                    phone: t(data.phone),
+                    postalCode: t(data.postalCode),
+                    city: t(data.city),
+                    email: t(data.email),
 
-            // 4) Info till användaren
+                    // 🔑 viktigt för guard + regler:
+                    isApproved: false,
+                    status: 'pending',
+                    approvedAt: null,
+                    approvedBy: null,
+
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                },
+                { merge: true }
+            );
+
             toast({
-                title: 'Företagskonto skapat',
-                description: 'Ditt konto väntar på godkännande av superadmin. Du får ett mail när det är klart.',
+                title: 'Konto skapat',
+                description: 'Ditt företagskonto är skapat och väntar på godkännande.',
             });
 
-            router.push('/'); // eller t.ex. '/dashboard' – ditt val
-        } catch (err: any) {
-            setErrorMsg(err.message || 'Något gick fel');
+            // justera om du vill till /dashboard eller annan sida
+            router.push('/');
+        } catch (e: any) {
+            setErr(e?.message ?? 'Något gick fel vid registreringen');
         } finally {
-            setLoading(false);
+            setSubmitting(false);
         }
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-                <Label>Företagsnamn</Label>
-                <Input {...register('companyName')} />
-                {errors.companyName && <p className="text-sm text-red-500">{errors.companyName.message}</p>}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <Label htmlFor="companyName">Företagsnamn</Label>
+                    <Input id="companyName" placeholder="Ex: ACME AB" {...register('companyName')} />
+                    {errors.companyName && (
+                        <p className="text-sm text-red-500 mt-1">{errors.companyName.message}</p>
+                    )}
+                </div>
+
+                <div>
+                    <Label htmlFor="orgNumber">Organisationsnummer</Label>
+                    <Input id="orgNumber" placeholder="Ex: 556123-4567" {...register('orgNumber')} />
+                    {errors.orgNumber && (
+                        <p className="text-sm text-red-500 mt-1">{errors.orgNumber.message}</p>
+                    )}
+                </div>
+
+                <div className="md:col-span-2">
+                    <Label htmlFor="address">Adress</Label>
+                    <Input id="address" placeholder="Gatuadress" {...register('address')} />
+                    {errors.address && (
+                        <p className="text-sm text-red-500 mt-1">{errors.address.message}</p>
+                    )}
+                </div>
+
+                <div>
+                    <Label htmlFor="postalCode">Postnummer</Label>
+                    <Input id="postalCode" placeholder="Ex: 123 45" {...register('postalCode')} />
+                    {errors.postalCode && (
+                        <p className="text-sm text-red-500 mt-1">{errors.postalCode.message}</p>
+                    )}
+                </div>
+
+                <div>
+                    <Label htmlFor="city">Ort</Label>
+                    <Input id="city" placeholder="Stad/Ort" {...register('city')} />
+                    {errors.city && (
+                        <p className="text-sm text-red-500 mt-1">{errors.city.message}</p>
+                    )}
+                </div>
+
+                <div>
+                    <Label htmlFor="phone">Telefon</Label>
+                    <Input id="phone" placeholder="Ex: 070-123 45 67" {...register('phone')} />
+                    {errors.phone && (
+                        <p className="text-sm text-red-500 mt-1">{errors.phone.message}</p>
+                    )}
+                </div>
+
+                <div>
+                    <Label htmlFor="email">E-post</Label>
+                    <Input id="email" type="email" placeholder="namn@foretag.se" {...register('email')} />
+                    {errors.email && (
+                        <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>
+                    )}
+                </div>
+
+                <div>
+                    <Label htmlFor="password">Lösenord</Label>
+                    <Input id="password" type="password" placeholder="••••••••" {...register('password')} />
+                    {errors.password && (
+                        <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>
+                    )}
+                </div>
             </div>
 
-            <div className="space-y-2">
-                <Label>Organisationsnummer</Label>
-                <Input {...register('orgNumber')} />
-                {errors.orgNumber && <p className="text-sm text-red-500">{errors.orgNumber.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-                <Label>Adress</Label>
-                <Input {...register('address')} />
-                {errors.address && <p className="text-sm text-red-500">{errors.address.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-                <Label>Telefon</Label>
-                <Input {...register('phone')} />
-                {errors.phone && <p className="text-sm text-red-500">{errors.phone.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-                <Label>Postnummer</Label>
-                <Input {...register('postalCode')} />
-                {errors.postalCode && <p className="text-sm text-red-500">{errors.postalCode.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-                <Label>Postort</Label>
-                <Input {...register('city')} />
-                {errors.city && <p className="text-sm text-red-500">{errors.city.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-                <Label>E-post</Label>
-                <Input type="email" {...register('email')} />
-                {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-                <Label>Lösenord</Label>
-                <Input type="password" {...register('password')} />
-                {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
-            </div>
-
-            {errorMsg && <p className="text-sm text-red-500">{errorMsg}</p>}
+            {err && <p className="text-sm text-red-600">{err}</p>}
 
             <Button
                 type="submit"
-                disabled={loading}
+                disabled={submitting}
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
-                {loading ? 'Registrerar företag...' : 'Skapa företagskonto'}
+                {submitting ? 'Registrerar…' : 'Skapa företagskonto'}
             </Button>
         </form>
     );

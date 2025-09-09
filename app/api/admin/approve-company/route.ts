@@ -16,30 +16,34 @@ async function assertSuperadmin(authHeader?: string): Promise<string> {
   const decoded = await adminAuth.verifyIdToken(token);
   const uid = decoded.uid;
 
+  // custom claims snabbkoll
   const claimRole = (decoded as any).role || (decoded as any).accountType;
   if (claimRole === 'superadmin') return uid;
 
+  // kolla profiler i Firestore
   const [u, c, cu] = await Promise.all([
     adminDb.doc(`users/${uid}`).get(),
     adminDb.doc(`companies/${uid}`).get(),
     adminDb.doc(`customers/${uid}`).get(),
   ]);
 
-  const getRole = (d: FirebaseFirestore.DocumentSnapshot) =>
-    d.exists ? (d.data()?.role || d.data()?.accountType) : undefined;
+  const roleOf = (snap: FirebaseFirestore.DocumentSnapshot) =>
+    snap.exists ? (snap.data()?.role || snap.data()?.accountType) : undefined;
 
-  if ([getRole(u), getRole(c), getRole(cu)].includes('superadmin')) return uid;
+  if ([roleOf(u), roleOf(c), roleOf(cu)].includes('superadmin')) return uid;
 
   throw new Error('Forbidden');
 }
 
-/** Försök hitta e-post för companyUid */
+/** Försök hitta mottagarens e-post för companyUid */
 async function resolveCompanyEmail(companyUid: string): Promise<string | undefined> {
   const [companySnap, userSnap] = await Promise.all([
     adminDb.doc(`companies/${companyUid}`).get(),
     adminDb.doc(`users/${companyUid}`).get(),
   ]);
-  const fromDocs = (companySnap.data()?.email as string | undefined) || (userSnap.data()?.email as string | undefined);
+  const fromDocs =
+    (companySnap.data()?.email as string | undefined) ||
+    (userSnap.data()?.email as string | undefined);
   if (fromDocs) return fromDocs;
   try {
     const authUser = await adminAuth.getUser(companyUid);
@@ -52,18 +56,27 @@ async function resolveCompanyEmail(companyUid: string): Promise<string | undefin
 export async function POST(req: Request) {
   try {
     const superadminUid = await assertSuperadmin(req.headers.get('authorization') || undefined);
-    const { companyUid, sendEmail = true } = (await req.json()) as { companyUid: string; sendEmail?: boolean };
-    if (!companyUid) return NextResponse.json({ error: 'companyUid required' }, { status: 400 });
+
+    const { companyUid, sendEmail = true } = (await req.json()) as {
+      companyUid: string;
+      sendEmail?: boolean;
+    };
+    if (!companyUid) {
+      return NextResponse.json({ error: 'companyUid required' }, { status: 400 });
+    }
 
     const companyRef = adminDb.doc(`companies/${companyUid}`);
     const snap = await companyRef.get();
-    if (!snap.exists) return NextResponse.json({ error: 'Company not found' }, { status: 404 });
+    if (!snap.exists) {
+      return NextResponse.json({ error: 'Company not found' }, { status: 404 });
+    }
     const company = snap.data() as any;
 
-    // 1) Sätt status: approved + metadata
+    // 1) Sätt approved-flaggor (idempotent) + metadata
     await companyRef.set(
       {
-        status: 'approved',
+        isApproved: true,                 // <-- VIKTIGT: våra regler tittar på detta
+        status: 'approved',               // bakåtkompatibelt om UI läser "status"
         approvedAt: FieldValue.serverTimestamp(),
         approvedBy: superadminUid,
         locked: false,
@@ -75,7 +88,7 @@ export async function POST(req: Request) {
     // 2) Lås upp Auth-kontot så de kan logga in
     await adminAuth.updateUser(companyUid, { disabled: false });
 
-    // 3) (valfritt) markera i users/{uid}
+    // 3) Markera i users/{uid} (hjälper guards/övrig UI)
     await adminDb.doc(`users/${companyUid}`).set(
       {
         role: 'company',
@@ -86,14 +99,17 @@ export async function POST(req: Request) {
       { merge: true }
     );
 
-    // 4) (valfritt) set custom claims (kräver ny inloggning för att slå igenom i klienten)
+    // 4) (valfritt) custom claims – kräver token refresh i klienten (getIdToken(true))
     try {
-      await adminAuth.setCustomUserClaims(companyUid, { accountType: 'company', companyApproved: true });
+      await adminAuth.setCustomUserClaims(companyUid, {
+        accountType: 'company',
+        companyApproved: true,
+      });
     } catch {
-      /* ignore if not used yet */
+      /* ignore */
     }
 
-    // 5) Skicka mail via Resend (om möjligt)
+    // 5) Mail via Resend (om konfigurerat)
     const canSend = !!process.env.RESEND_API_KEY && !!FROM;
     if (sendEmail && canSend) {
       const toEmail = await resolveCompanyEmail(companyUid);
@@ -112,7 +128,12 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({
+      ok: true,
+      companyUid,
+      isApproved: true,
+      status: 'approved',
+    });
   } catch (err: any) {
     const msg = err?.message || 'Unauthorized';
     const code = msg === 'Forbidden' ? 403 : msg === 'Missing token' ? 401 : 401;
