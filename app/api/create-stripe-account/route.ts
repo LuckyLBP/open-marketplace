@@ -1,17 +1,14 @@
-// app/api/create-stripe-account/route.ts
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { initializeFirebase } from '@/lib/firebase';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
-// --- Stripe init (samma version som övriga routes) ---
+// --- Stripe init ---
 function getStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY is required');
-  }
-  return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-04-30.basil',
-  });
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error('STRIPE_SECRET_KEY is required');
+  // Låt Stripe använda sin default API-version (säkrare än att hårdkoda).
+  return new Stripe(key);
 }
 
 /**
@@ -48,17 +45,16 @@ export async function POST(req: Request) {
 
     let { stripeAccountId } = (snap.data() as any) || {};
 
-    // 1) Skapa konto om saknas
+    // 1) Skapa Connect-konto om det saknas
     if (!stripeAccountId || typeof stripeAccountId !== 'string' || !stripeAccountId.startsWith('acct_')) {
       const account = await stripe.accounts.create({
         type: 'express',
         country: 'SE',
+        business_type: accountType === 'company' ? 'company' : 'individual',
         capabilities: {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
-        // Anpassa business_type om ni har info
-        business_type: 'individual',
         settings: {
           payouts: { schedule: { interval: 'daily' } },
         },
@@ -76,16 +72,16 @@ export async function POST(req: Request) {
       });
     }
 
-    // 2) Skapa onboarding-länk
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://example.com';
+    // 2) Skapa onboarding-länk (använd dynamisk origin istället för env)
+    const origin = new URL(req.url).origin; // ex: http://localhost:3000 eller https://din-app.vercel.app
     const accountLink = await stripe.accountLinks.create({
-      account: stripeAccountId,
-      refresh_url: `${baseUrl}/dashboard/settings?connect=refresh`,
-      return_url: `${baseUrl}/dashboard/settings?connect=done`,
+      account: stripeAccountId!,
+      refresh_url: `${origin}/dashboard/settings?connect=refresh&aid=${encodeURIComponent(sellerId)}`,
+      return_url: `${origin}/dashboard/settings?connect=done&aid=${encodeURIComponent(sellerId)}`,
       type: 'account_onboarding',
     });
 
-    // 3) Spara senaste onboarding-url (valfritt)
+    // 3) (Valfritt) Spara senaste onboarding-url
     await updateDoc(sellerRef, {
       stripeOnboardingLastUrl: accountLink.url,
       stripeOnboardingCreatedAt: serverTimestamp(),
@@ -95,9 +91,9 @@ export async function POST(req: Request) {
       stripeAccountId,
       onboardingUrl: accountLink.url,
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error('[create-stripe-account][POST] Error:', err);
-    return NextResponse.json({ error: 'Ett fel uppstod vid onboarding' }, { status: 500 });
+    return NextResponse.json({ error: err?.message || 'Ett fel uppstod vid onboarding' }, { status: 500 });
   }
 }
 
@@ -141,8 +137,8 @@ export async function GET(req: Request) {
       payouts_enabled: acct.payouts_enabled,
       requirements: acct.requirements,
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error('[create-stripe-account][GET] Error:', err);
-    return NextResponse.json({ error: 'Ett fel uppstod vid statuskontroll' }, { status: 500 });
+    return NextResponse.json({ error: err?.message || 'Ett fel uppstod vid statuskontroll' }, { status: 500 });
   }
 }
