@@ -111,7 +111,7 @@ export default function RequireApprovedCompany({ children }: Props) {
     );
   }
 
-  if (!approved) {
+  if (!approved) {  
     const router = useRouter();
 
     return (

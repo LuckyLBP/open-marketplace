@@ -1,4 +1,3 @@
-// app/api/create-stripe-account/route.ts
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { initializeFirebase } from '@/lib/firebase';
@@ -22,7 +21,7 @@ function getStripe() {
  */
 export async function POST(req: Request) {
   try {
-    const { db } = initializeFirebase();
+    const { db } = await initializeFirebase();
     if (!db) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
     }
@@ -108,7 +107,7 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const { db } = initializeFirebase();
+    const { db } = await initializeFirebase();
     if (!db) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
     }

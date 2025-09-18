@@ -10,7 +10,6 @@ import {
 } from 'firebase/firestore';
 
 // --- Stripe init ---
-
 function getStripe() {
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error('STRIPE_SECRET_KEY is required');
@@ -46,8 +45,6 @@ type IncomingBuyer = {
   email?: string;
 };
 
-
-
 type EnrichedItem = {
   dealId: string;
   sellerId: string;
@@ -62,7 +59,7 @@ type EnrichedItem = {
 export async function POST(req: Request) {
   try {
     // --- Firebase init ---
-    const { db } = initializeFirebase();
+    const { db } = await initializeFirebase();
     if (!db) {
       return NextResponse.json(
         { error: 'Database connection failed' },
@@ -76,6 +73,9 @@ export async function POST(req: Request) {
     // --- Body parse ---
     const body = await req.json();
     const { items, buyer } = body as { items: IncomingItem[]; buyer?: IncomingBuyer };
+    // Skydd mot dubbletter om användaren dubbelklickar / nätverksretry
+    const idempotencyKey: string | undefined =
+      (body as any)?.idempotencyKey ?? (body as any)?.cartId ?? undefined;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Varukorgen är tom.' }, { status: 400 });
@@ -157,25 +157,32 @@ export async function POST(req: Request) {
     const totalAmountSEK = subtotalSEK + shippingFeeSEK;
 
     // --- Skapa PaymentIntent (belopp i öre) ---
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: totalAmountSEK * 100,
-      currency,
-      automatic_payment_methods: { enabled: true },
-      receipt_email: buyer?.email || undefined,
-      metadata: {
-        subtotal_sek: String(subtotalSEK),
-        platform_service_fee_sek: String(serviceFeeSEK),
-        shipping_fee_sek: String(shippingFeeSEK),
-        buyer_id: buyer?.id || '',
-        buyer_email: buyer?.email || '',
+    const paymentIntent = await stripe.paymentIntents.create(
+      {
+        amount: totalAmountSEK * 100,
+        currency,
+        automatic_payment_methods: { enabled: true },
+        receipt_email: buyer?.email || undefined,
+        metadata: {
+          subtotal_sek: String(subtotalSEK),
+          platform_service_fee_sek: String(serviceFeeSEK),
+          shipping_fee_sek: String(shippingFeeSEK),
+          buyer_id: buyer?.id || '',
+          buyer_email: buyer?.email || '',
+        },
       },
-    });
+      // NYTT: idempotency för att undvika dubbla PIs vid retrys
+      idempotencyKey ? { idempotencyKey } : undefined
+    );
 
-    // (valfritt) Lägg till sessionId i metadata (du använder PI-id som sessionId)
+    // Sätt transfer_group = PI-id (bra för att koppla transfers i webhooken)
+    // Samtidigt skriver vi sessionId och ev. cart_id i metadata.
     await stripe.paymentIntents.update(paymentIntent.id, {
+      transfer_group: paymentIntent.id,
       metadata: {
-        ...paymentIntent.metadata,
+        ...(paymentIntent.metadata || {}),
         sessionId: paymentIntent.id,
+        cart_id: (body as any)?.cartId || '',
       },
     });
 
@@ -196,7 +203,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({
-      clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id,
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
       receiptEmailOnPI: (paymentIntent as any).receipt_email ?? null,
       metadataBuyerEmail: paymentIntent.metadata?.buyer_email ?? null,
     });

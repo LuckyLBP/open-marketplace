@@ -156,7 +156,7 @@ export async function POST(req: Request) {
           expand: ['balance_transaction'],
         });
 
-        // Sätt receipt_email om saknas (från Firestore buyerEmail / PI.metadata)
+        // Kvitto-email (valfritt autofix)
         const sBuyerEmail: string =
           (s.buyerEmail as string) ||
           ((pi as any).receipt_email as string) ||
@@ -171,7 +171,7 @@ export async function POST(req: Request) {
           }
         }
 
-        // Kvitto-länk (om tillgänglig)
+        // Ev. kvittolänk (inte alltid tillgänglig direkt)
         let receiptUrl: string | null = (charge as any)?.receipt_url || null;
 
         // Stripe fee i öre – robust (från expand eller separat fetch)
@@ -247,7 +247,10 @@ export async function POST(req: Request) {
         });
 
         // 4) Skapa transfers per säljare (i ÖRE)
-        const transferGroup = `pi_${pi.id}`;
+        const transferGroup = (pi as any).transfer_group || pi.id;
+
+        const existingTransfers = Array.isArray(s.transfers) ? s.transfers : [];
+
         const transferLogs: Array<{
           sellerId: string;
           stripeAccountId: string;
@@ -256,28 +259,52 @@ export async function POST(req: Request) {
           created: number;
         }> = [];
 
+        // PATCH: Logga sammanfattning innan vi försöker skapa transfers
+        console.log('[webhook] PI', pi.id, 'transfer_group', transferGroup);
+        console.log('[webhook] bySeller draft', bySeller);
+
+        // PATCH: per-säljare try/catch + idempotencyKey
         for (const [sellerId, agg] of Object.entries(bySeller)) {
           const amount = Math.max(0, Math.round(agg.amountOre)); // öre
-          if (!agg.account || amount <= 0) continue;
+          if (!agg.account || amount <= 0) {
+            console.warn('[transfers.create] skip seller', sellerId, 'account', agg.account, 'amount', amount);
+            continue;
+          }
 
-          const tr = await stripe.transfers.create(
-            {
-              amount,
-              currency,
-              destination: agg.account,
-              transfer_group: transferGroup,
-              metadata: { sessionId, sellerId, payment_intent_id: pi.id },
-            },
-            { idempotencyKey: `transfer_${pi.id}_${sellerId}` }
-          );
+          try {
+            const tr = await stripe.transfers.create(
+              {
+                amount,
+                currency,
+                destination: agg.account,
+                transfer_group: transferGroup,
+                metadata: { sessionId, sellerId, payment_intent_id: pi.id },
+              },
+              { idempotencyKey: `transfer_${pi.id}_${sellerId}` }
+            );
 
-          transferLogs.push({
-            sellerId,
-            stripeAccountId: agg.account,
-            amountSEK: Math.round(amount / 100),
-            transferId: tr.id,
-            created: Date.now(),
-          });
+            transferLogs.push({
+              sellerId,
+              stripeAccountId: agg.account,
+              amountSEK: Math.round(amount / 100),
+              transferId: tr.id,
+              created: Date.now(),
+            });
+
+            console.log('[transfers.create] OK →', sellerId, agg.account, 'amount', amount, 'transfer', tr.id);
+          } catch (err: any) {
+            const code = err?.code || err?.type || 'unknown';
+            const msg = err?.message || String(err);
+            transferLogs.push({
+              sellerId,
+              stripeAccountId: agg.account,
+              amountSEK: Math.round(amount / 100),
+              transferId: `ERROR:${code}`,
+              created: Date.now(),
+            });
+            console.error('[transfers.create] ERROR →', sellerId, agg.account, 'amount', amount, code, msg);
+            // Fortsätt till nästa säljare (avbryt inte hela webhooken)
+          }
         }
 
         // 5) Plattformens rapportering
@@ -313,11 +340,21 @@ export async function POST(req: Request) {
           }
         }
 
-        // 7) Uppdatera session + idempotensmarkering
+        // 7) Uppdatera session + idempotensmarkering (merge + dedupe)
+        const mergedTransfers = (() => {
+          const merged = [...existingTransfers, ...transferLogs];
+          const byKey = new Map<string, (typeof merged)[number]>();
+          for (const t of merged) {
+            const key = t.transferId || `${t.sellerId}:${t.amountSEK}`;
+            if (!byKey.has(key)) byKey.set(key, t);
+          }
+          return Array.from(byKey.values());
+        })();
+
         batch.update(sessionRef, {
           status: 'succeeded',
           currency,
-          transfers: transferLogs,
+          transfers: mergedTransfers,
           transferGroup,
           paymentIntentId: pi.id,
           serviceFeeSEK: platformServiceFeeSEK,
@@ -335,6 +372,7 @@ export async function POST(req: Request) {
         return json(200, { received: true });
       } catch (err: any) {
         console.error('[webhook] Handler error:', err);
+        // Markera eventet som hanterat ändå (med fel) så vi undviker eviga retrys
         await setDoc(processedRef, {
           processedAt: new Date(),
           type: event.type,
