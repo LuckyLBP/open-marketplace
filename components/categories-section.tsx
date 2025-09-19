@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/components/language-provider';
 import categoriesData from '@/lib/categories.json';
+import Image from 'next/image';
 
 type Category = {
   title: string;
@@ -46,9 +47,11 @@ export function CategoriesSection() {
             <Link key={category.title} href={category.href} className="group">
               <div className="rounded-xl overflow-hidden shadow-md transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
                 <div className="bg-gray-100 flex items-center justify-center h-40">
-                  <img
+                  <Image
                     src={`/assets/category-section/${category.title.toLowerCase()}.png`}
                     alt={category.title}
+                    width={500}
+                    height={500}
                     className="object-contain w-full h-full"
                   />
                 </div>
