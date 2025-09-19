@@ -48,7 +48,7 @@ export function CategoriesSection() {
               <div className="rounded-xl overflow-hidden shadow-md transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
                 <div className="bg-gray-100 flex items-center justify-center h-40">
                   <Image
-                    src={`/assets/category-section/${category.title.toLowerCase()}.png`}
+                    src={`/assets/category-section/${category.title}.png`}
                     alt={category.title}
                     width={500}
                     height={500}
