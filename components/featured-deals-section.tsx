@@ -163,9 +163,7 @@ export function FeaturedDealsSection() {
   return (
     <section className="py-4 bg-white">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl font-semibold mb-6 text-gray-900">
-          Senaste produkter
-        </h2>
+        <h2 className="text-2xl font-extrabold mb-2">Senaste produkter</h2>
         <div className="relative">
           {/* Left Arrow */}
           {showLeftArrow && (

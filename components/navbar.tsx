@@ -127,12 +127,12 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        'sticky top-0 z-50 w-full transition-all duration-200 bg-black text-white',
+        'sticky top-0 z-50 w-full transition-all duration-200 bg-[#212121] text-white',
         isScrolled ? 'shadow-lg' : ''
       )}
     >
       <div className="container mx-auto px-4">
-        <div className="flex h-14 items-center justify-between">
+        <div className="flex h-16 items-center justify-between">
           {/* Mobile burger menu */}
           <div className="md:hidden">
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>

@@ -44,36 +44,14 @@ export default function Home() {
         <FeaturedDealsSection />
         <CategoriesSection />
 
-        <div className="container mx-auto px-4 py-3">
-          <CategoryBanner category="hemmet" />
-        </div>
-
-        {/* Category sections */}
-        <CategoryProductsSection categoryKey="elektronik" />
-
-        <div className="container mx-auto px-4 py-3">
-          <CategoryBanner category="elektronik" />
-        </div>
-
         <CategoryProductsSection categoryKey="mode" />
+        <CategoryProductsSection categoryKey="halsa-skonhet" />
+        <CategoryProductsSection categoryKey="hemmet" />
+        <CategoryProductsSection categoryKey="hobby-fritid" />
 
         {/* Example Category Banner */}
 
         <FloatingAd className="lg:fixed lg:bottom-4" />
-
-        <CategoryProductsSection categoryKey="hemmet" />
-
-        <div className="container mx-auto px-4 py-3">
-          <CategoryBanner category="hobby-fritid" />
-        </div>
-
-        <CategoryProductsSection categoryKey="halsa-skonhet" />
-
-        <CategoryProductsSection categoryKey="hobby-fritid" />
-
-        <div className="container mx-auto px-4 py-3">
-          <CategoryBanner category="halsa-skonhet" />
-        </div>
 
         <HowItWorksSection />
 

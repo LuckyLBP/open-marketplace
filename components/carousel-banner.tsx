@@ -38,18 +38,8 @@ export const CarouselBanner: React.FC<CarouselBannerProps> = ({
   // Default banner configurations if none provided
   const defaultBanners: BannerConfig[] = [
     {
-      id: 'banner-1',
-      imageUrl: '/assets/banners/header/Bocker.jpg',
-      link: '/marketplace',
-    },
-    {
       id: 'banner-3',
-      imageUrl: '/assets/banners/header/koket.jpg',
-      link: '/marketplace',
-    },
-    {
-      id: 'banner-4',
-      imageUrl: '/assets/banners/header/sport-fitness.jpg',
+      imageUrl: '/assets/banners/categories/halsa-skonhet.jpg',
       link: '/marketplace',
     },
   ];
