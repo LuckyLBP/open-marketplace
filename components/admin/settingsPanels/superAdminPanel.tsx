@@ -19,6 +19,7 @@ import { Deal } from '@/components/types/deal';
 import CustomerList from '../customerList';
 
 import GlobalPricingCard from './globalPricingCard';
+import BannerManagement from '../bannerManagement';
 
 interface EntityData {
   id: string;
@@ -38,7 +39,7 @@ export default function SuperAdminPanel() {
   const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
   const [tab, setTab] = useState<'active' | 'expired' | 'pending'>('active');
   const [featureTab, setFeatureTab] = useState<
-    'pricing' | 'entities' | 'deals'
+    'pricing' | 'entities' | 'deals' | 'banners'
   >('pricing');
 
   useEffect(() => {
@@ -254,6 +255,31 @@ export default function SuperAdminPanel() {
                 Erbjudanden
               </div>
             </button>
+            <button
+              onClick={() => setFeatureTab('banners')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                featureTab === 'banners'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
+                  />
+                </svg>
+                Banners
+              </div>
+            </button>
           </nav>
         </div>
 
@@ -438,6 +464,8 @@ export default function SuperAdminPanel() {
               </div>
             </div>
           )}
+
+          {featureTab === 'banners' && <BannerManagement />}
         </div>
       </div>
     </div>

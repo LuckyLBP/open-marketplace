@@ -15,6 +15,12 @@ import BannerAdPreview from '@/components/boost/adPreview/bannerAdPreview';
 import { RoundedBanner } from '@/components/rounded-banner';
 import { CarouselBanner } from '@/components/carousel-banner';
 import { CategoryBanner } from '@/components/category-banner';
+import {
+  HeaderBanner,
+  SidebarBanner,
+  FooterBanner,
+  InlineBanner,
+} from '@/components/dynamic-banner';
 
 export default function Home() {
   // Main Category Keys
@@ -28,30 +34,37 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <BannerAd position="top" />
+      {/* Dynamic Header Banner */}
+
       <Navbar />
 
       <main className="flex-1 relative">
-        <div className="container mx-auto px-4 py-3">
+        <HeaderBanner className="w-full" />
+        {/* <div className="container mx-auto px-4 py-3">
           <CarouselBanner
             autoRotateInterval={5000}
             showArrows={true}
             showDots={true}
           />
-        </div>
+        </div> */}
 
-        {/* Single sidebar ad on right side only */}
         <FeaturedDealsSection />
+
         <CategoriesSection />
 
-        <CategoryProductsSection categoryKey="mode" />
+        {/* Dynamic Inline Banner between sections */}
+        <div className="container mx-auto px-4 py-6">
+          <InlineBanner className="w-full" />
+        </div>
+
         <CategoryProductsSection categoryKey="halsa-skonhet" />
         <CategoryProductsSection categoryKey="hemmet" />
         <CategoryProductsSection categoryKey="hobby-fritid" />
 
-        {/* Example Category Banner */}
-
         <FloatingAd className="lg:fixed lg:bottom-4" />
+
+        {/* Dynamic Footer Banner */}
+        <FooterBanner className="w-full" />
 
         <HowItWorksSection />
 
