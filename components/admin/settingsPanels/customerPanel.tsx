@@ -13,6 +13,7 @@ import {
 import { db } from '@/lib/firebase';
 import { DealList } from '../dealList';
 import { Deal } from '@/components/types/deal';
+import ReactivateDeal from '@/components/deals/reactivate-deal';
 
 type StripeStatus = {
   hasStripeAccount: boolean;
@@ -228,8 +229,42 @@ export default function CustomerPanel() {
       {tab === 'active' && (
         <DealList title="Aktiva erbjudanden" deals={activeDeals} loading={fetching} />
       )}
+
       {tab === 'expired' && (
-        <DealList title="Utgångna erbjudanden" deals={expiredDeals} loading={fetching} />
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold mb-2">Utgångna erbjudanden</h3>
+          {expiredDeals.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Inga utgångna erbjudanden.</p>
+          ) : (
+            <ul className="divide-y">
+              {expiredDeals.map((d) => (
+                <li key={d.id} className="flex items-center justify-between py-2">
+                  <div>
+                    <div className="font-medium">{d.title}</div>
+                  </div>
+                  <ReactivateDeal
+                    deal={d}
+                    onDone={(u) => {
+                      // Ta bort från utgångna direkt
+                      setExpiredDeals((prev) => prev.filter((x) => x.id !== d.id));
+                      setActiveDeals((prev) => [
+                        {
+                          ...d,
+                          expiresAt: u.expiresAt ?? (d as any).expiresAt,
+                          feePercentage: u.feePercentage ?? (d as any).feePercentage,
+                        } as any,
+                        ...prev.filter((x) => x.id !== d.id),
+                      ]);
+
+                      // Valfritt: hoppa till Aktiva så användaren ser posten direkt
+                      setTab('active');
+                    }}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
     </div>
   );

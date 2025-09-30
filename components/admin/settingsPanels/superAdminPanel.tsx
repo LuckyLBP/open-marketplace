@@ -20,6 +20,9 @@ import { Deal } from '@/components/types/deal';
 import GlobalPricingCard from './globalPricingCard';
 import { useToast } from '@/components/ui/use-toast';
 
+// ✅ Reactivera-knappen
+import ReactivateDeal from '@/components/deals/reactivate-deal';
+
 interface EntityData {
   id: string;
   email: string;
@@ -40,7 +43,7 @@ export default function SuperAdminPanel() {
   const [filteredDeals, setFilteredDeals] = useState<Deal[]>([]);
   const [tab, setTab] = useState<'active' | 'expired' | 'pending'>('active');
 
-  // 👉 NYTT: väntande företag
+  // Väntande företag
   const [pendingCompanies, setPendingCompanies] = useState<PendingCompany[]>([]);
   const [loadingPendingCompanies, setLoadingPendingCompanies] = useState<boolean>(true);
   const [pendingCompaniesErr, setPendingCompaniesErr] = useState<string | null>(null);
@@ -144,7 +147,7 @@ export default function SuperAdminPanel() {
 
       const dealData = dealSnap.data() as any;
       const now = new Date();
-      const duration = dealData.duration || 24; // behåller din nuvarande logik
+      const duration = dealData.duration || 24;
       const newExpiresAt = new Date(now.getTime() + duration * 60 * 60 * 1000);
 
       await updateDoc(dealRef, { status: 'approved', expiresAt: newExpiresAt });
@@ -162,7 +165,7 @@ export default function SuperAdminPanel() {
     toast({ title: 'Erbjudande avslaget' });
   };
 
-  // 👉 NYTT: Godkänn företag via API-routen (sätter claims + skickar mail)
+  // Godkänn företag via API-routen
   const approveCompany = async (companyUid: string) => {
     try {
       const token = await getAuth().currentUser?.getIdToken();
@@ -207,7 +210,7 @@ export default function SuperAdminPanel() {
         </div>
       </div>
 
-      {/* Väntande företag – NY SEKTiON */}
+      {/* Väntande företag */}
       <div className="rounded-lg border bg-white p-4 shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold">Väntande företag</h3>
@@ -292,7 +295,46 @@ export default function SuperAdminPanel() {
         </div>
 
         <div className="mt-4">
-          {tab === 'pending' ? (
+          {tab === 'expired' ? (
+            filteredDeals.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Inga utgångna erbjudanden.</p>
+            ) : (
+              <ul className="space-y-3">
+                {filteredDeals.map((deal) => (
+                  <li
+                    key={deal.id}
+                    className="p-4 rounded-lg bg-white border shadow-sm flex flex-col md:flex-row md:items-center md:justify-between"
+                  >
+                    <div>
+                      <h3 className="font-semibold">{deal.title}</h3>
+                      {deal.companyName && (
+                        <p className="text-sm text-muted-foreground">{deal.companyName}</p>
+                      )}
+                    </div>
+                    <div className="mt-3 md:mt-0">
+                      <ReactivateDeal
+                        deal={deal}
+                        onDone={(u) => {
+                          // Ta bort ur "Utgångna" direkt
+                          setFilteredDeals(prev => prev.filter(d => d.id !== deal.id));
+
+                          // Hoppa till "Aktiva" och visa bekräftelse
+                          setTab('active');
+                          toast({
+                            title: u.status === 'pending' ? 'Skickat för granskning' : 'Erbjudandet är aktivt',
+                            description:
+                              u.status === 'pending'
+                                ? 'Erbjudandet väntar på godkännande.'
+                                : 'Erbjudandet flyttades till Aktiva.',
+                          });
+                        }}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )
+          ) : tab === 'pending' ? (
             filteredDeals.length === 0 ? (
               <p className="text-sm text-muted-foreground">Inga väntande erbjudanden.</p>
             ) : (

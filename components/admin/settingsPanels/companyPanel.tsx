@@ -6,6 +6,7 @@ import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firesto
 import { db } from '@/lib/firebase';
 import { DealList } from '../dealList';
 import type { Deal } from '@/components/types/deal';
+import ReactivateDeal from '@/components/deals/reactivate-deal';
 
 type StripeStatus = {
   hasStripeAccount: boolean;
@@ -23,7 +24,7 @@ export default function CompanyPanel() {
   const [expiredDeals, setExpiredDeals] = useState<Deal[]>([]);
   const [fetching, setFetching] = useState(false);
 
-  // --- NYTT: Stripe UI-state (samma upplägg som i CustomerPanel) ---
+  //Stripe UI-state (samma upplägg som i CustomerPanel) ---
   const [stripeStatus, setStripeStatus] = useState<StripeStatus | null>(null);
   const [connecting, setConnecting] = useState(false);
   const ACCOUNT_TYPE: 'company' = 'company';
@@ -236,8 +237,43 @@ export default function CompanyPanel() {
       {tab === 'active' && (
         <DealList title="Aktiva erbjudanden" deals={activeDeals} loading={fetching} />
       )}
+
       {tab === 'expired' && (
-        <DealList title="Utgångna erbjudanden" deals={expiredDeals} loading={fetching} />
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold mb-2">Utgångna erbjudanden</h3>
+          {expiredDeals.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Inga utgångna erbjudanden.</p>
+          ) : (
+            <ul className="divide-y">
+              {expiredDeals.map((d) => (
+                <li key={d.id} className="flex items-center justify-between py-2">
+                  <div>
+                    <div className="font-medium">{d.title}</div>
+                    {/* valfritt: visa d.expiresAt här med date-fns */}
+                  </div>
+                  <ReactivateDeal
+                    deal={d}
+                    onDone={(u) => {
+                      setExpiredDeals((prev) => prev.filter((x) => x.id !== d.id));
+                      if (u.status === 'approved' || u.status === 'active') {
+                        setActiveDeals((prev) => [
+                          {
+                            ...d,
+                            expiresAt: u.expiresAt ?? d.expiresAt,
+                            feePercentage: u.feePercentage ?? d.feePercentage,
+                          } as any,
+                          ...prev,
+                        ]);
+                        // valfritt: hoppa till Aktiva för att se posten direkt
+                        setTab('active');
+                      }
+                    }}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
     </div>
   );
