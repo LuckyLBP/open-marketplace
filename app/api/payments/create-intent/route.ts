@@ -40,7 +40,19 @@ type IncomingItem = {
   price?: number;
   feePercentage?: number;
 };
-type IncomingBuyer = { id?: string; email?: string };
+
+// 🔄 UPPDATERAD: utöka "buyer" till full gästdatatyp
+type IncomingBuyer = {
+  id?: string; // om inloggad finns kvar (ok att vara undefined för gäster)
+  email?: string;
+  fullName?: string;
+  phone?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  postalCode?: string;
+  city?: string;
+  country?: string; // t.ex. "SE"
+};
 
 type EnrichedItem = {
   dealId: string;
@@ -79,6 +91,19 @@ export async function POST(req: Request) {
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Varukorgen är tom.' }, { status: 400 });
+    }
+
+    // ✅ Validera gästdatan (minimikrav för kvitto/spårbarhet)
+    const hasRequiredBuyer =
+      !!buyer?.email &&
+      !!buyer?.fullName &&
+      !!buyer?.addressLine1 &&
+      !!buyer?.postalCode &&
+      !!buyer?.city &&
+      !!buyer?.country;
+
+    if (!hasRequiredBuyer) {
+      return NextResponse.json({ error: 'Kunduppgifter saknas (namn, e-post och adress krävs).' }, { status: 400 });
     }
 
     // Stabil nyckel per varukorg (från klienten eller server-genererad)
@@ -207,13 +232,21 @@ export async function POST(req: Request) {
         amount: amountOre,
         currency,
         automatic_payment_methods: { enabled: true },
+        // ✅ Kvitto till gäst (eller inloggad) via Stripe
         receipt_email: buyer?.email || undefined,
         metadata: {
           subtotal_sek: String(subtotalSEK),
           platform_service_fee_sek: String(serviceFeeSEK),
           shipping_fee_sek: String(shippingFeeSEK),
+
+          // behåll backward-compatible fält
           buyer_id: buyer?.id || '',
           buyer_email: buyer?.email || '',
+
+          // lägg till några icke-känsliga buyer-fält för sökbarhet i Stripe
+          buyer_name: buyer?.fullName || '',
+          buyer_phone: buyer?.phone || '',
+          buyer_city: buyer?.city || '',
           cart_id: cartId,
         },
       },
@@ -241,8 +274,21 @@ export async function POST(req: Request) {
       serviceFeeSEK,
       sellerMap,
       status: 'requires_payment',
+
+      // 🔥 Spara både gamla och nya buyer-fält för spårbarhet
       buyerId: buyer?.id || null,
       buyerEmail: buyer?.email || null,
+      buyer: {
+        id: buyer?.id || null,
+        fullName: buyer?.fullName || null,
+        email: buyer?.email || null,
+        phone: buyer?.phone || null,
+        addressLine1: buyer?.addressLine1 || null,
+        addressLine2: buyer?.addressLine2 || null,
+        postalCode: buyer?.postalCode || null,
+        city: buyer?.city || null,
+        country: buyer?.country || null,
+      },
     });
 
     // --- Pekare per cart (för återanvändning vid retrys/dubbelklick) ---
@@ -253,7 +299,7 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json({
-        clientSecret: paymentIntent.client_secret,
+      clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
       cartId,
       receiptEmailOnPI: (paymentIntent as any).receipt_email ?? null,

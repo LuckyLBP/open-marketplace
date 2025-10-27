@@ -145,7 +145,5 @@ export default function RequireApprovedCompany({ children }: Props) {
       </div>
     );
   }
-
-
   return <>{children}</>;
 }

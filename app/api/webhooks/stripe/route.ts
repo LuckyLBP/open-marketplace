@@ -86,7 +86,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    // 🔧 NEW: Init Firestore här (db var undefined tidigare)
+    // Init Firestore
     const { db } = await initializeFirebase();
     if (!db) {
       console.error('Firestore init failed in webhook');
@@ -149,7 +149,7 @@ export async function POST(req: Request) {
         const shippingFeeSEK = Number(s.shippingFeeSEK || 0);
         const platformServiceFeeSEK = Number(s.serviceFeeSEK || 0);
 
-        // 1) Hämta charge + balance transaction (+ ev. kvitto-email)
+        // 1) Hämta charge + balance transaction (+ kvitto-email)
         const chargeId =
           typeof pi.latest_charge === 'string'
             ? pi.latest_charge
@@ -158,16 +158,17 @@ export async function POST(req: Request) {
 
         const stripe = getStripe();
 
-        let charge = await stripe.charges.retrieve(chargeId, {
-          expand: ['balance_transaction'],
-        });
+        // expand balance_transaction för att kunna allokera stripe-fee
+        let charge = await stripe.charges.retrieve(chargeId, { expand: ['balance_transaction'] });
 
+        // Email att skicka kvitto till – prioritet: Firestore → PI.receipt_email → metadata
         const sBuyerEmail: string =
           (s.buyerEmail as string) ||
           ((pi as any).receipt_email as string) ||
           ((pi.metadata && (pi.metadata as any).buyer_email) as string) ||
           '';
 
+        // Om Stripe inte redan har receipt_email, sätt den nu (best effort)
         if (!charge.receipt_email && sBuyerEmail) {
           try {
             charge = await stripe.charges.update(chargeId, { receipt_email: sBuyerEmail });
@@ -176,9 +177,10 @@ export async function POST(req: Request) {
           }
         }
 
-        let receiptUrl: string | null = (charge as any)?.receipt_url || null;
+        // Kvitto-länk
+        const receiptUrl: string | null = (charge as any)?.receipt_url || null;
 
-        // Stripe fee i öre
+        // Stripe fee i öre (från balance transaction)
         let stripeFeeOreTotal = 0;
         const btExpanded = (charge as any).balance_transaction;
         if (btExpanded && typeof btExpanded === 'object' && typeof btExpanded.fee === 'number') {
@@ -204,29 +206,26 @@ export async function POST(req: Request) {
           }
         }
 
-        // 2) Dela upp Stripe-fee
+        // 2) Dela upp Stripe-fee mellan subtotal och shipping
         const subtotalOre = Math.max(0, Math.round(subtotalSEK * 100));
         const shippingOre = Math.max(0, Math.round(shippingFeeSEK * 100));
         const totalOre = subtotalOre + shippingOre || 1;
 
-        const stripeFeeOreOnSubtotal = Math.round(
-          (subtotalOre / totalOre) * stripeFeeOreTotal
-        );
-        const stripeFeeOreOnShipping = Math.max(
-          0,
-          stripeFeeOreTotal - stripeFeeOreOnSubtotal
-        );
+        const stripeFeeOreOnSubtotal = Math.round((subtotalOre / totalOre) * stripeFeeOreTotal);
+        const stripeFeeOreOnShipping = Math.max(0, stripeFeeOreTotal - stripeFeeOreOnSubtotal);
 
+        // Vikt per rad = bruttobelopp i öre
         const grossWeightsOre = items.map((i) =>
           Math.max(0, Math.round(Number(i.grossPerItemSEK || 0) * 100))
         );
 
+        // Proportionerlig fördelning av subtotalens stripe-fee
         const stripeFeeAllocPerItemOre = proportionalSplit(
           stripeFeeOreOnSubtotal,
           grossWeightsOre
         );
 
-        // 3) Räkna ut payout per säljare
+        // 3) Payout per säljare
         type SellerAgg = Record<string, { account: string; amountOre: number }>;
         const bySeller: SellerAgg = {};
 
@@ -245,9 +244,8 @@ export async function POST(req: Request) {
           bySeller[it.sellerId].amountOre += payoutOre;
         });
 
-        // 4) Skapa transfers per säljare
+        // 4) Transfers
         const transferGroup = (pi as any).transfer_group || pi.id;
-
         const existingTransfers = Array.isArray(s.transfers) ? s.transfers : [];
         const transferLogs: Array<{
           sellerId: string;
@@ -256,9 +254,6 @@ export async function POST(req: Request) {
           transferId: string;
           created: number;
         }> = [];
-
-        console.log('[webhook] PI', pi.id, 'transfer_group', transferGroup);
-        console.log('[webhook] bySeller draft', bySeller);
 
         for (const [sellerId, agg] of Object.entries(bySeller)) {
           const amount = Math.max(0, Math.round(agg.amountOre)); // öre
@@ -286,8 +281,6 @@ export async function POST(req: Request) {
               transferId: tr.id,
               created: Date.now(),
             });
-
-            console.log('[transfers.create] OK →', sellerId, agg.account, 'amount', amount, 'transfer', tr.id);
           } catch (err: any) {
             const code = err?.code || err?.type || 'unknown';
             const msg = err?.message || String(err);
@@ -309,7 +302,6 @@ export async function POST(req: Request) {
         const netPlatformSEK = Math.max(0, platformServiceFeeSEK - stripeFeeShippingSEK);
 
         // 6) Lager-minskning
-        
         const batch = writeBatch(db);
         for (const it of items) {
           const dealId = it.dealId;
@@ -341,12 +333,13 @@ export async function POST(req: Request) {
           for (const t of merged) {
             const key = t.transferId || `${t.sellerId}:${t.amountSEK}`;
             if (!byKey.has(key)) byKey.set(key, t);
-          }
+           }
           return Array.from(byKey.values());
         })();
 
-        batch.update(doc(db, 'checkoutSessions', sessionId), {
+        batch.update(sessionRef, {
           status: 'succeeded',
+          succeededAt: serverTimestamp(),          // ← tydlig succeeded-timestamp
           currency,
           transfers: mergedTransfers,
           transferGroup,
@@ -356,7 +349,7 @@ export async function POST(req: Request) {
           stripeFeeSubtotalSEK,
           stripeFeeShippingSEK,
           netPlatformSEK,
-          receiptUrl,
+          receiptUrl,                              // ← kvittolänk
           updatedAt: serverTimestamp(),
         });
 
@@ -375,7 +368,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // Övriga events
+    // Övriga events (logga lätt)
     await addDoc(collection(db, 'webhookLogs'), {
       eventType: event.type,
       receivedAt: new Date().toISOString(),

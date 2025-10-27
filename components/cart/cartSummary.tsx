@@ -125,13 +125,7 @@ const CartSummary = () => {
         </div>
       )}
 
-      <Button
-        className="w-full h-12 text-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-        onClick={handleCheckout}
-      >
-        <ShoppingBag className="mr-2 h-5 w-5" />
-        Gå till kassan
-      </Button>
+   
 
       <div className="mt-4 text-xs text-gray-500 text-center flex items-center justify-center">
         <svg

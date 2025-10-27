@@ -44,7 +44,7 @@ function toDate(ts?: StoredSession['createdAt']) {
 export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams();
   const { clearCart } = useCartContext();
-  const paymentIntentId = searchParams.get('payment_intent') || ''; 
+  const paymentIntentId = searchParams.get('payment_intent') || '';
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<StoredSession | null>(null);
   const [deals, setDeals] = useState<Record<string, DealInfo>>({});
@@ -65,8 +65,20 @@ export default function CheckoutSuccessPage() {
           setLoading(false);
           // rensa kundvagn när betalningen är bekräftad
           if (data.status === 'succeeded') {
-            clearCart();
+            // 1) töm varukorgen
+            try { clearCart(); } catch { }
+
+            // 2) rensa gästformulär-data
+            try { localStorage.removeItem('guestDetails'); } catch { }
+
+            // 3) (om du cache:ar varukorg i localStorage)
+            try { localStorage.removeItem('cart'); } catch { }
+
+            // 4) flagga att vi precis slutfört ett köp (för att kunna resetta nästa sida)
+            try { sessionStorage.setItem('checkoutJustSucceeded', '1'); } catch { }
           }
+
+
         } else {
           setSession(null);
           setLoading(false);
