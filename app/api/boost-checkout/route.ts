@@ -1,17 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { initializeFirebase } from '@/lib/firebase';
-import {
-  doc,
-  getDoc,
-  addDoc,
-  collection,
-  serverTimestamp,
-  query,
-  where,
-  getDocs,
-  Timestamp,
-} from 'firebase/firestore';
+import { adminDb } from '@/lib/firebaseAdmin';
+import { FieldValue } from 'firebase-admin/firestore';
 
 // --- helpers för pris ---
 function boostPriceFromSettings(
@@ -56,7 +46,7 @@ export async function POST(req: Request) {
   const body = await req.json();
 
   try {
-    const { db } = initializeFirebase();
+    const db = adminDb;
     if (!db) {
       return NextResponse.json(
         { error: 'Database connection failed' },
@@ -80,18 +70,24 @@ export async function POST(req: Request) {
     }
 
     // Hämta deal
-    const dealSnap = await getDoc(doc(db, 'deals', dealId));
-    if (!dealSnap.exists()) {
+    const dealSnap = await db.collection('deals').doc(dealId).get();
+    if (!dealSnap.exists) {
       return NextResponse.json(
         { error: 'Erbjudandet finns inte' },
         { status: 404 }
       );
     }
     const deal = dealSnap.data();
+    if (!deal) {
+      return NextResponse.json(
+        { error: 'Deal data saknas' },
+        { status: 404 }
+      );
+    }
 
     // Hämta global settings
-    const settingsSnap = await getDoc(doc(db, 'settings', 'global'));
-    const settings = settingsSnap.exists() ? settingsSnap.data() : {};
+    const settingsSnap = await db.collection('settings').doc('global').get();
+    const settings = settingsSnap.exists ? settingsSnap.data() : {};
     const boostSettings = settings?.boostPrices || {};
 
     // 🔑 Räkna fram korrekt pris från settings
@@ -105,16 +101,14 @@ export async function POST(req: Request) {
 
     // Floating cap: max 3 åt gången
     if (type === 'floating') {
-      const now = Timestamp.now();
-      const activeBoostsQuery = query(
-        collection(db, 'deals'),
-        where('isBoosted', '==', true),
-        where('boostType', '==', 'floating'),
-        where('boostStart', '<=', now),
-        where('boostEnd', '>', now)
-      );
+      const now = new Date();
+      const activeBoostsQuery = db.collection('deals')
+        .where('isBoosted', '==', true)
+        .where('boostType', '==', 'floating')
+        .where('boostStart', '<=', now)
+        .where('boostEnd', '>', now);
 
-      const snapshot = await getDocs(activeBoostsQuery);
+      const snapshot = await activeBoostsQuery.get();
       if (snapshot.size >= 3) {
         return NextResponse.json(
           { error: 'Max antal floating-annonser är redan aktiva. Försök senare.' },
@@ -150,13 +144,13 @@ export async function POST(req: Request) {
       },
     });
 
-    await addDoc(collection(db, 'boostSessions'), {
+    await db.collection('boostSessions').add({
       dealId,
       boostType: type,
       duration,
       total: trustedPrice,
       sessionId: session.id,
-      createdAt: serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
 
     return NextResponse.json({ url: session.url });

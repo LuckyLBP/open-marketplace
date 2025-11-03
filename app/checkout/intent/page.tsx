@@ -8,17 +8,12 @@ import { StripeWrapper } from '@/components/stripeWrapper';
 import CheckoutForm from '@/components/checkout-form';
 import { useLanguage } from '@/components/language-provider';
 import GuestDetailsForm, { GuestDetails } from '@/components/checkout/guest-details-form';
-
-// 🔹 auth + profil-läsning
 import { useFirebase } from '@/components/firebase-provider';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-
-// 🔹 dina varukorgskomponenter (med bilder och sammanfattning)
 import CartItemList from '@/components/cart/cartItemList';
 import CartSummary from '@/components/cart/cartSummary';
 
-// vilka fält som krävs för att skapa PI
 const REQUIRED: (keyof GuestDetails)[] = ['fullName', 'email', 'addressLine1', 'postalCode', 'city', 'country'];
 const isValidBuyer = (b?: Partial<GuestDetails>) =>
   !!b &&
@@ -26,28 +21,39 @@ const isValidBuyer = (b?: Partial<GuestDetails>) =>
   /\S+@\S+\.\S+/.test(String(b.email || ''));
 
 export default function CheckoutIntentPage() {
+  // 🔄 ALL HOOKS FIRST - NO EARLY RETURNS BEFORE ALL HOOKS ARE CALLED
   const { t } = useLanguage();
   const { cartItems } = useCartContext();
   const { toast } = useToast();
   const router = useRouter();
-
-  const { user } = useFirebase(); // ← inloggad?
-  const loggedIn = !!user;
-
+  const { user } = useFirebase();
+  
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
-
-  // Gäst/Buyer state
   const [guest, setGuest] = useState<GuestDetails>(() => {
     try { return JSON.parse(localStorage.getItem('guestDetails') || '{}'); } catch { return {} as any; }
   });
   const [guestValid, setGuestValid] = useState(false);
-
-  // Profil från Firestore (för inloggad)
   const [profile, setProfile] = useState<GuestDetails | null>(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [showEmptyState, setShowEmptyState] = useState(false);
 
-  // Läs profilen för inloggad användare (customers/<uid>)
+  // 🔄 ALL COMPUTED VALUES AND MEMOS
+  const loggedIn = !!user;
+  const emptyCart = useMemo(() => !cartItems || cartItems.length === 0, [cartItems]);
+  const cartSubtotal = useMemo(
+    () => cartItems?.reduce((sum, it) => sum + (Number(it.price || 0) * Number(it.quantity || 1)), 0) ?? 0,
+    [cartItems]
+  );
+  const shippingFee = cartSubtotal < 500 && cartSubtotal > 0 ? 50 : 0;
+  const cartTotal = cartSubtotal + shippingFee;
+  const effectiveBuyer: GuestDetails | null = useMemo(() => {
+    if (loggedIn && profile && isValidBuyer(profile)) return profile;
+    if (!loggedIn && guestValid) return guest;
+    return null;
+  }, [loggedIn, profile, guest, guestValid]);
+
+  // 🔄 ALL USE EFFECTS
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -77,7 +83,17 @@ export default function CheckoutIntentPage() {
     return () => { cancelled = true; };
   }, [user?.uid, user?.email]);
 
-  const emptyCart = useMemo(() => !cartItems || cartItems.length === 0, [cartItems]);
+  // Handle empty cart with a small delay to prevent abrupt unmounting
+  useEffect(() => {
+    if (emptyCart) {
+      const timer = setTimeout(() => {
+        setShowEmptyState(true);
+      }, 100); // Small delay to allow for smooth transition
+      return () => clearTimeout(timer);
+    } else {
+      setShowEmptyState(false);
+    }
+  }, [emptyCart]);
 
   // om vi nyss kom från /checkout/success, nollställ allt
   useEffect(() => {
@@ -99,29 +115,27 @@ export default function CheckoutIntentPage() {
   // 🔄 Reset: när varukorgen ändras (eller blir tom), börja om
   useEffect(() => {
     if (!cartItems || cartItems.length === 0) {
-      setClientSecret(null);
-      setGuest({
-        fullName: '', email: '', phone: '',
-        addressLine1: '', addressLine2: '',
-        postalCode: '', city: '', country: 'SE'
-      } as GuestDetails);
-      setGuestValid(false);
-      try { localStorage.removeItem('guestDetails'); } catch { }
+      // Only reset if we had items before (not on initial load)
+      if (clientSecret) {
+        setClientSecret(null);
+      }
+      // Keep guest form data even when cart is empty
+      // setGuest({...}); // Don't reset guest form
+      // setGuestValid(false); // Don't reset validation
+      // Don't remove guest details from localStorage when cart becomes empty
     }
-  }, [cartItems?.length]);
-
-  // Vilken buyer-data ska vi använda
-  const effectiveBuyer: GuestDetails | null = useMemo(() => {
-    if (loggedIn && profile && isValidBuyer(profile)) return profile;
-    if (!loggedIn && guestValid) return guest;
-    // Om inloggad men profilen saknar fält → tvinga formulär (prefilla med profil/guest)
-    return null;
-  }, [loggedIn, profile, guest, guestValid]);
+  }, [cartItems?.length, clientSecret]);
 
   const createPaymentIntent = async () => {
+    console.log('🔥 createPaymentIntent called!', { emptyCart, loggedIn, guestValid, creating });
+    
     if (emptyCart) {
-      // skicka hem när vagnen är tom
-      router.replace('/marketplace');
+      // Don't create payment intent if cart is empty
+      toast({
+        title: t('Varukorgen är tom'),
+        description: t('Lägg till produkter innan du fortsätter.'),
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -162,20 +176,50 @@ export default function CheckoutIntentPage() {
     }
   };
 
-  // om vagnen är tom → redirect och rendera inte “tom-vyn”
-  if (emptyCart) {
-    if (typeof window !== 'undefined') router.replace('/marketplace');
-    return null;
+  // ⭐ RENDERING LOGIC - ALL CONDITIONAL RENDERING HAPPENS HERE
+  // Show loading while transitioning to empty state
+  if (emptyCart && !showEmptyState) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin h-8 w-8 border-b-2 border-purple-600 rounded-full"></div>
+      </div>
+    );
   }
 
-  // Dessa används bara om du visar egna totals i vänsterkolumn eller någon annanstans
-  const currency = 'SEK';
-  const cartSubtotal = useMemo(
-    () => cartItems?.reduce((sum, it) => sum + (Number(it.price || 0) * Number(it.quantity || 1)), 0) ?? 0,
-    [cartItems]
-  );
-  const shippingFee = cartSubtotal < 500 && cartSubtotal > 0 ? 50 : 0;
-  const cartTotal = cartSubtotal + shippingFee;
+  // Show empty cart state
+  if (emptyCart && showEmptyState) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 px-4">
+        <div className="mx-auto max-w-2xl text-center">
+          <div className="bg-white shadow-md rounded-lg p-8">
+            <div className="mb-6">
+              <svg
+                className="mx-auto h-16 w-16 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5H4M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13v4a2 2 0 01-2 2H9a2 2 0 01-2-2v-4m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2-2v4.01"
+                />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {t('Din varukorg är tom')}
+            </h2>
+            <p className="text-gray-600 mb-6">
+              {t('Du har inga produkter i varukorgen just nu.')}
+            </p>
+           
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Readonly-kort med kontouppgifter (för inloggad med komplett profil)
   const ProfileSummary = ({ data }: { data: GuestDetails }) => (
@@ -195,7 +239,10 @@ export default function CheckoutIntentPage() {
       <div className="mx-auto max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Vänster: Kunduppgifter + Betalning (oförändrat UI) */}
         <div className="bg-white shadow-md rounded-lg p-6 space-y-6">
-          <h2 className="text-xl font-semibold">{t('Slutför betalning')}</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">{t('Slutför betalning')}</h2>
+         
+          </div>
 
           {/* Kunduppgifter */}
           <section>
@@ -228,13 +275,30 @@ export default function CheckoutIntentPage() {
           {/* Betalning */}
           {!clientSecret ? (
             <div className="pt-2">
-              <button
-                onClick={createPaymentIntent}
-                disabled={creating || (loggedIn ? false : !guestValid)}
-                className="w-full bg-purple-600 text-white rounded-md px-4 py-2 disabled:opacity-60"
-              >
-                {creating ? t('Skapar betalning...') : t('Fortsätt till betalning')}
-              </button>
+              {(() => {
+                // Calculate if button should be enabled
+                const isButtonEnabled = !creating && (loggedIn || guestValid);
+                
+                return (
+                  <>
+                    <button
+                      onClick={createPaymentIntent}
+                      disabled={!isButtonEnabled}
+                      className={`w-full rounded-md px-4 py-2 font-medium transition-colors ${
+                        isButtonEnabled
+                          ? 'bg-purple-600 text-white hover:bg-purple-700 cursor-pointer'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      {creating ? t('Skapar betalning...') : t('Fortsätt till betalning')}
+                    </button>
+                    {/* Debug info */}
+                    <div className="text-xs text-gray-500 mt-2">
+                      Debug: loggedIn={String(loggedIn)}, guestValid={String(guestValid)}, creating={String(creating)}, buttonEnabled={String(isButtonEnabled)}
+                    </div>
+                  </>
+                );
+              })()}
               {!loggedIn && (
                 <p className="text-xs text-gray-500 mt-2">
                   {t('Vi använder din e-post för kvitto och orderbekräftelse.')}

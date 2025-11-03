@@ -78,6 +78,11 @@ export function useCart() {
   }, [storageKey]);
 
   const addToCart = useCallback((item: Deal, quantity: number = 1) => {
+    if (!item?.id) {
+      console.error("Cannot add item without ID to cart:", item);
+      return;
+    }
+    
     if (!item.accountType) {
       console.warn("⚠️ Saknar accountType i item som läggs till i cart:", item);
     }
@@ -87,12 +92,16 @@ export function useCart() {
 
       const updated = existing
         ? prev.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i
+          i.id === item.id ? { ...i, quantity: Math.max(1, i.quantity + quantity) } : i
         )
-        : [...prev, { ...item, quantity, accountType: item.accountType ?? "company" }];
+        : [...prev, { ...item, quantity: Math.max(1, quantity), accountType: item.accountType ?? "company" }];
 
       if (user && storageKey) {
-        localStorage.setItem(storageKey, JSON.stringify(updated));
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(updated));
+        } catch (error) {
+          console.error('Failed to update cart in localStorage:', error);
+        }
       }
 
       return updated;
@@ -100,10 +109,16 @@ export function useCart() {
   }, [user, storageKey]);
 
   const removeFromCart = useCallback((id: string) => {
+    if (!id) return; // Safety check
+    
     setCartItems((prev) => {
       const updated = prev.filter((i) => i.id !== id);
       if (user && storageKey) {
-        localStorage.setItem(storageKey, JSON.stringify(updated));
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(updated));
+        } catch (error) {
+          console.error('Failed to update cart in localStorage:', error);
+        }
       }
       return updated;
     });
@@ -112,7 +127,11 @@ export function useCart() {
   const clearCart = useCallback(() => {
     setCartItems([]);
     if (user && storageKey) {
-      localStorage.removeItem(storageKey);
+      try {
+        localStorage.removeItem(storageKey);
+      } catch (error) {
+        console.error('Failed to clear cart from localStorage:', error);
+      }
     }
   }, [user, storageKey]);
 

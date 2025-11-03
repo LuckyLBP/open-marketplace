@@ -85,8 +85,21 @@ export default function CheckoutSuccessPage() {
         }
       },
       (err) => {
-        console.error('[success] onSnapshot error', err);
-        setLoading(false);
+        console.error('[success] ❌ onSnapshot error for paymentIntent:', paymentIntentId, err);
+        // Try to fetch the session once more before giving up
+        (async () => {
+          try {
+            const fallbackSnap = await getDoc(doc(db, 'checkoutSessions', paymentIntentId));
+            if (fallbackSnap.exists()) {
+              const data = fallbackSnap.data() as any as StoredSession;
+              setSession(data);
+              console.log('[success] ✅ Fallback fetch successful');
+            }
+          } catch (fallbackErr) {
+            console.error('[success] ❌ Fallback fetch also failed:', fallbackErr);
+          }
+          setLoading(false);
+        })();
       }
     );
     return () => unsub();

@@ -1,13 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { initializeFirebase } from '@/lib/firebase';
-import {
-  doc,
-  getDoc,
-  setDoc,
-  serverTimestamp,
-  collection,
-} from 'firebase/firestore';
+import { adminDb } from '@/lib/firebaseAdmin';
+import { FieldValue } from 'firebase-admin/firestore';
 import crypto from 'crypto';
 
 // --- Stripe init ---
@@ -77,8 +71,8 @@ function makeDeterministicCartId(items: IncomingItem[], buyerId?: string) {
 
 export async function POST(req: Request) {
   try {
-    // --- Firebase init ---
-    const { db } = await initializeFirebase();
+    // --- Use Admin SDK (bypasses Firestore rules) ---
+    const db = adminDb;
     if (!db) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
     }
@@ -114,19 +108,18 @@ export async function POST(req: Request) {
     const currency = 'sek';
 
     // ===== Idempotens: återanvänd befintlig PI för samma cartId =====
-    const cartRef = doc(collection(db, 'checkoutCarts'), cartId);
-    const cartSnap = await getDoc(cartRef);
-    const existingPiId = cartSnap.exists() ? (cartSnap.data() as any)?.piId : undefined;
+    const cartRef = db.collection('checkoutCarts').doc(cartId);
+    const cartSnap = await cartRef.get();
+    const existingPiId = cartSnap.exists ? (cartSnap.data() as any)?.piId : undefined;
 
     if (existingPiId) {
       try {
         const existing = await stripe.paymentIntents.retrieve(existingPiId);
         if (existing && !['canceled', 'succeeded'].includes(existing.status)) {
-          await setDoc(
-            cartRef,
-            { piId: existing.id, updatedAt: serverTimestamp() },
-            { merge: true }
-          );
+          await cartRef.update({
+            piId: existing.id, 
+            updatedAt: FieldValue.serverTimestamp()
+          });
           return NextResponse.json({
             clientSecret: existing.client_secret,
             paymentIntentId: existing.id,
@@ -148,9 +141,9 @@ export async function POST(req: Request) {
 
     // --- Bygg items från Firestore ---
     for (const item of items) {
-      const dealRef = doc(db, 'deals', item.id);
-      const dealSnap = await getDoc(dealRef);
-      if (!dealSnap.exists()) {
+      const dealRef = db.collection('deals').doc(item.id);
+      const dealSnap = await dealRef.get();
+      if (!dealSnap.exists) {
         console.warn('[create-intent] deal not found → skip', item.id);
         continue;
       }
@@ -166,21 +159,29 @@ export async function POST(req: Request) {
       const accountType: 'company' | 'customer' =
         item.accountType === 'customer' ? 'customer' : 'company';
 
-      const sellerRef = doc(
-        db,
-        accountType === 'company' ? 'companies' : 'customers',
-        sellerId
-      );
-      const sellerSnap = await getDoc(sellerRef);
-      if (!sellerSnap.exists()) {
+      const sellerRef = db.collection(accountType === 'company' ? 'companies' : 'customers').doc(sellerId);
+      const sellerSnap = await sellerRef.get();
+      if (!sellerSnap.exists) {
         console.warn('[create-intent] seller doc missing → skip', sellerId);
         continue;
       }
 
-      const { stripeAccountId } = sellerSnap.data() as { stripeAccountId?: string };
+      const sellerData = sellerSnap.data() as any;
+      const { stripeAccountId } = sellerData;
+      
+      // Better logging for debugging
+      console.log(`[create-intent] Seller ${sellerId} data:`, { 
+        hasStripeAccount: !!stripeAccountId, 
+        accountId: stripeAccountId ? `${stripeAccountId.substring(0, 10)}...` : 'MISSING',
+        sellerName: sellerData?.name || sellerData?.companyName || 'Unknown'
+      });
+      
       if (!stripeAccountId) {
-        console.warn('[create-intent] seller has no stripeAccountId → skip', sellerId);
-        continue;
+        console.error(`[create-intent] ❌ Seller ${sellerId} has no stripeAccountId → SKIPPING ITEM ${item.id}`);
+        // Don't skip - continue processing but flag the issue
+        return NextResponse.json({ 
+          error: `Säljaren för "${deal.title}" har inte konfigurerat sitt Stripe-konto än. Kontakta säljaren.` 
+        }, { status: 400 });
       }
 
       const quantity = Math.max(1, Number(item.quantity || 1));
@@ -263,8 +264,8 @@ export async function POST(req: Request) {
     });
 
     // --- Spara checkoutSession i Firestore ---
-    await setDoc(doc(collection(db, 'checkoutSessions'), paymentIntent.id), {
-      createdAt: serverTimestamp(),
+    await db.collection('checkoutSessions').doc(paymentIntent.id).set({
+      createdAt: FieldValue.serverTimestamp(),
       sessionId: paymentIntent.id,
       currency,
       items: enrichedItems,
@@ -292,11 +293,10 @@ export async function POST(req: Request) {
     });
 
     // --- Pekare per cart (för återanvändning vid retrys/dubbelklick) ---
-    await setDoc(
-      cartRef,
-      { piId: paymentIntent.id, updatedAt: serverTimestamp() },
-      { merge: true }
-    );
+    await cartRef.set({
+      piId: paymentIntent.id, 
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,

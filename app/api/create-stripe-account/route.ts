@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { initializeFirebase } from '@/lib/firebase';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebaseAdmin';
+import { FieldValue } from 'firebase-admin/firestore';
 
 // Håll samma version som övriga routes
 function getStripe() {
@@ -21,8 +21,8 @@ type AccountType = 'company' | 'customer';
  */
 export async function POST(req: Request) {
   try {
-    // ⚠️ Viktigt: vänta in Firebase-init
-    const { db } = await initializeFirebase();
+    // Use Admin SDK (bypasses Firestore rules)
+    const db = adminDb;
     if (!db) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
     }
@@ -38,14 +38,14 @@ export async function POST(req: Request) {
     }
 
     const col = accountType === 'company' ? 'companies' : 'customers';
-    const sellerRef = doc(db, col, sellerId);
-    const snap = await getDoc(sellerRef);
-    if (!snap.exists()) {
-      // Skapa minimalt dokument om det saknas (så updateDoc inte faller)
-      await setDoc(sellerRef, { createdAt: serverTimestamp() }, { merge: true });
+    const sellerRef = db.collection(col).doc(sellerId);
+    const snap = await sellerRef.get();
+    if (!snap.exists) {
+      // Skapa minimalt dokument om det saknas (så update inte faller)
+      await sellerRef.set({ createdAt: FieldValue.serverTimestamp() }, { merge: true });
     }
 
-    let data = (await getDoc(sellerRef)).data() as any;
+    let data = (await sellerRef.get()).data() as any;
     let stripeAccountId: string | undefined = data?.stripeAccountId;
     let legacyStripeAccountId: string | null = null;
 
@@ -79,11 +79,11 @@ export async function POST(req: Request) {
 
       stripeAccountId = acct.id;
 
-      await updateDoc(sellerRef, {
+      await sellerRef.update({
         stripeAccountId,
         legacyStripeAccountId: legacyStripeAccountId || null,
-        stripeAccountCreatedAt: serverTimestamp(),
-        stripeLinkedAt: serverTimestamp(),
+        stripeAccountCreatedAt: FieldValue.serverTimestamp(),
+        stripeLinkedAt: FieldValue.serverTimestamp(),
       });
     }
 
@@ -107,9 +107,9 @@ export async function POST(req: Request) {
     });
 
     // (valfritt) logga senaste länk
-    await updateDoc(sellerRef, {
+    await sellerRef.update({
       stripeOnboardingLastUrl: accountLink.url,
-      stripeOnboardingCreatedAt: serverTimestamp(),
+      stripeOnboardingCreatedAt: FieldValue.serverTimestamp(),
     });
 
     return NextResponse.json({
@@ -132,7 +132,7 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    const { db } = await initializeFirebase();
+    const db = adminDb;
     if (!db) {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
     }
@@ -148,9 +148,9 @@ export async function GET(req: Request) {
     }
 
     const col = accountType === 'company' ? 'companies' : 'customers';
-    const sellerRef = doc(db, col, sellerId);
-    const snap = await getDoc(sellerRef);
-    if (!snap.exists()) {
+    const sellerRef = db.collection(col).doc(sellerId);
+    const snap = await sellerRef.get();
+    if (!snap.exists) {
       return NextResponse.json({
         hasStripeAccount: false,
         stripeAccountId: null,

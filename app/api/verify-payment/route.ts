@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { initializeFirebase } from '@/lib/firebase';
-import { getDoc, doc, updateDoc, Timestamp } from 'firebase/firestore';
+import { adminDb } from '@/lib/firebaseAdmin';
+import { FieldValue } from 'firebase-admin/firestore';
 
 export async function POST(req: Request) {
   try {
-    // Initialize Firebase and get db instance
-    const { db } = initializeFirebase();
+    // Use Admin SDK (bypasses Firestore rules)
+    const db = adminDb;
 
     if (!db) {
       return NextResponse.json(
@@ -24,22 +24,20 @@ export async function POST(req: Request) {
       );
     }
 
-    const dealRef = doc(db, 'deals', dealId);
-    const dealSnap = await getDoc(dealRef);
+    const dealRef = db.collection('deals').doc(dealId);
+    const dealSnap = await dealRef.get();
 
-    if (!dealSnap.exists()) {
+    if (!dealSnap.exists) {
       return NextResponse.json(
         { error: 'Erbjudandet hittades ej' },
         { status: 404 }
       );
     }
 
-    const now = Timestamp.now();
-    const end = Timestamp.fromDate(
-      new Date(now.toDate().getTime() + duration * 60 * 60 * 1000)
-    );
+    const now = FieldValue.serverTimestamp();
+    const end = new Date(Date.now() + duration * 60 * 60 * 1000);
 
-    await updateDoc(dealRef, {
+    await dealRef.update({
       isBoosted: true,
       boostType: type,
       boostStart: now,
