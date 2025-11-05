@@ -64,13 +64,8 @@ export function Navbar() {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const [localCartCount, setLocalCartCount] = useState(cartCount);
 
-  // 👉 vår guard-funktion för varukorgen
   const openCart = () => {
-    if (!user) {
-      router.push('/auth/signin?next=/varukorg&msg=need-account');
-    } else {
-      router.push('/varukorg');
-    }
+    router.push('/checkout/intent');
   };
 
   useEffect(() => {

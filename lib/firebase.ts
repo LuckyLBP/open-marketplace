@@ -1,73 +1,77 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeApp, getApps, getApp, deleteApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-// Validate required environment variables
 const requiredEnvVars = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
-const hasRequiredVars = Object.values(requiredEnvVars).every(
-  (val) => val && val.length > 0
-);
+const hasRequiredVars = Object.values(requiredEnvVars).every(Boolean);
 
 let app: any = null;
 let auth: any = null;
 let db: any = null;
 let storage: any = null;
 
-// Initialize Firebase for client-side or when env vars are available
-function initializeFirebaseApp() {
-  if (!app && hasRequiredVars) {
-    try {
-      const firebaseConfig = requiredEnvVars;
-      app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-      auth = getAuth(app);
-      db = getFirestore(app);
-      storage = getStorage(app);
-    } catch (error) {
-      console.error('Firebase initialization failed:', error);
+async function initializeFirebaseApp() {
+  if (!hasRequiredVars) return;
+
+  const firebaseConfig = requiredEnvVars;
+
+  // Om det redan finns en app men för FEL projekt → stäng den och initiera om
+  const apps = getApps();
+  if (apps.length) {
+    const existing = getApp();
+    // @ts-ignore
+    const existingProject = existing.options?.projectId;
+    if (existingProject !== firebaseConfig.projectId) {
+      await deleteApp(existing);
     }
   }
-}
 
-// Initialize immediately if we have env vars and we're not in Node.js build context
-if (hasRequiredVars) {
-  // Only skip during SSR/build if we explicitly detect build environment
-  const isServerBuild =
-    typeof window === 'undefined' &&
-    process.env.NODE_ENV === 'production' &&
-    !process.env.VERCEL_ENV;
+  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
 
-  if (!isServerBuild) {
-    initializeFirebaseApp();
+  // 🔎 DEBUG: logga alltid vilket projekt klienten kör mot
+  if (typeof window !== 'undefined') {
+    // @ts-ignore
+    const opts = app.options || {};
+    console.log('FB DEBUG', {
+      projectId: opts.projectId,
+      storageBucket: opts.storageBucket,
+      envProjectId: firebaseConfig.projectId,
+      envBucket: firebaseConfig.storageBucket,
+    });
   }
 }
 
-// Lazy initialization function for API routes and client-side
-export function initializeFirebase() {
+// init direkt på klienten
+if (hasRequiredVars && typeof window !== 'undefined') {
+  // kör och ignorera ev. promise
+  initializeFirebaseApp();
+}
+
+export async function initializeFirebase() {
   if (!app && hasRequiredVars) {
-    initializeFirebaseApp();
+    await initializeFirebaseApp();
   }
-
   if (!app || !db) {
-    throw new Error(
-      'Firebase not properly initialized - check environment variables'
-    );
+    throw new Error('Firebase not properly initialized - check env');
   }
-
   return { app, auth, db, storage };
 }
 
-// Client-side hook to ensure Firebase is initialized
 export function useFirebaseApp() {
   if (typeof window !== 'undefined' && !app && hasRequiredVars) {
+    // best-effort init (utan await i hook)
     initializeFirebaseApp();
   }
   return { app, auth, db, storage };

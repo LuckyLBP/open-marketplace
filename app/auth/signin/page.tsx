@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { signInWithEmailAndPassword } from "firebase/auth"
+import { signInWithEmailAndPassword, signOut } from "firebase/auth"
 import { doc, getDoc } from "firebase/firestore"
 import { auth, db } from "@/lib/firebase"
 import { useLanguage } from "@/components/language-provider"
@@ -27,6 +27,7 @@ export default function SignIn() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState("")
   const router = useRouter()
   const { t } = useLanguage()
   const { toast } = useToast()
@@ -34,32 +35,59 @@ export default function SignIn() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setErrorMsg("")
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      const user = userCredential.user
+      const cred = await signInWithEmailAndPassword(auth, email, password)
+      const uid = cred.user.uid
 
-      // Kontrollera om användaren är ett företag genom att kolla 'companies'-kollektionen
-      const companyDoc = await getDoc(doc(db, "companies", user.uid))
+      // Finns dokument i companies?
+      const companySnap = await getDoc(doc(db, "companies", uid))
+      if (companySnap.exists()) {
+        const c = companySnap.data() as any
+        const role = c.role || c.accountType
 
-      toast({
-        title: "Framgång",
-        description: "Du har loggat in framgångsrikt.",
-      })
+        // ✅ Adminer ska släppas igenom oavsett status
+        if (role === "superadmin" || role === "admin") {
+          toast({ title: "Framgång", description: "Du har loggat in." })
+          router.push("/dashboard/settings") // eller "/dashboard"
+          return
+        }
 
-      if (companyDoc.exists()) {
-        // Om användaren är ett företag, skicka till dashboard
+        // ✅ Riktiga företag kräver approved
+        const status = c.status || "pending"
+        if (status !== "approved") {
+          await signOut(auth)
+          const msg = "Ditt företagskonto väntar på godkännande av superadmin."
+          setErrorMsg(msg)
+          toast({ title: "Konto låst", description: msg })
+          return
+        }
+
+        toast({ title: "Framgång", description: "Du har loggat in." })
         router.push("/dashboard")
-      } else {
-        // Annars är det en privatperson, skicka till marketplace
-        router.push("/marketplace")
+        return
       }
-    } catch (error) {
-      toast({
-        title: "Fel",
-        description: "Inloggningen misslyckades. Kontrollera dina uppgifter.",
-        variant: "destructive",
-      })
+
+      // Ingen company-doc ⇒ behandla som kund
+      toast({ title: "Framgång", description: "Du har loggat in." })
+      router.push("/marketplace")
+    } catch (e: any) {
+      if (e?.code === "auth/user-disabled") {
+        const msg = "Ditt företagskonto väntar på godkännande av superadmin."
+        setErrorMsg(msg)
+        toast({ title: "Konto låst", description: msg })
+      } else {
+        const map: Record<string, string> = {
+          "auth/invalid-credential": "Fel e-post eller lösenord.",
+          "auth/wrong-password": "Fel e-post eller lösenord.",
+          "auth/user-not-found": "Ingen användare med den e-posten.",
+          "auth/too-many-requests": "För många försök. Försök igen om en stund.",
+        }
+        const msg = map[e?.code] || "Inloggningen misslyckades. Kontrollera dina uppgifter."
+        setErrorMsg(msg)
+        toast({ title: "Fel", description: msg, variant: "destructive" })
+      }
     } finally {
       setLoading(false)
     }
@@ -72,54 +100,31 @@ export default function SignIn() {
           <CardTitle className="text-2xl font-bold">Logga in</CardTitle>
           <CardDescription>
             Ange din e-post och lösenord för att logga in på ditt konto
+            <br />
+            <span className="text-xs text-muted-foreground">
+              Företagskonton kan inte logga in förrän superadmin har godkänt ansökan.
+            </span>
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSignIn}>
           <CardContent className="space-y-4">
-            {/* E-postfält */}
             <div className="space-y-2">
               <Label htmlFor="email">E-post</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="din@epost.se"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
-
-            {/* Lösenordfält */}
             <div className="space-y-2">
               <Label htmlFor="password">Lösenord</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
+            {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            {/* Logga in-knapp */}
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-              disabled={loading}
-            >
+            <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700" disabled={loading}>
               {loading ? "Laddar..." : "Logga in"}
             </Button>
-
-            {/* Länk till registrering */}
             <div className="text-center text-sm">
-              Har du inget konto?{" "}
-              <Link href="/auth/signup" className="text-purple-600 hover:underline">
-                Registrera dig
-              </Link>
+              Har du inget konto? <Link href="/auth/signup" className="text-purple-600 hover:underline">Registrera dig</Link>
             </div>
-
-            {/* Länk till startsidan */}
             <div className="text-center text-sm">
               <Link href="/" className="text-gray-500 hover:underline inline-flex items-center gap-1">
                 <Home className="w-4 h-4" />

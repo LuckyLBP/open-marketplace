@@ -2,12 +2,19 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useFirebase } from '@/components/firebase-provider';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc,
+} from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { DealList } from '../dealList';
 import type { Deal } from '@/components/types/deal';
+import ReactivateDeal from '@/components/deals/reactivate-deal';
 
-// --- Stripe status-typ (samma mönster som i CustomerPanel)
 type StripeStatus = {
   hasStripeAccount: boolean;
   stripeAccountId?: string;
@@ -24,10 +31,9 @@ export default function CompanyPanel() {
   const [expiredDeals, setExpiredDeals] = useState<Deal[]>([]);
   const [fetching, setFetching] = useState(false);
 
-  // --- Stripe UI-state
+  //Stripe UI-state (samma upplägg som i CustomerPanel) ---
   const [stripeStatus, setStripeStatus] = useState<StripeStatus | null>(null);
   const [connecting, setConnecting] = useState(false);
-
   const ACCOUNT_TYPE: 'company' = 'company';
 
   // Företagsprofil
@@ -55,13 +61,14 @@ export default function CompanyPanel() {
 
       const toDeal = (d: any, id: string): Deal => {
         const toDate = (ts: any) =>
-          ts?.toDate?.() ? ts.toDate() : (ts instanceof Date ? ts : new Date(0));
+          ts?.toDate?.() ? ts.toDate() : ts instanceof Date ? ts : new Date(0);
         return {
           id,
           title: d.title ?? 'Okänt erbjudande',
           description: d.description ?? '',
           price: typeof d.price === 'number' ? d.price : 0,
-          originalPrice: typeof d.originalPrice === 'number' ? d.originalPrice : null,
+          originalPrice:
+            typeof d.originalPrice === 'number' ? d.originalPrice : null,
           duration: typeof d.duration === 'number' ? d.duration : 24,
           images: Array.isArray(d.images) ? d.images : [],
           imageUrl: d.imageUrl ?? undefined,
@@ -69,16 +76,20 @@ export default function CompanyPanel() {
           companyName: d.companyName ?? '',
           category: d.category ?? '',
           subcategory: d.subcategory ?? undefined,
-          feePercentage: typeof d.feePercentage === 'number' ? d.feePercentage : 0,
+          feePercentage:
+            typeof d.feePercentage === 'number' ? d.feePercentage : 0,
           createdAt: toDate(d.createdAt),
           expiresAt: toDate(d.expiresAt),
           boostStart: d.boostStart ? toDate(d.boostStart) : undefined,
           boostEnd: d.boostEnd ? toDate(d.boostEnd) : undefined,
           boostType: d.boostType ?? undefined,
-          specifications: Array.isArray(d.specifications) ? d.specifications : undefined,
+          specifications: Array.isArray(d.specifications)
+            ? d.specifications
+            : undefined,
           features: Array.isArray(d.features) ? d.features : undefined,
           inStock: typeof d.inStock === 'boolean' ? d.inStock : undefined,
-          stockQuantity: typeof d.stockQuantity === 'number' ? d.stockQuantity : undefined,
+          stockQuantity:
+            typeof d.stockQuantity === 'number' ? d.stockQuantity : undefined,
           sku: d.sku ?? undefined,
           stripeAccountId: d.stripeAccountId ?? undefined,
           accountType: d.accountType === 'customer' ? 'customer' : 'company',
@@ -86,7 +97,9 @@ export default function CompanyPanel() {
         };
       };
 
-      const all: Deal[] = snap.docs.map((docSnap) => toDeal(docSnap.data(), docSnap.id));
+      const all: Deal[] = snap.docs.map((docSnap) =>
+        toDeal(docSnap.data(), docSnap.id)
+      );
       const now = new Date();
       setActiveDeals(all.filter((deal) => (deal as any).expiresAt > now));
       setExpiredDeals(all.filter((deal) => (deal as any).expiresAt <= now));
@@ -94,7 +107,7 @@ export default function CompanyPanel() {
     })();
   }, [user]);
 
-  // --- Hämta Stripe-status för företaget
+  // --- NYTT: Hämta Stripe-status (samma API som du använder i CustomerPanel) ---
   const refreshStripeStatus = useCallback(async () => {
     if (!user) return;
     try {
@@ -102,7 +115,10 @@ export default function CompanyPanel() {
         sellerId: user.uid,
         accountType: ACCOUNT_TYPE,
       });
-      const res = await fetch(`/api/create-stripe-account?${params.toString()}`, { method: 'GET' });
+      const res = await fetch(
+        `/api/create-stripe-account?${params.toString()}`,
+        { method: 'GET' }
+      );
       const data = await res.json();
       if (res.ok) {
         setStripeStatus({
@@ -113,10 +129,10 @@ export default function CompanyPanel() {
         });
       } else {
         setStripeStatus(null);
-        console.warn('Stripe status error:', data?.error);
+        console.warn('Stripe status error (company):', data?.error);
       }
     } catch (err) {
-      console.error('Stripe status fetch failed:', err);
+      console.error('Stripe status fetch failed (company):', err);
       setStripeStatus(null);
     }
   }, [user]);
@@ -125,7 +141,7 @@ export default function CompanyPanel() {
     refreshStripeStatus();
   }, [refreshStripeStatus]);
 
-  // --- Starta / fortsätt onboarding
+  // --- NYTT: Starta onboarding för företag ---
   const startOnboarding = async () => {
     if (!user) return;
     try {
@@ -161,11 +177,19 @@ export default function CompanyPanel() {
       <div className="p-4 rounded-lg bg-white border shadow-sm">
         {companyInfo ? (
           <>
-            <p><strong>Företagsnamn:</strong> {companyInfo.name || 'Ej angivet'}</p>
-            <p><strong>Email:</strong> {companyInfo.email || user.email}</p>
-            {companyInfo.orgNr && <p><strong>OrgNr:</strong> {companyInfo.orgNr}</p>}
+            <p>
+              <strong>Företagsnamn:</strong> {companyInfo.name || 'Ej angivet'}
+            </p>
+            <p>
+              <strong>Email:</strong> {companyInfo.email || user.email}
+            </p>
+            {companyInfo.orgNr && (
+              <p>
+                <strong>OrgNr:</strong> {companyInfo.orgNr}
+              </p>
+            )}
 
-            {/* --- Stripe-sektion för företag --- */}
+            {/* --- NYTT: Stripe-sektion för företag (identisk UX som för customer) --- */}
             <div className="mt-4">
               <h3 className="font-semibold mb-2">Stripe</h3>
 
@@ -178,7 +202,8 @@ export default function CompanyPanel() {
                   ) : (
                     <div className="bg-yellow-50 p-3 rounded border border-yellow-300">
                       <p className="text-yellow-700 text-sm mb-2">
-                        Stripe-konto finns men är inte färdigaktiverat (charges_enabled: false).
+                        Stripe-konto finns men är inte färdigaktiverat
+                        (charges_enabled: false).
                       </p>
                       <button
                         onClick={startOnboarding}
@@ -194,14 +219,18 @@ export default function CompanyPanel() {
                       Obs: payouts är inte aktiverade ännu.
                     </p>
                   )}
-                  <button onClick={refreshStripeStatus} className="mt-2 text-sm underline">
+                  <button
+                    onClick={refreshStripeStatus}
+                    className="mt-2 text-sm underline"
+                  >
                     Uppdatera Stripe-status
                   </button>
                 </>
               ) : (
                 <div className="bg-yellow-50 p-3 rounded border border-yellow-300">
                   <p className="text-yellow-700 text-sm mb-2">
-                    För att kunna ta emot betalningar behöver du koppla ett Stripe-konto.
+                    För att kunna ta emot betalningar behöver du koppla ett
+                    Stripe-konto.
                   </p>
                   <button
                     onClick={startOnboarding}
@@ -213,32 +242,85 @@ export default function CompanyPanel() {
                 </div>
               )}
             </div>
+            {/* --- slut Stripe-sektion --- */}
           </>
         ) : (
-          <p className="text-muted-foreground">Ingen företagsinformation hittades.</p>
+          <p className="text-muted-foreground">
+            Ingen företagsinformation hittades.
+          </p>
         )}
       </div>
 
       <div className="flex gap-4 border-b pt-4">
         <button
           onClick={() => setTab('active')}
-          className={tab === 'active' ? 'border-b-2 font-semibold pb-2' : 'pb-2'}
+          className={
+            tab === 'active' ? 'border-b-2 font-semibold pb-2' : 'pb-2'
+          }
         >
           Aktiva
         </button>
         <button
           onClick={() => setTab('expired')}
-          className={tab === 'expired' ? 'border-b-2 font-semibold pb-2' : 'pb-2'}
+          className={
+            tab === 'expired' ? 'border-b-2 font-semibold pb-2' : 'pb-2'
+          }
         >
           Utgångna
         </button>
       </div>
 
       {tab === 'active' && (
-        <DealList title="Aktiva erbjudanden" deals={activeDeals} loading={fetching} />
+        <DealList
+          title="Aktiva erbjudanden"
+          deals={activeDeals}
+          loading={fetching}
+        />
       )}
+
       {tab === 'expired' && (
-        <DealList title="Utgångna erbjudanden" deals={expiredDeals} loading={fetching} />
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold mb-2">Utgångna erbjudanden</h3>
+          {expiredDeals.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Inga utgångna erbjudanden.
+            </p>
+          ) : (
+            <ul className="divide-y">
+              {expiredDeals.map((d) => (
+                <li
+                  key={d.id}
+                  className="flex items-center justify-between py-2"
+                >
+                  <div>
+                    <div className="font-medium">{d.title}</div>
+                    {/* valfritt: visa d.expiresAt här med date-fns */}
+                  </div>
+                  <ReactivateDeal
+                    deal={d}
+                    onDone={(u) => {
+                      setExpiredDeals((prev) =>
+                        prev.filter((x) => x.id !== d.id)
+                      );
+                      if (u.status === 'approved' || u.status === 'active') {
+                        setActiveDeals((prev) => [
+                          {
+                            ...d,
+                            expiresAt: u.expiresAt ?? d.expiresAt,
+                            feePercentage: u.feePercentage ?? d.feePercentage,
+                          } as any,
+                          ...prev,
+                        ]);
+                        // valfritt: hoppa till Aktiva för att se posten direkt
+                        setTab('active');
+                      }
+                    }}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
     </div>
   );

@@ -6,8 +6,12 @@ import { Button } from '@/components/ui/button';
 import { useCartContext } from './cartProvider';
 import { CartItem } from '@/hooks/useCart';
 
+interface CartItemWithTimeLeft extends CartItem {
+  timeLeft?: { hours: number; minutes: number; seconds: number };
+}
+
 interface CartItemCardProps {
-  item: CartItem;
+  item: CartItemWithTimeLeft;
   onMoveToWishlist: (id: string) => void;
 }
 
@@ -15,9 +19,13 @@ const CartItemCard = ({ item, onMoveToWishlist }: CartItemCardProps) => {
   const { removeFromCart, addToCart } = useCartContext();
 
   const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity < 1) return;
+    if (newQuantity < 1 || !item?.id) return;
     addToCart(item, newQuantity - item.quantity);
   };
+
+  if (!item?.id) {
+    return null; // Don't render if item is invalid
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4">
@@ -38,12 +46,14 @@ const CartItemCard = ({ item, onMoveToWishlist }: CartItemCardProps) => {
               <p className="text-sm text-gray-500 mb-1">
                 Säljare: {item.companyName}
               </p>
-              <div className="text-sm mb-4 text-rose-600">
-                Erbjudandet går ut om:{' '}
-                {item.timeLeft?.hours.toString().padStart(2, '0')}:
-                {item.timeLeft?.minutes.toString().padStart(2, '0')}:
-                {item.timeLeft?.seconds.toString().padStart(2, '0')}
-              </div>
+              {item.timeLeft && (
+                <div className="text-sm mb-4 text-rose-600">
+                  Erbjudandet går ut om:{' '}
+                  {item.timeLeft.hours.toString().padStart(2, '0')}:
+                  {item.timeLeft.minutes.toString().padStart(2, '0')}:
+                  {item.timeLeft.seconds.toString().padStart(2, '0')}
+                </div>
+              )}
             </div>
 
             <button

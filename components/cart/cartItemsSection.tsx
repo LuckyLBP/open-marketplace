@@ -5,50 +5,83 @@ import { ArrowRight } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import CartItemCard from './cartItemCard';
 import { useCartContext } from './cartProvider';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { CartItem } from '@/hooks/useCart';
+
+interface CartItemWithTimeLeft extends CartItem {
+  timeLeft?: { hours: number; minutes: number; seconds: number };
+}
 
 const CartItemsSection = () => {
   const { cartItems, removeFromCart } = useCartContext();
   const { toast } = useToast();
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItemWithTimeLeft[]>([]);
+  const removeFromCartRef = useRef(removeFromCart);
+  const toastRef = useRef(toast);
+
+  // Keep refs updated to avoid stale closures
+  useEffect(() => {
+    removeFromCartRef.current = removeFromCart;
+    toastRef.current = toast;
+  }, [removeFromCart, toast]);
+
+  // Sync items with cartItems
+  useEffect(() => {
+    setItems(cartItems);
+  }, [cartItems]);
 
   // Countdown timer för utgång
   useEffect(() => {
-    setItems(cartItems); // init
+    if (!cartItems.length) return;
 
     const interval = setInterval(() => {
-      setItems((prev) =>
-        prev
-          .map((item) => {
-            const now = new Date();
-            const diff = new Date(item.expiresAt).getTime() - now.getTime();
-            if (diff <= 0) {
-              removeFromCart(item.id);
-              toast({
-                title: `${item.title} har utgått`,
-                description:
-                  'Erbjudandet är inte längre tillgängligt och har tagits bort från varukorgen.',
-                variant: 'destructive',
-              });
-              return null;
-            }
+      setItems((prevItems) => {
+        const updatedItems: CartItemWithTimeLeft[] = [];
+        let hasExpired = false;
 
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        prevItems.forEach((item) => {
+          // Skip if item doesn't exist in current cartItems (removed)
+          const stillInCart = cartItems.find(cartItem => cartItem.id === item.id);
+          if (!stillInCart) return;
 
-            return {
-              ...item,
-              timeLeft: { hours, minutes, seconds },
-            };
-          })
-          .filter(Boolean) as CartItem[]
-      );
+          const now = new Date();
+          
+          // Safety check for expiresAt
+          if (!item.expiresAt) {
+            updatedItems.push(item);
+            return;
+          }
+          
+          const diff = new Date(item.expiresAt).getTime() - now.getTime();
+          
+          if (diff <= 0) {
+            hasExpired = true;
+            removeFromCartRef.current(item.id);
+            toastRef.current({
+              title: `${item.title} har utgått`,
+              description:
+                'Erbjudandet är inte längre tillgängligt och har tagits bort från varukorgen.',
+              variant: 'destructive',
+            });
+            return;
+          }
+
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+          updatedItems.push({
+            ...item,
+            timeLeft: { hours, minutes, seconds },
+          } as CartItemWithTimeLeft);
+        });
+
+        return updatedItems;
+      });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [cartItems, removeFromCart, toast]);
+  }, [cartItems]);
 
   const handleMoveToWishlist = (id: string) => {
     removeFromCart(id);
