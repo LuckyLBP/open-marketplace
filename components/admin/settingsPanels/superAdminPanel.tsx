@@ -19,6 +19,7 @@ import { CompanySelector } from '../companySelector';
 import { Deal } from '@/components/types/deal';
 import GlobalPricingCard from './globalPricingCard';
 import { useToast } from '@/components/ui/use-toast';
+import BannerManagement from '../bannerManagement';
 
 // ✅ Reactivera-knappen
 import ReactivateDeal from '@/components/deals/reactivate-deal';
@@ -35,6 +36,11 @@ type PendingCompany = { id: string; companyName: string; email?: string };
 export default function SuperAdminPanel() {
   const { toast } = useToast();
   const { activeDeals, expiredDeals, fetching } = useAdminDeals();
+
+  // Tab state for navigation
+  const [activeTab, setActiveTab] = useState<
+    'deals' | 'accounts' | 'banners' | 'settings'
+  >('deals');
 
   const [selectedType, setSelectedType] = useState<'company' | 'customer'>(
     'company'
@@ -214,231 +220,323 @@ export default function SuperAdminPanel() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Superadmin</h2>
-        <div className="flex items-center gap-2">
-          <select
-            value={selectedType}
-            onChange={(e) =>
-              setSelectedType(e.target.value as 'company' | 'customer')
-            }
-            className="rounded-md border px-2 py-1 text-sm"
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('deals')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'deals'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
           >
-            <option value="company">Företag</option>
-            <option value="customer">Privatperson</option>
-          </select>
-
-          <CompanySelector
-            companies={[
-              { id: '', email: 'Visa alla' },
-              ...entities.map((u) => ({ id: u.id, email: u.email })),
-            ]}
-            selectedCompanyId={selectedId}
-            onChange={setSelectedId}
-          />
-        </div>
-      </div>
-
-      {/* Väntande företag */}
-      <div className="rounded-lg border bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold">Väntande företag</h3>
-          <button onClick={loadPendingCompanies} className="text-sm underline">
-            Uppdatera
+            Erbjudanden
           </button>
-        </div>
-        {loadingPendingCompanies ? (
-          <div className="text-sm text-muted-foreground">
-            Laddar väntande företag…
-          </div>
-        ) : pendingCompaniesErr ? (
-          <div className="text-sm text-red-600">{pendingCompaniesErr}</div>
-        ) : pendingCompanies.length === 0 ? (
-          <div className="text-sm text-muted-foreground">
-            Inga väntande företag.
-          </div>
-        ) : (
-          <ul className="space-y-2">
-            {pendingCompanies.map((c) => (
-              <li
-                key={c.id}
-                className="flex items-center justify-between rounded-md border px-3 py-2"
-              >
-                <div>
-                  <div className="font-medium">{c.companyName}</div>
-                  {c.email && (
-                    <div className="text-sm text-gray-600">{c.email}</div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => approveCompany(c.id)}
-                    className="bg-green-600 text-white px-3 py-1 rounded-md"
-                  >
-                    Godkänn
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+          <button
+            onClick={() => setActiveTab('accounts')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'accounts'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Konton
+          </button>
+          <button
+            onClick={() => setActiveTab('banners')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'banners'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Bannerhantering
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'settings'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Inställningar
+          </button>
+        </nav>
       </div>
 
-      {/* Globala priser & avgifter */}
-      <GlobalPricingCard />
-
-      {selectedId && selectedEntity && (
-        <div className="p-4 rounded-lg bg-white border shadow-sm">
-          <p>
-            <strong>E-post:</strong> {selectedEntity.email}
-          </p>
-          <p>
-            <strong>Namn:</strong> {selectedEntity.name || 'Saknas'}
-          </p>
-          {selectedType === 'company' && (
-            <p>
-              <strong>Organisationsnummer:</strong>{' '}
-              {selectedEntity.orgNumber || 'Saknas'}
-            </p>
-          )}
-
-          <div className="mt-3">
-            <button
-              onClick={() => handleDelete(selectedId)}
-              className="bg-red-600 text-white px-3 py-1 rounded-md"
+      {/* Tab Content */}
+      {activeTab === 'deals' && (
+        <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedType}
+              onChange={(e) =>
+                setSelectedType(e.target.value as 'company' | 'customer')
+              }
+              className="rounded-md border px-2 py-1 text-sm"
             >
-              Ta bort konto
-            </button>
+              <option value="company">Företag</option>
+              <option value="customer">Privatperson</option>
+            </select>
+
+            <CompanySelector
+              companies={[
+                { id: '', email: 'Visa alla' },
+                ...entities.map((u) => ({ id: u.id, email: u.email })),
+              ]}
+              selectedCompanyId={selectedId}
+              onChange={setSelectedId}
+            />
+          </div>
+
+          <div>
+            <div className="flex gap-4 border-b">
+              <button
+                onClick={() => setTab('active')}
+                className={
+                  tab === 'active' ? 'border-b-2 font-semibold pb-2' : 'pb-2'
+                }
+              >
+                Aktiva
+              </button>
+              <button
+                onClick={() => setTab('expired')}
+                className={
+                  tab === 'expired' ? 'border-b-2 font-semibold pb-2' : 'pb-2'
+                }
+              >
+                Utgångna
+              </button>
+              <button
+                onClick={() => setTab('pending')}
+                className={
+                  tab === 'pending' ? 'border-b-2 font-semibold pb-2' : 'pb-2'
+                }
+              >
+                Väntande
+              </button>
+            </div>
+
+            <div className="mt-4">
+              {tab === 'expired' ? (
+                filteredDeals.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Inga utgångna erbjudanden.
+                  </p>
+                ) : (
+                  <ul className="space-y-3">
+                    {filteredDeals.map((deal) => (
+                      <li
+                        key={deal.id}
+                        className="p-4 rounded-lg bg-white border shadow-sm flex flex-col md:flex-row md:items-center md:justify-between"
+                      >
+                        <div>
+                          <h3 className="font-semibold">{deal.title}</h3>
+                          {deal.companyName && (
+                            <p className="text-sm text-muted-foreground">
+                              {deal.companyName}
+                            </p>
+                          )}
+                        </div>
+                        <div className="mt-3 md:mt-0">
+                          <ReactivateDeal
+                            deal={deal}
+                            onDone={(u) => {
+                              // Ta bort ur "Utgångna" direkt
+                              setFilteredDeals((prev) =>
+                                prev.filter((d) => d.id !== deal.id)
+                              );
+
+                              // Hoppa till "Aktiva" och visa bekräftelse
+                              setTab('active');
+                              toast({
+                                title:
+                                  u.status === 'pending'
+                                    ? 'Skickat för granskning'
+                                    : 'Erbjudandet är aktivt',
+                                description:
+                                  u.status === 'pending'
+                                    ? 'Erbjudandet väntar på godkännande.'
+                                    : 'Erbjudandet flyttades till Aktiva.',
+                              });
+                            }}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              ) : tab === 'pending' ? (
+                filteredDeals.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Inga väntande erbjudanden.
+                  </p>
+                ) : (
+                  <ul className="space-y-3">
+                    {filteredDeals.map((deal) => (
+                      <li
+                        key={deal.id}
+                        className="p-4 rounded-lg bg-white border shadow-sm flex flex-col md:flex-row md:items-center md:justify-between"
+                      >
+                        <div>
+                          <h3 className="font-semibold">{deal.title}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {deal.description}
+                          </p>
+                          <p className="text-sm mt-1">
+                            <strong>Skapad av:</strong> {deal.companyName}
+                          </p>
+                        </div>
+
+                        <div className="mt-3 md:mt-0 flex gap-2">
+                          <button
+                            onClick={() => handleApproveDeal(deal.id)}
+                            className="bg-green-600 text-white px-3 py-1 rounded-md"
+                          >
+                            Godkänn
+                          </button>
+                          <button
+                            onClick={() => handleRejectDeal(deal.id)}
+                            className="bg-red-600 text-white px-3 py-1 rounded-md"
+                          >
+                            Avslå
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              ) : (
+                <DealList
+                  title="Erbjudanden"
+                  deals={filteredDeals}
+                  loading={fetching}
+                />
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      <div>
-        <div className="flex gap-4 border-b">
-          <button
-            onClick={() => setTab('active')}
-            className={
-              tab === 'active' ? 'border-b-2 font-semibold pb-2' : 'pb-2'
-            }
-          >
-            Aktiva
-          </button>
-          <button
-            onClick={() => setTab('expired')}
-            className={
-              tab === 'expired' ? 'border-b-2 font-semibold pb-2' : 'pb-2'
-            }
-          >
-            Utgångna
-          </button>
-          <button
-            onClick={() => setTab('pending')}
-            className={
-              tab === 'pending' ? 'border-b-2 font-semibold pb-2' : 'pb-2'
-            }
-          >
-            Väntande
-          </button>
-        </div>
+      {activeTab === 'accounts' && (
+        <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedType}
+              onChange={(e) =>
+                setSelectedType(e.target.value as 'company' | 'customer')
+              }
+              className="rounded-md border px-2 py-1 text-sm"
+            >
+              <option value="company">Företag</option>
+              <option value="customer">Privatperson</option>
+            </select>
 
-        <div className="mt-4">
-          {tab === 'expired' ? (
-            filteredDeals.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Inga utgångna erbjudanden.
-              </p>
+            <CompanySelector
+              companies={[
+                { id: '', email: 'Visa alla' },
+                ...entities.map((u) => ({ id: u.id, email: u.email })),
+              ]}
+              selectedCompanyId={selectedId}
+              onChange={setSelectedId}
+            />
+          </div>
+
+          {/* Väntande företag */}
+          <div className="rounded-lg border bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold">Väntande företag</h3>
+              <button
+                onClick={loadPendingCompanies}
+                className="text-sm underline"
+              >
+                Uppdatera
+              </button>
+            </div>
+            {loadingPendingCompanies ? (
+              <div className="text-sm text-muted-foreground">
+                Laddar väntande företag…
+              </div>
+            ) : pendingCompaniesErr ? (
+              <div className="text-sm text-red-600">{pendingCompaniesErr}</div>
+            ) : pendingCompanies.length === 0 ? (
+              <div className="text-sm text-muted-foreground">
+                Inga väntande företag.
+              </div>
             ) : (
-              <ul className="space-y-3">
-                {filteredDeals.map((deal) => (
+              <ul className="space-y-2">
+                {pendingCompanies.map((c) => (
                   <li
-                    key={deal.id}
-                    className="p-4 rounded-lg bg-white border shadow-sm flex flex-col md:flex-row md:items-center md:justify-between"
+                    key={c.id}
+                    className="flex items-center justify-between rounded-md border px-3 py-2"
                   >
                     <div>
-                      <h3 className="font-semibold">{deal.title}</h3>
-                      {deal.companyName && (
-                        <p className="text-sm text-muted-foreground">
-                          {deal.companyName}
-                        </p>
+                      <div className="font-medium">{c.companyName}</div>
+                      {c.email && (
+                        <div className="text-sm text-gray-600">{c.email}</div>
                       )}
                     </div>
-                    <div className="mt-3 md:mt-0">
-                      <ReactivateDeal
-                        deal={deal}
-                        onDone={(u) => {
-                          // Ta bort ur "Utgångna" direkt
-                          setFilteredDeals((prev) =>
-                            prev.filter((d) => d.id !== deal.id)
-                          );
-
-                          // Hoppa till "Aktiva" och visa bekräftelse
-                          setTab('active');
-                          toast({
-                            title:
-                              u.status === 'pending'
-                                ? 'Skickat för granskning'
-                                : 'Erbjudandet är aktivt',
-                            description:
-                              u.status === 'pending'
-                                ? 'Erbjudandet väntar på godkännande.'
-                                : 'Erbjudandet flyttades till Aktiva.',
-                          });
-                        }}
-                      />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )
-          ) : tab === 'pending' ? (
-            filteredDeals.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Inga väntande erbjudanden.
-              </p>
-            ) : (
-              <ul className="space-y-3">
-                {filteredDeals.map((deal) => (
-                  <li
-                    key={deal.id}
-                    className="p-4 rounded-lg bg-white border shadow-sm flex flex-col md:flex-row md:items-center md:justify-between"
-                  >
-                    <div>
-                      <h3 className="font-semibold">{deal.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {deal.description}
-                      </p>
-                      <p className="text-sm mt-1">
-                        <strong>Skapad av:</strong> {deal.companyName}
-                      </p>
-                    </div>
-
-                    <div className="mt-3 md:mt-0 flex gap-2">
+                    <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleApproveDeal(deal.id)}
+                        onClick={() => approveCompany(c.id)}
                         className="bg-green-600 text-white px-3 py-1 rounded-md"
                       >
                         Godkänn
                       </button>
-                      <button
-                        onClick={() => handleRejectDeal(deal.id)}
-                        className="bg-red-600 text-white px-3 py-1 rounded-md"
-                      >
-                        Avslå
-                      </button>
                     </div>
                   </li>
                 ))}
               </ul>
-            )
-          ) : (
-            <DealList
-              title="Erbjudanden"
-              deals={filteredDeals}
-              loading={fetching}
-            />
+            )}
+          </div>
+
+          {selectedId && selectedEntity && (
+            <div className="p-4 rounded-lg bg-white border shadow-sm">
+              <p>
+                <strong>E-post:</strong> {selectedEntity.email}
+              </p>
+              <p>
+                <strong>Namn:</strong> {selectedEntity.name || 'Saknas'}
+              </p>
+              {selectedType === 'company' && (
+                <p>
+                  <strong>Organisationsnummer:</strong>{' '}
+                  {selectedEntity.orgNumber || 'Saknas'}
+                </p>
+              )}
+
+              <div className="mt-3">
+                <button
+                  onClick={() => handleDelete(selectedId)}
+                  className="bg-red-600 text-white px-3 py-1 rounded-md"
+                >
+                  Ta bort konto
+                </button>
+              </div>
+            </div>
           )}
         </div>
-      </div>
+      )}
+
+      {activeTab === 'banners' && (
+        <div>
+          <BannerManagement />
+        </div>
+      )}
+
+      {activeTab === 'settings' && (
+        <div className="space-y-6">
+          {/* Globala priser & avgifter */}
+          <GlobalPricingCard />
+        </div>
+      )}
     </div>
   );
 }

@@ -32,46 +32,11 @@ const BuyActionButtons = ({ t, handleShare, deal }: Props) => {
     if (loading) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/payments/create-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: [
-            {
-              id: deal.id,
-              quantity: 1,
-              accountType:
-                deal.accountType === 'customer' ? 'customer' : 'company',
-              feePercentage: deal.feePercentage,
-            },
-          ],
-        }),
-      });
+      // First add the item to cart
+      addToCart(deal, 1);
 
-      const data = await res.json();
-      if (!res.ok) {
-        toast({
-          title: t('Kunde inte starta betalningen'),
-          description: data?.error || 'Okänt fel.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      const clientSecret: string | undefined = data?.clientSecret;
-      const paymentIntentId = clientSecret?.split('_secret_')?.[0];
-
-      if (!clientSecret || !paymentIntentId) {
-        toast({
-          title: t('Fel'),
-          description: t('Oväntat svar från betalningstjänsten.'),
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // ✅ Dirigera till din nya checkout/[id]
-      router.push(`/checkout/${paymentIntentId}`);
+      // Then redirect to the proper checkout flow which handles buyer information
+      router.push('/checkout/intent');
     } catch (error) {
       console.error('BuyNow error:', error);
       toast({

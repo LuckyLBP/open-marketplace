@@ -150,7 +150,7 @@ export default function BannerManagement() {
   };
 
   const handleDelete = async (bannerId: string) => {
-    if (confirm('Are you sure you want to delete this banner?')) {
+    if (confirm('Är du säker på att du vill ta bort denna banner?')) {
       try {
         await deleteDoc(doc(db, 'banners', bannerId));
         setBanners((prev) => prev.filter((banner) => banner.id !== bannerId));
