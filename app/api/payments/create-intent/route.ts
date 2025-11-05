@@ -10,7 +10,7 @@ function getStripe() {
     throw new Error('STRIPE_SECRET_KEY is required');
   }
   return new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2025-04-30.basil',
+    apiVersion: '2025-08-27.basil',
   });
 }
 
@@ -63,7 +63,7 @@ type EnrichedItem = {
 function makeDeterministicCartId(items: IncomingItem[], buyerId?: string) {
   // sortera items så ordningen inte påverkar hash
   const normalized = [...items]
-    .map(i => ({ id: i.id, q: Number(i.quantity || 1) }))
+    .map((i) => ({ id: i.id, q: Number(i.quantity || 1) }))
     .sort((a, b) => a.id.localeCompare(b.id));
   const payload = JSON.stringify({ b: buyerId || '', i: normalized });
   return crypto.createHash('sha256').update(payload).digest('hex').slice(0, 24);
@@ -74,17 +74,33 @@ export async function POST(req: Request) {
     // --- Use Admin SDK (bypasses Firestore rules) ---
     const db = adminDb;
     if (!db) {
-      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Database connection failed' },
+        { status: 500 }
+      );
     }
 
     const stripe = getStripe();
 
     // --- Body parse ---
     const body = await req.json();
-    const { items, buyer } = body as { items: IncomingItem[]; buyer?: IncomingBuyer };
+    const { items, buyer } = body as {
+      items: IncomingItem[];
+      buyer?: IncomingBuyer;
+    };
+
+    console.log('[create-intent] Request received:', {
+      itemCount: items?.length,
+      itemIds: items?.map((i) => i.id),
+      buyerEmail: buyer?.email,
+      buyerName: buyer?.fullName,
+    });
 
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: 'Varukorgen är tom.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Varukorgen är tom.' },
+        { status: 400 }
+      );
     }
 
     // ✅ Validera gästdatan (minimikrav för kvitto/spårbarhet)
@@ -96,8 +112,22 @@ export async function POST(req: Request) {
       !!buyer?.city &&
       !!buyer?.country;
 
+    console.log('[create-intent] Buyer validation:', {
+      hasEmail: !!buyer?.email,
+      hasFullName: !!buyer?.fullName,
+      hasAddress: !!buyer?.addressLine1,
+      hasPostalCode: !!buyer?.postalCode,
+      hasCity: !!buyer?.city,
+      hasCountry: !!buyer?.country,
+      hasRequiredBuyer,
+      buyer,
+    });
+
     if (!hasRequiredBuyer) {
-      return NextResponse.json({ error: 'Kunduppgifter saknas (namn, e-post och adress krävs).' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Kunduppgifter saknas (namn, e-post och adress krävs).' },
+        { status: 400 }
+      );
     }
 
     // Stabil nyckel per varukorg (från klienten eller server-genererad)
@@ -110,15 +140,17 @@ export async function POST(req: Request) {
     // ===== Idempotens: återanvänd befintlig PI för samma cartId =====
     const cartRef = db.collection('checkoutCarts').doc(cartId);
     const cartSnap = await cartRef.get();
-    const existingPiId = cartSnap.exists ? (cartSnap.data() as any)?.piId : undefined;
+    const existingPiId = cartSnap.exists
+      ? (cartSnap.data() as any)?.piId
+      : undefined;
 
     if (existingPiId) {
       try {
         const existing = await stripe.paymentIntents.retrieve(existingPiId);
         if (existing && !['canceled', 'succeeded'].includes(existing.status)) {
           await cartRef.update({
-            piId: existing.id, 
-            updatedAt: FieldValue.serverTimestamp()
+            piId: existing.id,
+            updatedAt: FieldValue.serverTimestamp(),
           });
           return NextResponse.json({
             clientSecret: existing.client_secret,
@@ -128,7 +160,11 @@ export async function POST(req: Request) {
           });
         }
       } catch (e) {
-        console.warn('[create-intent] Could not reuse existing PI', existingPiId, e);
+        console.warn(
+          '[create-intent] Could not reuse existing PI',
+          existingPiId,
+          e
+        );
       }
     }
 
@@ -141,6 +177,12 @@ export async function POST(req: Request) {
 
     // --- Bygg items från Firestore ---
     for (const item of items) {
+      console.log(`[create-intent] Processing item:`, {
+        id: item.id,
+        quantity: item.quantity,
+        price: item.price,
+      });
+
       const dealRef = db.collection('deals').doc(item.id);
       const dealSnap = await dealRef.get();
       if (!dealSnap.exists) {
@@ -149,17 +191,36 @@ export async function POST(req: Request) {
       }
 
       const deal = dealSnap.data() as any;
+      console.log(`[create-intent] Deal found:`, {
+        id: deal.id,
+        title: deal.title,
+        companyId: deal.companyId,
+        price: deal.price,
+        status: deal.status,
+      });
 
       const sellerId: string = deal.companyId;
       if (!sellerId) {
-        console.warn('[create-intent] deal has no sellerId → skip', item.id);
-        continue;
+        console.error(
+          '[create-intent] Deal has no companyId → skip',
+          item.id,
+          'deal keys:',
+          Object.keys(deal)
+        );
+        return NextResponse.json(
+          {
+            error: `Deal "${deal.title}" är inte korrekt konfigurerad. Kontakta support.`,
+          },
+          { status: 400 }
+        );
       }
 
       const accountType: 'company' | 'customer' =
         item.accountType === 'customer' ? 'customer' : 'company';
 
-      const sellerRef = db.collection(accountType === 'company' ? 'companies' : 'customers').doc(sellerId);
+      const sellerRef = db
+        .collection(accountType === 'company' ? 'companies' : 'customers')
+        .doc(sellerId);
       const sellerSnap = await sellerRef.get();
       if (!sellerSnap.exists) {
         console.warn('[create-intent] seller doc missing → skip', sellerId);
@@ -168,32 +229,40 @@ export async function POST(req: Request) {
 
       const sellerData = sellerSnap.data() as any;
       const { stripeAccountId } = sellerData;
-      
+
       // Better logging for debugging
-      console.log(`[create-intent] Seller ${sellerId} data:`, { 
-        hasStripeAccount: !!stripeAccountId, 
-        accountId: stripeAccountId ? `${stripeAccountId.substring(0, 10)}...` : 'MISSING',
-        sellerName: sellerData?.name || sellerData?.companyName || 'Unknown'
+      console.log(`[create-intent] Seller ${sellerId} data:`, {
+        hasStripeAccount: !!stripeAccountId,
+        accountId: stripeAccountId
+          ? `${stripeAccountId.substring(0, 10)}...`
+          : 'MISSING',
+        sellerName: sellerData?.name || sellerData?.companyName || 'Unknown',
       });
-      
+
       if (!stripeAccountId) {
-        console.error(`[create-intent] ❌ Seller ${sellerId} has no stripeAccountId → SKIPPING ITEM ${item.id}`);
+        console.error(
+          `[create-intent] ❌ Seller ${sellerId} has no stripeAccountId → SKIPPING ITEM ${item.id}`
+        );
         // Don't skip - continue processing but flag the issue
-        return NextResponse.json({ 
-          error: `Säljaren för "${deal.title}" har inte konfigurerat sitt Stripe-konto än. Kontakta säljaren.` 
-        }, { status: 400 });
+        return NextResponse.json(
+          {
+            error: `Säljaren för "${deal.title}" har inte konfigurerat sitt Stripe-konto än. Kontakta säljaren.`,
+          },
+          { status: 400 }
+        );
       }
 
       const quantity = Math.max(1, Number(item.quantity || 1));
       const unitAmountSEK = Math.round(Number(deal.price));
       const grossPerItemSEK = unitAmountSEK * quantity;
 
-      const feePct =
-        Number.isFinite(Number(deal.duration))
-          ? feePctFromDuration(Number(deal.duration))
-          : Math.max(0, Number(item.feePercentage ?? 0));
+      const feePct = Number.isFinite(Number(deal.duration))
+        ? feePctFromDuration(Number(deal.duration))
+        : Math.max(0, Number(item.feePercentage ?? 0));
 
-      const platformFeePerItemSEK = Math.round((grossPerItemSEK * feePct) / 100);
+      const platformFeePerItemSEK = Math.round(
+        (grossPerItemSEK * feePct) / 100
+      );
 
       subtotalSEK += grossPerItemSEK;
       serviceFeeSEK += platformFeePerItemSEK;
@@ -215,7 +284,10 @@ export async function POST(req: Request) {
     }
 
     if (subtotalSEK <= 0) {
-      return NextResponse.json({ error: 'Ogiltigt totalbelopp.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Ogiltigt totalbelopp.' },
+        { status: 400 }
+      );
     }
 
     // --- Frakt (tillhör plattformen) ---
@@ -264,39 +336,45 @@ export async function POST(req: Request) {
     });
 
     // --- Spara checkoutSession i Firestore ---
-    await db.collection('checkoutSessions').doc(paymentIntent.id).set({
-      createdAt: FieldValue.serverTimestamp(),
-      sessionId: paymentIntent.id,
-      currency,
-      items: enrichedItems,
-      subtotalSEK,
-      shippingFeeSEK,
-      totalAmountSEK,
-      serviceFeeSEK,
-      sellerMap,
-      status: 'requires_payment',
+    await db
+      .collection('checkoutSessions')
+      .doc(paymentIntent.id)
+      .set({
+        createdAt: FieldValue.serverTimestamp(),
+        sessionId: paymentIntent.id,
+        currency,
+        items: enrichedItems,
+        subtotalSEK,
+        shippingFeeSEK,
+        totalAmountSEK,
+        serviceFeeSEK,
+        sellerMap,
+        status: 'requires_payment',
 
-      // 🔥 Spara både gamla och nya buyer-fält för spårbarhet
-      buyerId: buyer?.id || null,
-      buyerEmail: buyer?.email || null,
-      buyer: {
-        id: buyer?.id || null,
-        fullName: buyer?.fullName || null,
-        email: buyer?.email || null,
-        phone: buyer?.phone || null,
-        addressLine1: buyer?.addressLine1 || null,
-        addressLine2: buyer?.addressLine2 || null,
-        postalCode: buyer?.postalCode || null,
-        city: buyer?.city || null,
-        country: buyer?.country || null,
-      },
-    });
+        // 🔥 Spara både gamla och nya buyer-fält för spårbarhet
+        buyerId: buyer?.id || null,
+        buyerEmail: buyer?.email || null,
+        buyer: {
+          id: buyer?.id || null,
+          fullName: buyer?.fullName || null,
+          email: buyer?.email || null,
+          phone: buyer?.phone || null,
+          addressLine1: buyer?.addressLine1 || null,
+          addressLine2: buyer?.addressLine2 || null,
+          postalCode: buyer?.postalCode || null,
+          city: buyer?.city || null,
+          country: buyer?.country || null,
+        },
+      });
 
     // --- Pekare per cart (för återanvändning vid retrys/dubbelklick) ---
-    await cartRef.set({
-      piId: paymentIntent.id, 
-      updatedAt: FieldValue.serverTimestamp()
-    }, { merge: true });
+    await cartRef.set(
+      {
+        piId: paymentIntent.id,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
@@ -306,7 +384,17 @@ export async function POST(req: Request) {
       metadataBuyerEmail: paymentIntent.metadata?.buyer_email ?? null,
     });
   } catch (error) {
-    console.error('[create-intent] Error:', error);
-    return NextResponse.json({ error: 'Något gick fel.' }, { status: 500 });
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error('[create-intent] Error:', {
+      message: errorMsg,
+      error: error instanceof Error ? error.stack : error,
+    });
+    return NextResponse.json(
+      {
+        error: 'Något gick fel vid betalningen.',
+        debug: errorMsg, // Remove this in production but keep for now
+      },
+      { status: 500 }
+    );
   }
 }

@@ -206,14 +206,33 @@ export default function CheckoutIntentPage() {
     setClientSecret(null);
     setCreating(true);
     try {
+      console.log('📤 Sending payment intent request:', {
+        itemCount: cartItems?.length,
+        items: cartItems?.map((i) => ({
+          id: i.id,
+          price: i.price,
+          companyId: i.companyId,
+        })),
+        buyer: buyerToSend,
+      });
+
       const res = await fetch('/api/payments/create-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items: cartItems, buyer: buyerToSend }),
       });
       const data = await res.json();
-      if (!res.ok || !data.clientSecret)
-        throw new Error(data?.error || 'Något gick fel vid betalning.');
+      console.log('📥 Payment intent response:', {
+        status: res.status,
+        data: JSON.stringify(data, null, 2),
+      });
+
+      if (!res.ok || !data.clientSecret) {
+        const errorMsg =
+          data?.debug || data?.error || 'Något gick fel vid betalning.';
+        console.error('❌ Payment intent error:', errorMsg);
+        throw new Error(errorMsg);
+      }
       setClientSecret(data.clientSecret);
     } catch (error: any) {
       console.error('checkout error:', error);
