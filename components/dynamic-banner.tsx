@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { db } from '@/lib/firebase';
+import { useFirebaseDb } from '@/hooks/useFirebaseDb';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import Link from 'next/link';
 
@@ -29,10 +29,13 @@ export default function DynamicBanner({
   maxBanners = 1,
   rounded = true,
 }: DynamicBannerProps) {
+  const { db } = useFirebaseDb();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!db) return; // Wait for db to be initialized
+
     const fetchBanners = async () => {
       try {
         const snapshot = await getDocs(
@@ -59,7 +62,7 @@ export default function DynamicBanner({
     };
 
     fetchBanners();
-  }, [position, maxBanners]);
+  }, [position, maxBanners, db]);
 
   if (loading) {
     return (

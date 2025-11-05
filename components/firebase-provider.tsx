@@ -3,7 +3,7 @@
 import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { type User, onAuthStateChanged } from 'firebase/auth';
-import { initializeFirebase } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
 export type UserType = 'customer' | 'company' | 'admin' | 'superadmin';
@@ -26,76 +26,65 @@ export function FirebaseProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let unsub: (() => void) | null = null;
+    if (!auth || !db) {
+      console.error('Firebase not initialized when FirebaseProvider mounted');
+      setLoading(false);
+      return;
+    }
 
-    const initAndSubscribe = async () => {
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+      if (!firebaseUser) {
+        setUserType(null);
+        setLoading(false);
+        return;
+      }
+
       try {
-        const { auth, db } = await initializeFirebase();
+        // 1) users/{uid}
+        const uref = doc(db, 'users', firebaseUser.uid);
+        const usnap = await getDoc(uref);
 
-        unsub = onAuthStateChanged(auth, async (firebaseUser) => {
-          setUser(firebaseUser);
-          if (!firebaseUser) {
-            setUserType(null);
+        if (usnap.exists()) {
+          const d = usnap.data() as any;
+          const role = (d?.accountType ?? d?.role) as UserType | undefined;
+          if (
+            role === 'superadmin' ||
+            role === 'admin' ||
+            role === 'company' ||
+            role === 'customer'
+          ) {
+            setUserType(role);
             setLoading(false);
             return;
           }
+          // om users-doc saknar roll → kolla companies
+        }
 
-          try {
-            // 1) users/{uid}
-            const uref = doc(db, 'users', firebaseUser.uid);
-            const usnap = await getDoc(uref);
-
-            if (usnap.exists()) {
-              const d = usnap.data() as any;
-              const role = (d?.accountType ?? d?.role) as UserType | undefined;
-              if (
-                role === 'superadmin' ||
-                role === 'admin' ||
-                role === 'company' ||
-                role === 'customer'
-              ) {
-                setUserType(role);
-                setLoading(false);
-                return;
-              }
-              // om users-doc saknar roll → kolla companies
-            }
-
-            // 2) companies/{uid}
-            const cref = doc(db, 'companies', firebaseUser.uid);
-            const csnap = await getDoc(cref);
-            if (csnap.exists()) {
-              const c = csnap.data() as any;
-              const crole = (c?.accountType ?? c?.role) as UserType | undefined;
-              setUserType(
-                crole === 'admin' ||
-                  crole === 'superadmin' ||
-                  crole === 'company'
-                  ? crole
-                  : 'company'
-              );
-            } else {
-              // 3) fallback
-              setUserType('customer');
-            }
-          } catch (e) {
-            console.error('Error determining user type:', e);
-            setUserType(null);
-          } finally {
-            setLoading(false);
-          }
-        });
-      } catch (error) {
-        console.error('Firebase initialization failed:', error);
+        // 2) companies/{uid}
+        const cref = doc(db, 'companies', firebaseUser.uid);
+        const csnap = await getDoc(cref);
+        if (csnap.exists()) {
+          const c = csnap.data() as any;
+          const crole = (c?.accountType ?? c?.role) as UserType | undefined;
+          setUserType(
+            crole === 'admin' || crole === 'superadmin' || crole === 'company'
+              ? crole
+              : 'company'
+          );
+        } else {
+          // 3) fallback
+          setUserType('customer');
+        }
+      } catch (e) {
+        console.error('Error determining user type:', e);
+        setUserType(null);
+      } finally {
         setLoading(false);
       }
-    };
+    });
 
-    initAndSubscribe();
-
-    return () => {
-      if (unsub) unsub();
-    };
+    return () => unsub();
   }, []);
 
   return (
