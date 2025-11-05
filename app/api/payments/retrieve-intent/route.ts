@@ -1,3 +1,5 @@
+import { initializeFirebase } from '@/lib/firebase';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
@@ -147,7 +149,6 @@ export async function GET(req: Request) {
       );
     }
 
-    const stripe = getStripe();
     const pi = await stripe.paymentIntents.retrieve(id);
 
     return NextResponse.json({
